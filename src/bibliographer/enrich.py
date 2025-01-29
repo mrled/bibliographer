@@ -1,9 +1,9 @@
 import pathlib
 
 from bibliographer import mlogger
-from bibliographer.bookish.amazon_browser import amazon_browser_search_cached
-from bibliographer.bookish.googlebooks import asin2gbv, google_books_search
-from bibliographer.bookish.openlibrary import isbn2olid
+from bibliographer.sources.amazon_browser import amazon_browser_search_cached
+from bibliographer.sources.googlebooks import asin2gbv, google_books_search
+from bibliographer.sources.openlibrary import isbn2olid
 from bibliographer.hugo import slugify
 from bibliographer.util.jsonutil import load_json, save_json
 

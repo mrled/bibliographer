@@ -6,16 +6,16 @@ import tomllib
 from typing import Optional, List
 import logging
 
-from bibliographer.bookish.amazon_browser import amazon_browser_search_cached
-from bibliographer.bookish.audible import audible_login, retrieve_audible_library
+from bibliographer.sources.amazon_browser import amazon_browser_search_cached
+from bibliographer.sources.audible import audible_login, retrieve_audible_library
 
 from bibliographer import add_console_handler, mlogger
-from bibliographer.bookish.covers import download_cover_from_url
-from bibliographer.bookish.enrich import enrich_audible_library, enrich_kindle_library
-from bibliographer.bookish.googlebooks import google_books_retrieve
-from bibliographer.bookish.kindle import ingest_kindle_library
-from bibliographer.bookish.manual import manual_add
-from bibliographer.bookish.populate import populate_all_sources
+from bibliographer.sources.covers import download_cover_from_url
+from bibliographer.enrich import enrich_audible_library, enrich_kindle_library
+from bibliographer.sources.googlebooks import google_books_retrieve
+from bibliographer.sources.kindle import ingest_kindle_library
+from bibliographer.sources.manual import manual_add
+from bibliographer.populate import populate_all_sources
 from bibliographer.cli.util import exceptional_exception_handler, idb_excepthook
 
 
@@ -49,7 +49,7 @@ def parseargs(arguments: List[str]):
     parser.add_argument(
         "--config",
         type=pathlib.Path,
-        help="Path to TOML config file, defaulting to a file called .bookish.toml in the repo root",
+        help="Path to TOML config file, defaulting to a file called .bibliographer.toml in the repo root",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging of API calls.")
     parser.add_argument(
@@ -64,7 +64,7 @@ def parseargs(arguments: List[str]):
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
 
     # Populate
-    sp_pop = subparsers.add_parser("populate", help="Populate bookish.json files")
+    sp_pop = subparsers.add_parser("populate", help="Populate bibliographer.json files")
 
     # Audible
     sp_audible = subparsers.add_parser("audible", help="Audible operations")
@@ -113,7 +113,7 @@ def parseargs(arguments: List[str]):
     parsed = parser.parse_args(arguments)
 
     if not parsed.config:
-        parsed.config = parsed.repo_root / ".bookish.toml"
+        parsed.config = parsed.repo_root / ".bibliographer.toml"
 
     if parsed.config.exists():
         with open(parsed.config, "rb") as f:
@@ -153,10 +153,10 @@ def main():
     else:
         book_slug_root = args.repo_root / "content" / "books"
 
-    # Directory structure: we store API cache in "bookish_data/apicache" and user mappings in "bookish_data/usermappings"
-    bookish_data = args.repo_root / "bookish_data"
-    apicache = bookish_data / "apicache"
-    usermappings = bookish_data / "usermappings"
+    # Directory structure: we store API cache in "bibliographer_data/apicache" and user mappings in "bibliographer_data/usermappings"
+    bibliographer_data = args.repo_root / "bibliographer_data"
+    apicache = bibliographer_data / "apicache"
+    usermappings = bibliographer_data / "usermappings"
     apicache.mkdir(parents=True, exist_ok=True)
     usermappings.mkdir(parents=True, exist_ok=True)
 

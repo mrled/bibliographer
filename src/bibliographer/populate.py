@@ -1,9 +1,9 @@
 import pathlib
 
 from bibliographer import mlogger
-from bibliographer.bookish.covers import lookup_cover
-from bibliographer.bookish.enrich import enrich_audible_library, enrich_kindle_library, enrich_manual_books
-from bibliographer.bookish.wikipedia import wikipedia_relevant_pages
+from bibliographer.sources.covers import lookup_cover
+from bibliographer.enrich import enrich_audible_library, enrich_kindle_library, enrich_manual_books
+from bibliographer.sources.wikipedia import wikipedia_relevant_pages
 from bibliographer.util.jsonutil import load_json, save_json
 
 
@@ -28,7 +28,7 @@ def populate_all_sources(
     """
     Loop over Audible, Kindle, and Manual data sources:
     1) Enrich each
-    2) Populate each (cover, bookish.json, index.md)
+    2) Populate each (cover, bibliographer.json, index.md)
     Replaces old separate populate functions.
     """
     # 1) Audible
@@ -127,7 +127,7 @@ def _populate_source(
             book_dir=book_dir,
         )
 
-        # Create bookish.json
+        # Create bibliographer.json
         out_json = {}
         out_json["title"] = info["title"]
         out_json["authors"] = info["authors"]
@@ -169,7 +169,7 @@ def _populate_source(
             out_json["links"]["other"].append({"title": f"{k} - Wikipedia", "url": v})
 
         # Save
-        save_json(book_dir / "bookish.json", out_json)
+        save_json(book_dir / "bibliographer.json", out_json)
 
         # Create index.md if it doesn't already exist
         index_md_path = book_dir / "index.md"
