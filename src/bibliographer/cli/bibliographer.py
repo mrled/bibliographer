@@ -135,7 +135,7 @@ def parseargs(arguments: List[str]):
 ###############################################################################
 
 
-def main():
+def main(arguments: list[str]) -> int:
     args = parseargs(sys.argv[1:])
 
     log_level = logging.INFO
@@ -269,8 +269,10 @@ def main():
 
     else:
         print("Unknown subcommand", file=sys.stderr)
-        sys.exit(1)
+        return 1
+
+    return 0
 
 
 def wrapped_main():
-    sys.exit(exceptional_exception_handler(main))
+    sys.exit(exceptional_exception_handler(main, sys.argv[1:]))

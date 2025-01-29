@@ -21,7 +21,7 @@ def idb_excepthook(type_, value, tb):
         pdb.pm()
 
 
-def exceptional_exception_handler(func: Callable[[list[str]], int], *arguments: list[str]) -> int:
+def exceptional_exception_handler(func: Callable[[list[str]], int], arguments: list[str]) -> int:
     """Handler for exceptional exceptions
 
     You see, most unhandled exceptions should terminate the program with a traceback,
@@ -32,7 +32,7 @@ def exceptional_exception_handler(func: Callable[[list[str]], int], *arguments: 
     without a giant nastsy backtrace.
     """
     try:
-        returncode = func(*arguments)
+        returncode = func(arguments)
         sys.stdout.flush()
     except BrokenPipeError:
         # The EPIPE signal is sent if you run e.g. `script.py | head`.
