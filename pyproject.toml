@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-bibliographer = "bibliographer.cli.bookish:wrapped_main"
+bibliographer = "bibliographer.cli.bibliographer:wrapped_main"
 
 [build-system]
 requires = ["setuptools>=61.0"]
