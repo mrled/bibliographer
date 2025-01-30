@@ -19,7 +19,7 @@ def isbn2olid(isbn2olid_map: pathlib.Path, isbn: str) -> Optional[str]:
 
     url = f"https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&format=json&jscmd=data"
     mlogger.debug(f"[OPENLIBRARY] GET {url}")
-    r = requests.get(url, headers={"User-Agent": "BookishBot/1.0"}, timeout=10)
+    r = requests.get(url, headers={"User-Agent": "BibliograhperBot/1.0"}, timeout=10)
     mlogger.debug(f"[OPENLIBRARY] => status {r.status_code}")
     if r.status_code != 200:
         return None

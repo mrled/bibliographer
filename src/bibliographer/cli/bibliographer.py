@@ -165,7 +165,7 @@ class ConfigurationParameter(Generic[T]):
 
 
 class ConfigurationParameterSet:
-    """All parameters set in the config file5"""
+    """All parameters set in the config file"""
 
     @staticmethod
     def scalars() -> List[ConfigurationParameter]:
