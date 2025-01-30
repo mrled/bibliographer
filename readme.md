@@ -318,6 +318,7 @@ cog.out(f"```toml\n{get_example_config()}```\n")
 debug = false
 verbose = false
 google_books_key = ""
+google_books_key_cmd = ""
 book_slug_root = "books"
 audible_login_file = ".bibliographer-audible-auth-INSECURE.json"
 bibliographer_data = "bibliographer_data"
@@ -389,7 +390,7 @@ cog.out(f"```\n{get_help_string()}```\n")
 > bibliographer --help
 usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-b BIBLIOGRAPHER_DATA]
                      [-s BOOK_SLUG_ROOT] [-a AUDIBLE_LOGIN_FILE]
-                     [-g GOOGLE_BOOKS_KEY]
+                     [-g GOOGLE_BOOKS_KEY] [-G GOOGLE_BOOKS_KEY_CMD]
                      {populate,audible,kindle,googlebook,amazon,manual,cover}
                      ...
 
@@ -421,6 +422,9 @@ options:
                         Defaults to ./.bibliographer-audible-auth-INSECURE.json
   -g GOOGLE_BOOKS_KEY, --google-books-key GOOGLE_BOOKS_KEY
                         Google Books API key
+  -G GOOGLE_BOOKS_KEY_CMD, --google-books-key-cmd GOOGLE_BOOKS_KEY_CMD
+                        A command to retrieve the Google Books API key (e.g.
+                        from a password manager)
 
 ________________________________________________________________________
 
