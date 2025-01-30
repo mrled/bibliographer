@@ -314,7 +314,7 @@ import cog
 from bibliographer.cli.bibliographer import get_example_config
 cog.out(f"```toml\n{get_example_config()}```\n")
 ]]]-->
-```
+```toml
 debug = false
 verbose = false
 google_books_key = ""
@@ -369,9 +369,11 @@ cog.out(f"```\n{get_help_string()}```\n")
 ]]]-->
 ```
 > bibliographer --help
-usage: cog [-h] [-D] [-c CONFIG] [-v] [-b BIBLIOGRAPHER_DATA]
-           [-s BOOK_SLUG_ROOT] [-a AUDIBLE_LOGIN_FILE] [-g GOOGLE_BOOKS_KEY]
-           {populate,audible,kindle,googlebook,amazon,manual,cover} ...
+usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-b BIBLIOGRAPHER_DATA]
+                     [-s BOOK_SLUG_ROOT] [-a AUDIBLE_LOGIN_FILE]
+                     [-g GOOGLE_BOOKS_KEY]
+                     {populate,audible,kindle,googlebook,amazon,manual,cover}
+                     ...
 
 Manage Audible/Kindle libraries, enrich them, and populate local book repos.
 
@@ -405,7 +407,7 @@ options:
 ________________________________________________________________________
 
 > bibliographer populate --help
-usage: cog populate [-h]
+usage: bibliographer populate [-h]
 
 Populate bibliographer.json files
 
@@ -415,7 +417,7 @@ options:
 ________________________________________________________________________
 
 > bibliographer audible --help
-usage: cog audible [-h] {retrieve} ...
+usage: bibliographer audible [-h] {retrieve} ...
 
 Audible operations
 
@@ -429,7 +431,7 @@ options:
 ________________________________________________________________________
 
 > bibliographer audible retrieve --help
-usage: cog audible retrieve [-h]
+usage: bibliographer audible retrieve [-h]
 
 Retrieve the Audible library
 
@@ -439,7 +441,7 @@ options:
 ________________________________________________________________________
 
 > bibliographer kindle --help
-usage: cog kindle [-h] {ingest} ...
+usage: bibliographer kindle [-h] {ingest} ...
 
 Kindle operations
 
@@ -453,7 +455,7 @@ options:
 ________________________________________________________________________
 
 > bibliographer kindle ingest --help
-usage: cog kindle ingest [-h] export_json
+usage: bibliographer kindle ingest [-h] export_json
 
 Ingest a new Kindle library export JSON
 
@@ -466,7 +468,7 @@ options:
 ________________________________________________________________________
 
 > bibliographer googlebook --help
-usage: cog googlebook [-h] {requery} ...
+usage: bibliographer googlebook [-h] {requery} ...
 
 Operate on Google Books data
 
@@ -480,7 +482,7 @@ options:
 ________________________________________________________________________
 
 > bibliographer googlebook requery --help
-usage: cog googlebook requery [-h] volume_ids [volume_ids ...]
+usage: bibliographer googlebook requery [-h] volume_ids [volume_ids ...]
 
 Overwrite the local Google Books cache for a volume ID
 
@@ -493,7 +495,7 @@ options:
 ________________________________________________________________________
 
 > bibliographer amazon --help
-usage: cog amazon [-h] {requery} ...
+usage: bibliographer amazon [-h] {requery} ...
 
 Amazon forced re-scrape
 
@@ -507,7 +509,7 @@ options:
 ________________________________________________________________________
 
 > bibliographer amazon requery --help
-usage: cog amazon requery [-h] searchterms [searchterms ...]
+usage: bibliographer amazon requery [-h] searchterms [searchterms ...]
 
 Force re-scrape for one or more search terms.
 
@@ -520,7 +522,7 @@ options:
 ________________________________________________________________________
 
 > bibliographer manual --help
-usage: cog manual [-h] {add} ...
+usage: bibliographer manual [-h] {add} ...
 
 Manage manually-entered books
 
@@ -534,9 +536,10 @@ options:
 ________________________________________________________________________
 
 > bibliographer manual add --help
-usage: cog manual add [-h] [--title TITLE] [--authors AUTHORS [AUTHORS ...]]
-                      [--isbn ISBN] [--purchase-date PURCHASE_DATE]
-                      [--read-date READ_DATE] [--slug SLUG]
+usage: bibliographer manual add [-h] [--title TITLE]
+                                [--authors AUTHORS [AUTHORS ...]] [--isbn ISBN]
+                                [--purchase-date PURCHASE_DATE]
+                                [--read-date READ_DATE] [--slug SLUG]
 
 Add a manually-entered book
 
@@ -555,7 +558,7 @@ options:
 ________________________________________________________________________
 
 > bibliographer cover --help
-usage: cog cover [-h] {set} ...
+usage: bibliographer cover [-h] {set} ...
 
 Cover operations
 
@@ -569,7 +572,7 @@ options:
 ________________________________________________________________________
 
 > bibliographer cover set --help
-usage: cog cover set [-h] slug url
+usage: bibliographer cover set [-h] slug url
 
 Set a cover image
 

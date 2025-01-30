@@ -60,9 +60,6 @@ def get_argparse_help_string(
     * `wrap`: The number of characters to wrap the help text to (0 to disable)
     """
 
-    def help_formatter(prog):
-        return argparse.HelpFormatter(prog, width=wrap)
-
     def get_parser_help_recursive(
         parser: argparse.ArgumentParser, cmd: str = "", root: bool = True
     ):
@@ -70,7 +67,7 @@ def get_argparse_help_string(
         if not root:
             docstring += "\n" + "_" * 72 + "\n\n"
         docstring += f"> {cmd} --help\n"
-        parser.formatter_class = help_formatter
+        parser.formatter_class = lambda prog: argparse.HelpFormatter(cmd, width=wrap)
         docstring += parser.format_help()
 
         for action in parser._actions:
