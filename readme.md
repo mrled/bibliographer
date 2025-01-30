@@ -360,6 +360,24 @@ Currently these files include:
   A manual library with books added directly on the command line from
   `bibliographer manual add ...`
 
+### Generating and saving a Google Books API Key
+
+See the [Google Books API documentation](https://developers.google.com/books/docs/v1/using)
+for information on obtaining and using an API key.
+
+You can pass it in or save it directly with `--google-books-key`,
+and you can also use the `google_books_key_cmd` config file option (or command line argument)
+to provide a command to retrieve the key from a password manager.
+For instance, if you have a 1Password entry called `GoogleBooksApi`
+that has a field called `bibliographer-google-books-api-key`,
+you might set this in `bibliographer.toml`:
+
+```toml
+google_books_key_cmd = "op item get GoogleBooksApi --field label=bibliographer-google-books-api-key"
+```
+
+This way you can safely store your config file in git without committing any secrets in plain text.
+
 ## Program help
 
 <!--[[[cog

@@ -6,6 +6,7 @@ import sys
 import tomllib
 from typing import Generic, List, Optional, Type, TypeVar
 import logging
+import subprocess
 
 from bibliographer.sources.amazon_browser import amazon_browser_search_cached
 from bibliographer.sources.audible import audible_login, retrieve_audible_library
@@ -55,6 +56,7 @@ def makeparser() -> argparse.ArgumentParser:
     parser.add_argument("-s", "--book-slug-root", help="Defaults to ./books")
     parser.add_argument("-a", "--audible-login-file", help="Defaults to ./.bibliographer-audible-auth-INSECURE.json")
     parser.add_argument("-g", "--google-books-key", help="Google Books API key")
+    parser.add_argument("-G", "--google-books-key-cmd", help="A command to retrieve the Google Books API key (e.g. from a password manager)")
 
     # Take care to add help AND description to each subparser.
     # Help is shown by the parent parser
@@ -164,6 +166,29 @@ class ConfigurationParameter(Generic[T]):
     default: T
 
 
+class SecretValueGetter:
+    """A class for getting secrets
+
+    The user can provide either the value directly,
+    or a command to run to get the value.
+    """
+
+    def __init__(self, getcmd: Optional[str] = None, key: Optional[str] = None):
+        self._key = None
+        self._getter = lambda: self._key
+        if key:
+            self._key = key
+        elif getcmd:
+            self._getter = lambda: subprocess.run(
+                getcmd, shell=True, check=True, capture_output=True
+            ).stdout.decode().strip()
+
+    def get(self) -> str:
+        if not self._key:
+            self._key = self._getter()
+        return self._key or ""
+
+
 class ConfigurationParameterSet:
     """All parameters set in the config file"""
 
@@ -174,6 +199,7 @@ class ConfigurationParameterSet:
             ConfigurationParameter("debug", bool, False),
             ConfigurationParameter("verbose", bool, False),
             ConfigurationParameter("google_books_key", str, ""),
+            ConfigurationParameter("google_books_key_cmd", str, ""),
         ]
 
     @staticmethod
@@ -262,7 +288,10 @@ def main(arguments: list[str]) -> int:
         log_level = logging.DEBUG
     add_console_handler(log_level)
 
-    google_books_key = args.google_books_key or ""
+    google_books_key = SecretValueGetter(
+        getcmd=args.google_books_key_cmd,
+        key=args.google_books_key,
+    )
 
     # Directory structure: we store API cache in "bibliographer_data/apicache" and user mappings in "bibliographer_data/usermappings"
     apicache = args.bibliographer_data / "apicache"
@@ -301,7 +330,7 @@ def main(arguments: list[str]) -> int:
             search2asin_map=search2asin_map_path,
             book_slug_root=args.book_slug_root,
             wikipedia_cache=wikipedia_cache,
-            google_books_key=google_books_key,
+            google_books_key=google_books_key.get(),
         )
 
     elif args.subcommand == "audible":
@@ -312,7 +341,7 @@ def main(arguments: list[str]) -> int:
                 audible_library_metadata=audible_library_metadata,
                 audible_library_metadata_enriched=audible_library_metadata_enriched,
                 search2asin_map_path=search2asin_map_path,
-                google_books_key=google_books_key,
+                google_books_key=google_books_key.get(),
                 gbooks_volumes=gbooks_volumes,
                 asin2gbv_map_path=asin2gbv_map_path,
                 isbn2olid_map_path=isbn2olid_map_path,
@@ -325,7 +354,7 @@ def main(arguments: list[str]) -> int:
                 kindle_library_metadata=kindle_library_metadata,
                 kindle_library_enriched=kindle_library_enriched,
                 search2asin_map_path=search2asin_map_path,
-                google_books_key=google_books_key,
+                google_books_key=google_books_key.get(),
                 gbooks_volumes=gbooks_volumes,
                 asin2gbv_map_path=asin2gbv_map_path,
                 isbn2olid_map_path=isbn2olid_map_path,
@@ -339,7 +368,7 @@ def main(arguments: list[str]) -> int:
             for vid in volume_ids:
                 mlogger.info(f"Forcing re-query of volume ID {vid}")
                 # forcibly re-download
-                google_books_retrieve(key=google_books_key, gbooks_volumes=gbooks_volumes, bookid=vid, overwrite=True)
+                google_books_retrieve(key=google_books_key.get(), gbooks_volumes=gbooks_volumes, bookid=vid, overwrite=True)
             print("Requery complete.")
 
     elif args.subcommand == "manual":
