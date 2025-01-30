@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import argparse
+import dataclasses
 import pathlib
 import sys
 import tomllib
-from typing import Optional, List
+from typing import Generic, List, Optional, Type, TypeVar
 import logging
 
 from bibliographer.sources.amazon_browser import amazon_browser_search_cached
@@ -119,6 +120,27 @@ def get_help_string() -> str:
     return get_argparse_help_string("bibliographer", makeparser())
 
 
+def get_example_config() -> str:
+    """Get a string containing an example TOML config file
+
+    This is kind of hacky,
+    and a better solution might be to use the configparser module for the config file
+    because unlike TOML Python can write it natively.
+    """
+    result = ""
+    for param in ConfigurationParameterSet.scalars():
+        value = param.default
+        if isinstance(value, str):
+            value = f"\"{value}\""
+        elif isinstance(value, bool):
+            # Make this look right for TOML
+            value = str(value).lower()
+        result += f"{param.key} = {value}\n"
+    for param in ConfigurationParameterSet.paths():
+        result += f"{param.key} = \"{param.default}\"\n"
+    return result
+
+
 def find_file_in_parents(filenames: list[str]) -> Optional[pathlib.Path]:
     """Find a file in the current directory or any parent directory"""
     current = pathlib.Path.cwd()
@@ -129,6 +151,55 @@ def find_file_in_parents(filenames: list[str]) -> Optional[pathlib.Path]:
                 return filepath
         current = current.parent
     return None
+
+
+T = TypeVar('T')
+
+
+@dataclasses.dataclass
+class ConfigurationParameter(Generic[T]):
+    """A generic class for parameters set in the config file"""
+    key: str
+    vtype: Type[T]
+    default: T
+
+
+class ConfigurationParameterSet:
+    """All parameters set in the config file5"""
+
+    @staticmethod
+    def scalars() -> List[ConfigurationParameter]:
+        """Scalar parameters are set directly"""
+        return [
+            ConfigurationParameter("debug", bool, False),
+            ConfigurationParameter("verbose", bool, False),
+            ConfigurationParameter("google_books_key", str, ""),
+        ]
+
+    @staticmethod
+    def paths() -> List[ConfigurationParameter]:
+        """Path parameters are handled specially
+
+        Relative paths set on the command-line are resolved relative to $PWD,
+        while relative paths set in the config file are resolved relative to the config file's directory.
+        """
+        return [
+            ConfigurationParameter("book_slug_root", pathlib.Path, pathlib.Path("./books")),
+            ConfigurationParameter("audible_login_file", pathlib.Path, pathlib.Path("./.bibliographer-audible-auth-INSECURE.json")),
+            ConfigurationParameter("bibliographer_data", pathlib.Path, pathlib.Path("./bibliographer_data")),
+        ]
+
+
+def resolve_path_if_relative(path: pathlib.Path | str, root: pathlib.Path | str) -> pathlib.Path:
+    """Return a resolved path
+
+    If the path is relative, resolve it relative to the root.
+    """
+    path = pathlib.Path(path) if isinstance(path, str) else path
+    root = pathlib.Path(root) if isinstance(root, str) else root
+    if not path.is_absolute():
+        return root / path
+    return path
 
 
 def parseargs(arguments: List[str]):
@@ -146,40 +217,34 @@ def parseargs(arguments: List[str]):
     if parsed.config and parsed.config.exists():
         with open(parsed.config, "rb") as f:
             config_data = tomllib.load(f)
-        if parsed.debug is None:
-            parsed.debug = config_data.get("debug", False)
-        if parsed.verbose is None:
-            parsed.verbose = config_data.get("verbose", False)
-        if parsed.book_slug_root is None and config_data.get("book_slug_root"):
-            parsed.book_slug_root = pathlib.Path(config_data.get("book_slug_root") or "")
-        if parsed.audible_login_file is None and config_data.get("audible_login_file"):
-            parsed.audible_login_file = pathlib.Path(config_data.get("audible_login_file") or "")
-        if parsed.bibliographer_data is None and config_data.get("bibliographer_data"):
-            parsed.bibliographer_data = pathlib.Path(config_data.get("bibliographer_data") or "")
-        if parsed.google_books_key is None:
-            parsed.google_books_key = config_data.get("google_books_key")
+    else:
+        config_data = {}
 
-    # Set values for args that are not set in either the command line or the config file
-    # (Normally with argparse we'd just use default= for this,
-    # but we're doing it this way to allow for the possibility of a config file)
-    if parsed.book_slug_root is None:
-        parsed.book_slug_root = pathlib.Path("./books")
-    if parsed.bibliographer_data is None:
-        parsed.bibliographer_data = pathlib.Path("./bibliographer_data")
-    if parsed.audible_login_file is None:
-        parsed.audible_login_file = pathlib.Path("./.bibliographer-audible-auth-INSECURE.json")
+    # Handle scalars directly
+    for param in ConfigurationParameterSet.scalars():
+        clival = getattr(parsed, param.key)
+        if clival:
+            setattr(parsed, param.key, clival)
+        elif param.key in config_data:
+            setattr(parsed, param.key, param.vtype(config_data[param.key]))
+        else:
+            setattr(parsed, param.key, param.default)
 
+    # Handle paths specially,
+    # so that relative paths in the config file are resolved relative to the config file's directory
+    for param in ConfigurationParameterSet.paths():
+        # Set the path to the default value first
+        path = resolve_path_if_relative(param.default, pathlib.Path.cwd())
+        clival = getattr(parsed, param.key)
+        if clival:
+            # This is a command-line argument, so resolve it relative to $PWD
+            path = resolve_path_if_relative(getattr(parsed, param.key), pathlib.Path.cwd())
+        elif parsed.config and param.key in config_data:
+            # The value was set in the config file, so resolve it relative to the config file's directory
+            path = resolve_path_if_relative(config_data[param.key], parsed.config.parent)
+        setattr(parsed, param.key, path)
 
     return parsed
-
-
-def program_help_text() -> str:
-    try:
-        parseargs(["--help"])
-    except SystemExit:
-        text = sys.stdout.read()
-        return text
-    return ""
 
 
 ###############################################################################

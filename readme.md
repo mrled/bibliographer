@@ -18,6 +18,8 @@ and work is ongoing to improve this.
 > Retrieving your Audible library via this program relies on the
 > [audible](https://github.com/mkb79/Audible) Python package
 > and may violate Amazon's terms of service.
+> It also saves your Audible credentials in plain text to your filesystem,
+> by default in a file called `./.bibliographer-audible-auth-INSECURE.json`.
 
 > [!CAUTION]
 > Retrieving ASINs (Amazon product IDs) via this program scrapes `https://amazon.com`
@@ -50,9 +52,6 @@ and work is ongoing to improve this.
     to metadata from external APIs,
     and this will be retained on subsequent runs of the program
 - Save metadata to a JSON file for use by other programs like static site generators etc
-
-## Warnings
-
 
 ## Installing
 
@@ -131,17 +130,27 @@ Some command-line arguments can be set in a configuration file so you don't need
 `bibliographer` looks for a file called `bibliographer.toml` or `.bibliographer.toml`
 in the runtime `$PWD` and all of its parents,
 or you can pass it explicitly with `--config`.
+
 The options in the config file correspond to command-line options,
 and are shown below in the program help output.
 
-```toml
+File paths specified in the config file can be absolute,
+or relative _to the directory containing the config file_.
+
+<!--[[[cog
+import cog
+from bibliographer.cli.bibliographer import get_example_config
+cog.out(f"```\n{get_example_config()}```\n")
+]]]-->
+```
 debug = false
 verbose = false
-book_slug_root = ""
-bibliographer_data = ""
-audible_login_file = ""
 google_books_key = ""
+book_slug_root = "books"
+audible_login_file = ".bibliographer-audible-auth-INSECURE.json"
+bibliographer_data = "bibliographer_data"
 ```
+<!--[[[end]]]-->
 
 ### API cache files
 
