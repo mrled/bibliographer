@@ -14,16 +14,16 @@ and work is ongoing to improve this.
 
 ## Features
 
-> [!WARNING]
+> [!CAUTION]
 > Retrieving your Audible library via this program relies on the
 > [audible](https://github.com/mkb79/Audible) Python package
 > and may violate Amazon's terms of service.
 
-> [!WARNING]
+> [!CAUTION]
 > Retrieving ASINs (Amazon product IDs) via this program scrapes `https://amazon.com`
 > which may violate Amazon's terms of service.
 
-> [!CAUTION]
+> [!NOTE]
 > Retrieving your Kindle library requires logging in to <https://read.amazon.com>
 > and running some JavaScript in the web console,
 > which cannot be done for you automatically and is a bit user-unfriendly
