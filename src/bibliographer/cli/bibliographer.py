@@ -16,7 +16,7 @@ from bibliographer.sources.googlebooks import google_books_retrieve
 from bibliographer.sources.kindle import ingest_kindle_library
 from bibliographer.sources.manual import manual_add
 from bibliographer.populate import populate_all_sources
-from bibliographer.cli.util import exceptional_exception_handler, idb_excepthook
+from bibliographer.cli.util import AutoDescriptionArgumentParser, exceptional_exception_handler, get_argparse_help_string, idb_excepthook
 
 
 def find_repo_root() -> Optional[pathlib.Path]:
@@ -32,12 +32,9 @@ def find_repo_root() -> Optional[pathlib.Path]:
     return None
 
 
-def parseargs(arguments: List[str]):
-    """Parse command-line arguments
-
-    NOTE: Defaults in this function will override defaults in the TOML config file.
-    """
-    parser = argparse.ArgumentParser(
+def makeparser() -> argparse.ArgumentParser:
+    """Return the argument parser"""
+    parser = AutoDescriptionArgumentParser(
         description="Manage Audible/Kindle libraries, enrich them, and populate local book repos."
     )
     parser.add_argument(
@@ -47,24 +44,28 @@ def parseargs(arguments: List[str]):
         help="Drop into an interactive debugger on unhandled exceptions.",
     )
     parser.add_argument(
+        "-c",
         "--config",
         type=pathlib.Path,
         help="Path to TOML config file, defaulting to a file called .bibliographer.toml in the repo root",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging of API calls.")
-    parser.add_argument(
-        "--repo-root",
-        default=find_repo_root(),
-        type=pathlib.Path,
-        help="Defaults to the ancestor directory containing a .git folder.",
-    )
-    parser.add_argument("--book-slug-root", help="Defaults to {repo-root}/content/books")
-    parser.add_argument("--google-books-key", help="Google Books API key")
+    parser.add_argument("-b", "--bibliographer-data", help="Defaults to ./bibliographer_data")
+    parser.add_argument("-s", "--book-slug-root", help="Defaults to ./books")
+    parser.add_argument("-a", "--audible-login-file", help="Defaults to ./.bibliographer-audible-auth-INSECURE.json")
+    parser.add_argument("-g", "--google-books-key", help="Google Books API key")
+
+    # Take care to add help AND description to each subparser.
+    # Help is shown by the parent parser
+    # e.g. "bibliographer --help" shows the help string for each subparser;
+    # description is shown by the subparser itself
+    # e.g. "bibliographer audible --help" shows the description for the audible subparser.
 
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
 
     # Populate
-    sp_pop = subparsers.add_parser("populate", help="Populate bibliographer.json files")
+    #sp_pop =
+    subparsers.add_parser("populate", help="Populate bibliographer.json files")
 
     # Audible
     sp_audible = subparsers.add_parser("audible", help="Audible operations")
@@ -110,24 +111,75 @@ def parseargs(arguments: List[str]):
     sp_cover_set.add_argument("slug", help="Book slug")
     sp_cover_set.add_argument("url", help="URL for a cover image")
 
+    return parser
+
+
+def get_help_string() -> str:
+    """Get a string containing program help"""
+    return get_argparse_help_string("bibliographer", makeparser())
+
+
+def find_file_in_parents(filenames: list[str]) -> Optional[pathlib.Path]:
+    """Find a file in the current directory or any parent directory"""
+    current = pathlib.Path.cwd()
+    while current != current.parent:
+        for filename in filenames:
+            filepath = current / filename
+            if filepath.exists():
+                return filepath
+        current = current.parent
+    return None
+
+
+def parseargs(arguments: List[str]):
+    """Parse command-line arguments
+
+    NOTE: Defaults in this function will override defaults in the TOML config file.
+    """
+    parser = makeparser()
+
     parsed = parser.parse_args(arguments)
 
     if not parsed.config:
-        parsed.config = parsed.repo_root / ".bibliographer.toml"
+        parsed.config = find_file_in_parents(["bibliographer.toml", ".bibliographer.toml"])
 
-    if parsed.config.exists():
+    if parsed.config and parsed.config.exists():
         with open(parsed.config, "rb") as f:
             config_data = tomllib.load(f)
         if parsed.debug is None:
             parsed.debug = config_data.get("debug", False)
         if parsed.verbose is None:
             parsed.verbose = config_data.get("verbose", False)
-        if parsed.book_slug_root is None:
-            parsed.book_slug_root = config_data.get("book_slug_root")
+        if parsed.book_slug_root is None and config_data.get("book_slug_root"):
+            parsed.book_slug_root = pathlib.Path(config_data.get("book_slug_root") or "")
+        if parsed.audible_login_file is None and config_data.get("audible_login_file"):
+            parsed.audible_login_file = pathlib.Path(config_data.get("audible_login_file") or "")
+        if parsed.bibliographer_data is None and config_data.get("bibliographer_data"):
+            parsed.bibliographer_data = pathlib.Path(config_data.get("bibliographer_data") or "")
         if parsed.google_books_key is None:
             parsed.google_books_key = config_data.get("google_books_key")
 
+    # Set values for args that are not set in either the command line or the config file
+    # (Normally with argparse we'd just use default= for this,
+    # but we're doing it this way to allow for the possibility of a config file)
+    if parsed.book_slug_root is None:
+        parsed.book_slug_root = pathlib.Path("./books")
+    if parsed.bibliographer_data is None:
+        parsed.bibliographer_data = pathlib.Path("./bibliographer_data")
+    if parsed.audible_login_file is None:
+        parsed.audible_login_file = pathlib.Path("./.bibliographer-audible-auth-INSECURE.json")
+
+
     return parsed
+
+
+def program_help_text() -> str:
+    try:
+        parseargs(["--help"])
+    except SystemExit:
+        text = sys.stdout.read()
+        return text
+    return ""
 
 
 ###############################################################################
@@ -147,21 +199,11 @@ def main(arguments: list[str]) -> int:
 
     google_books_key = args.google_books_key or ""
 
-    # Book slug root
-    if args.book_slug_root:
-        book_slug_root = pathlib.Path(args.book_slug_root)
-    else:
-        book_slug_root = args.repo_root / "content" / "books"
-
     # Directory structure: we store API cache in "bibliographer_data/apicache" and user mappings in "bibliographer_data/usermappings"
-    bibliographer_data = args.repo_root / "bibliographer_data"
-    apicache = bibliographer_data / "apicache"
-    usermappings = bibliographer_data / "usermappings"
+    apicache = args.bibliographer_data / "apicache"
+    usermappings = args.bibliographer_data / "usermappings"
     apicache.mkdir(parents=True, exist_ok=True)
     usermappings.mkdir(parents=True, exist_ok=True)
-
-    # Audible uses .audible-auth-INSECURE.json in repo root
-    audible_login_file = args.repo_root / ".audible-auth-INSECURE.json"
 
     # apicache files
     audible_library_metadata = apicache / "audible_library_metadata.json"
@@ -192,13 +234,13 @@ def main(arguments: list[str]) -> int:
             gbooks_volumes=gbooks_volumes,
             isbn2olid_map=isbn2olid_map_path,
             search2asin_map=search2asin_map_path,
-            book_slug_root=book_slug_root,
+            book_slug_root=args.book_slug_root,
             wikipedia_cache=wikipedia_cache,
             google_books_key=google_books_key,
         )
 
     elif args.subcommand == "audible":
-        client = audible_login(audible_login_file)
+        client = audible_login(args.audible_login_file)
         if args.audible_subcommand == "retrieve":
             retrieve_audible_library(client, audible_library_metadata)
             enrich_audible_library(
@@ -260,7 +302,7 @@ def main(arguments: list[str]) -> int:
         if args.cover_subcommand == "set":
             # Set a cover image for a book
             book_slug = args.slug
-            book_dir = book_slug_root / book_slug
+            book_dir = args.book_slug_root / book_slug
             cover_data = download_cover_from_url(args.url)
             cover_dest = book_dir / cover_data.filename
             with cover_dest.open("wb") as f:

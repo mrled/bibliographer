@@ -6,6 +6,83 @@ import pdb
 import sys
 import traceback
 from typing import Callable
+import argparse
+
+
+
+
+class AutoDescriptionArgumentParser(argparse.ArgumentParser):
+    """An ArgumentParser that automatically sets the description from the help string when creating subparsers.
+
+    When using this parser class,
+    the help string shown by the parent parser is also shown by the subparser.
+    In the example below, SUBCMD HELP STRING is shown by the parent parser and the subparser.
+    By default, the help string is only shown by the parent parser,
+    and the subparser just shows its arguments.
+
+        > program --help
+        usage: program [-h] {subcmd} ...
+        positional arguments:
+          {subcmd}
+            subcmd  SUBCMD HELP STRING
+
+        > program subcmd --help
+        usage: program subcmd [-h] ...
+        SUBCMD HELP STRING
+
+    When recursively showing all argparse help,
+    it's nice to have the help string shown by the subparser.
+    """
+
+    def add_subparsers(self, **kwargs):
+        # Create a custom subparser action class
+        class AutoDescriptionSubParserAction(argparse._SubParsersAction):
+            def add_parser(self, name, help=None, **kwargs):
+                if help and 'description' not in kwargs:
+                    kwargs['description'] = help
+                return super().add_parser(name, help=help, **kwargs)
+
+        # Use the custom action class when creating subparsers
+        kwargs['action'] = AutoDescriptionSubParserAction
+        return super().add_subparsers(**kwargs)
+
+
+def get_argparse_help_string(
+    name: str, parser: argparse.ArgumentParser, wrap: int = 80
+) -> str:
+    """Generate a docstring for an argparse parser that shows the help for the parser and all subparsers, recursively.
+
+    Based on an idea from <https://github.com/pdoc3/pdoc/issues/89>
+
+    Arguments:
+    * `name`: The name of the program
+    * `parser`: The parser
+    * `wrap`: The number of characters to wrap the help text to (0 to disable)
+    """
+
+    def help_formatter(prog):
+        return argparse.HelpFormatter(prog, width=wrap)
+
+    def get_parser_help_recursive(
+        parser: argparse.ArgumentParser, cmd: str = "", root: bool = True
+    ):
+        docstring = ""
+        if not root:
+            docstring += "\n" + "_" * 72 + "\n\n"
+        docstring += f"> {cmd} --help\n"
+        parser.formatter_class = help_formatter
+        docstring += parser.format_help()
+
+        for action in parser._actions:
+            if isinstance(action, argparse._SubParsersAction):
+                for subcmd, subparser in action.choices.items():
+                    docstring += get_parser_help_recursive(
+                        subparser, f"{cmd} {subcmd}", root=False
+                    )
+        return docstring
+
+    docstring = get_parser_help_recursive(parser, name)
+    return docstring
 
 
 def idb_excepthook(type_, value, tb):
