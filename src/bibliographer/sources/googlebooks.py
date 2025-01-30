@@ -9,6 +9,7 @@ import requests
 from bibliographer import mlogger
 from bibliographer.util.jsonutil import load_json, save_json
 import urllib
+import urllib.parse
 
 
 def google_books_retrieve(
