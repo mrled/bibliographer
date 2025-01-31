@@ -50,30 +50,34 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "audible" },
+    { name = "requests" },
+]
+
+[package.optional-dependencies]
+dev = [
     { name = "black" },
     { name = "cogapp" },
     { name = "mypy" },
-    { name = "requests" },
     { name = "types-requests" },
 ]
 
 [package.dev-dependencies]
 dev = [
-    { name = "bibliographer" },
+    { name = "bibliographer", extra = ["dev"] },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "audible" },
-    { name = "black", specifier = ">=24.0" },
-    { name = "cogapp" },
-    { name = "mypy", specifier = ">=1.14" },
+    { name = "black", marker = "extra == 'dev'", specifier = ">=24.0" },
+    { name = "cogapp", marker = "extra == 'dev'" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.14" },
     { name = "requests", specifier = ">=2.32.3" },
-    { name = "types-requests", specifier = ">=2.32.0.20241016" },
+    { name = "types-requests", marker = "extra == 'dev'", specifier = ">=2.32.0.20241016" },
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "bibliographer", editable = "." }]
+dev = [{ name = "bibliographer", extras = ["dev"], editable = "." }]
 
 [[package]]
 name = "black"

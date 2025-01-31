@@ -2,16 +2,9 @@
 name = "bibliographer"
 version = "0.1.0"
 description = "Compile a list of books you've read"
-readme = "pysrc/readme.md"
+readme = "readme.md"
 requires-python = ">=3.12"
-dependencies = [
-    "audible",
-    "cogapp",
-    "requests>=2.32.3",
-    "black>=24.0",
-    "mypy>=1.14",
-    "types-requests>=2.32.0.20241016",
-]
+dependencies = ["audible", "requests>=2.32.3"]
 
 [project.scripts]
 bibliographer = "bibliographer.cli.bibliographer:wrapped_main"
@@ -23,10 +16,6 @@ build-backend = "setuptools.build_meta"
 [tool.black]
 line-length = 120
 
-# [tool.setuptools]
-# packages = ["find:"]
-# package-dir = {"" = "pysrc"}
-
 [tool.setuptools.package-data]
 cli = ["py.typed"]
 
@@ -34,6 +23,7 @@ cli = ["py.typed"]
 bibliographer = { workspace = true }
 
 [dependency-groups]
-dev = [
-    "bibliographer",
-]
+dev = ["bibliographer[dev]"]
+
+[project.optional-dependencies]
+dev = ["black>=24.0", "cogapp", "mypy>=1.14", "types-requests>=2.32.0.20241016"]

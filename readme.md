@@ -73,10 +73,9 @@ but only uv is tested.
 Clone the repo, and then:
 
 ```python
-uv add --dev .
+uv add --dev .[dev]
 . .venv/bin/activate
 ```
-
 
 ## Usage examples
 
