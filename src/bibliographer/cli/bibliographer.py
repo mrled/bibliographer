@@ -4,7 +4,7 @@ import dataclasses
 import pathlib
 import sys
 import tomllib
-from typing import Generic, List, Optional, Type, TypeVar
+from typing import Callable, Generic, List, Optional, Type, TypeVar
 import logging
 import subprocess
 
@@ -184,9 +184,11 @@ class SecretValueGetter:
     or a command to run to get the value.
     """
 
+    _getter: Callable[[], str]
+
     def __init__(self, getcmd: Optional[str] = None, key: Optional[str] = None):
         self._key = None
-        self._getter = lambda: self._key
+        self._getter = lambda: self._key or ""
         if key:
             self._key = key
         elif getcmd:
@@ -292,7 +294,7 @@ def parseargs(arguments: List[str]):
 
 
 def main(arguments: list[str]) -> int:
-    args = parseargs(sys.argv[1:])
+    args = parseargs(arguments)
 
     log_level = logging.INFO
     if args.debug:
