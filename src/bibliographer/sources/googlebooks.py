@@ -1,20 +1,17 @@
 """Google Books API info retrieval
 """
 
-import pathlib
 from typing import Optional
+import urllib
+import urllib.parse
 
 import requests
 
 from bibliographer import mlogger
-from bibliographer.util.jsonutil import load_json, save_json
-import urllib
-import urllib.parse
+from bibliographer.cardcatalog import CardCatalog
 
 
-def google_books_retrieve(
-    key: str, gbooks_volumes: pathlib.Path, bookid: str, overwrite: bool = False
-) -> Optional[dict]:
+def google_books_retrieve(catalog: CardCatalog, key: str, bookid: str, overwrite: bool = False) -> Optional[dict]:
     """
     Check local cache. If not present or 'overwrite' is True, re-fetch from Google Books for volumeID.
 
@@ -23,7 +20,7 @@ def google_books_retrieve(
       ["extraLarge", "large", "medium", "small", "thumbnail", "smallThumbnail"]
     in that order.
     """
-    data = load_json(gbooks_volumes)
+    data = catalog.contents("apicache_gbooks_volumes")
     if (bookid in data) and not overwrite:
         return data[bookid]
 
@@ -69,11 +66,10 @@ def google_books_retrieve(
         "image_urls": image_urls,
     }
     data[bookid] = result
-    save_json(gbooks_volumes, data)
     return result
 
 
-def google_books_search(key: str, gbooks_volumes: pathlib.Path, title: str, author: str) -> Optional[dict]:
+def google_books_search(catalog: CardCatalog, key: str, title: str, author: str) -> Optional[dict]:
     """
     Search Google Books by intitle + inauthor. Return the first volume's data, or None.
     """
@@ -91,21 +87,18 @@ def google_books_search(key: str, gbooks_volumes: pathlib.Path, title: str, auth
         return None
     first_item = items[0]
     first_id = first_item["id"]
-    return google_books_retrieve(key, gbooks_volumes, first_id)
+    return google_books_retrieve(catalog, key, first_id)
 
 
-def asin2gbv(
-    asin2gbv_map: pathlib.Path, asin: str, title: str, author: str, google_books_key: str, gbooks_volumes: pathlib.Path
-) -> Optional[str]:
-    data = load_json(asin2gbv_map)
+def asin2gbv(catalog: CardCatalog, asin: str, title: str, author: str, google_books_key: str) -> Optional[str]:
+    data = catalog.contents("usermaps_asin2gbv_map")
     if asin in data:
         return data[asin]
 
-    search_res = google_books_search(google_books_key, gbooks_volumes, title, author)
+    search_res = google_books_search(catalog, google_books_key, title, author)
     if not search_res:
         data[asin] = None
     else:
         data[asin] = search_res.get("bookid")
 
-    save_json(asin2gbv_map, data)
     return data[asin]

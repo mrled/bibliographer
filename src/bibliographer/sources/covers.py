@@ -8,8 +8,8 @@ import pathlib
 from typing import Optional
 
 from bibliographer import mlogger
+from bibliographer.cardcatalog import CardCatalog
 from bibliographer.ratelimiter import RateLimiter
-from bibliographer.util.jsonutil import load_json
 import requests
 
 
@@ -78,11 +78,11 @@ def amazon_cover_retreive(asin: str):
 ###############################################################################
 
 
-def google_books_cover_retreive(gbooks_volumes: pathlib.Path, gbooks_volid: str) -> Optional[CoverData]:
+def google_books_cover_retreive(catalog: CardCatalog, gbooks_volid: str) -> Optional[CoverData]:
     """
     Retrieve the largest image from Google Books for a volumeID.
     """
-    data = load_json(gbooks_volumes).get(gbooks_volid)
+    data = catalog.contents("apicache_gbooks_volumes").get(gbooks_volid)
     if data and "image_urls" in data and data["image_urls"]:
         img_url = data["image_urls"][0]  # only 1 stored if we followed the "largest" logic
         mlogger.debug(f"[COVER] Attempting GoogleBooks largest image {img_url}")
@@ -97,7 +97,7 @@ def google_books_cover_retreive(gbooks_volumes: pathlib.Path, gbooks_volid: str)
 
 
 def lookup_cover(
-    gbooks_volumes: pathlib.Path,
+    catalog: CardCatalog,
     gbooks_volid: Optional[str],
     fallback_asin: Optional[str],
     book_dir: pathlib.Path,
@@ -112,7 +112,7 @@ def lookup_cover(
 
     cover_data = None
     if gbooks_volid:
-        cover_data = google_books_cover_retreive(gbooks_volumes, gbooks_volid)
+        cover_data = google_books_cover_retreive(catalog, gbooks_volid)
     # Don't try Amazon for covers at all for now.
     # These covers are pretty low quality.
     # TODO: is there a way to get higher quality covers here?

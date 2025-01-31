@@ -1,12 +1,11 @@
-import pathlib
 from typing import Optional
 
+from bibliographer.cardcatalog import CardCatalog
 from bibliographer.hugo import slugify
-from bibliographer.util.jsonutil import load_json, save_json
 
 
 def manual_add(
-    manual_file: pathlib.Path,
+    catalog: CardCatalog,
     title: Optional[str],
     authors: Optional[list[str]],
     isbn: Optional[str],
@@ -33,7 +32,7 @@ def manual_add(
       }
     }
     """
-    data = load_json(manual_file)
+    data = catalog.contents("usermaps_manual_library")
 
     # If no title, we try to pick something from ISBN or "untitled"
     if not title and not isbn:
@@ -62,5 +61,4 @@ def manual_add(
         "skip": False,
     }
     data[slug] = record
-    save_json(manual_file, data)
     print(f"Added manual entry {slug}")

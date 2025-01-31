@@ -1,13 +1,12 @@
-import pathlib
 from typing import Dict, List
 
 import requests
 
 from bibliographer import mlogger
-from bibliographer.util.jsonutil import load_json, save_json
+from bibliographer.cardcatalog import CardCatalog
 
 
-def wikipedia_relevant_pages(title: str, authors: List[str], wikipedia_cache: pathlib.Path) -> Dict[str, str]:
+def wikipedia_relevant_pages(catalog: CardCatalog, title: str, authors: List[str]) -> Dict[str, str]:
     """
     Try 'title (book)', 'title', and each author. Return dict { "Page Title": "URL" } for existing pages.
     Cache the results in wikipedia_cache to avoid repeated API calls.
@@ -15,7 +14,7 @@ def wikipedia_relevant_pages(title: str, authors: List[str], wikipedia_cache: pa
     Implementation detail: we only get the first valid match for the book
     but we try all authors, storing all valid matches.
     """
-    cache_data = load_json(wikipedia_cache)
+    cache_data = catalog.contents("usermaps_wikipedia_relevant")
     authors = authors or []
     cache_key = f"title={title};authors={'|'.join(authors)}"
     if cache_key in cache_data:
@@ -58,5 +57,4 @@ def wikipedia_relevant_pages(title: str, authors: List[str], wikipedia_cache: pa
             pass
 
     cache_data[cache_key] = result
-    save_json(wikipedia_cache, cache_data)
     return result

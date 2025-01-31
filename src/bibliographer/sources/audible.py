@@ -9,7 +9,7 @@ from typing import Any, Mapping
 import audible
 
 from bibliographer import mlogger
-from bibliographer.util.jsonutil import load_json, save_json
+from bibliographer.cardcatalog import CardCatalog
 
 
 def audible_login(authfile: pathlib.Path) -> audible.Client:
@@ -31,14 +31,9 @@ def audible_login(authfile: pathlib.Path) -> audible.Client:
     return client
 
 
-###############################################################################
-# Retrieve Audible Library
-###############################################################################
-
-
 def retrieve_audible_library(
+    catalog: CardCatalog,
     client: audible.Client,
-    audible_library_metadata: pathlib.Path,
 ):
     """
     Retrieve the user's Audible library with pagination via the `audible` module.
@@ -53,7 +48,7 @@ def retrieve_audible_library(
          }
        }
     """
-    merged_data = load_json(audible_library_metadata)
+    merged_data = catalog.contents("apicache_audible_library")
 
     page = 1
     page_size = 1000
@@ -103,6 +98,4 @@ def retrieve_audible_library(
         if len(items) < page_size:
             break
 
-    save_json(audible_library_metadata, merged_data)
-    mlogger.debug(f"[AUDIBLE] Library data saved to {audible_library_metadata}")
-    print(f"Retrieved library pages up to page {page-1} and saved to {audible_library_metadata}")
+    print(f"Retrieved library pages up to page {page-1}")

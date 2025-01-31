@@ -1,10 +1,11 @@
 import pathlib
 
-from bibliographer.util.jsonutil import load_json, save_json
+from bibliographer.cardcatalog import CardCatalog
+from bibliographer.util.jsonutil import load_json
 
 
 def ingest_kindle_library(
-    kindle_library_metadata: pathlib.Path,
+    catalog: CardCatalog,
     export_json: pathlib.Path,
 ):
     """
@@ -19,7 +20,7 @@ def ingest_kindle_library(
       and the single element contains each authors name terminated by a colon.
     - Set the 'kindle_asin' key to the original 'asin' key.
     """
-    kindlelib = load_json(kindle_library_metadata)
+    kindlelib = catalog.contents("apicache_kindle_library")
     new_data = load_json(export_json)
 
     for item in new_data:
@@ -32,5 +33,3 @@ def ingest_kindle_library(
         del item["asin"]
         item["kindle_asin"] = kindle_asin
         kindlelib[asin] = item
-
-    save_json(kindle_library_metadata, kindlelib)

@@ -18,7 +18,13 @@ from bibliographer.sources.googlebooks import google_books_retrieve
 from bibliographer.sources.kindle import ingest_kindle_library
 from bibliographer.sources.manual import manual_add
 from bibliographer.populate import populate_all_sources
-from bibliographer.cli.util import AutoDescriptionArgumentParser, exceptional_exception_handler, get_argparse_help_string, idb_excepthook
+from bibliographer.cli.util import (
+    AutoDescriptionArgumentParser,
+    exceptional_exception_handler,
+    get_argparse_help_string,
+    idb_excepthook,
+)
+from bibliographer.cardcatalog import CardCatalog
 
 
 def find_repo_root() -> Optional[pathlib.Path]:
@@ -56,7 +62,11 @@ def makeparser() -> argparse.ArgumentParser:
     parser.add_argument("-s", "--book-slug-root", help="Defaults to ./books")
     parser.add_argument("-a", "--audible-login-file", help="Defaults to ./.bibliographer-audible-auth-INSECURE.json")
     parser.add_argument("-g", "--google-books-key", help="Google Books API key")
-    parser.add_argument("-G", "--google-books-key-cmd", help="A command to retrieve the Google Books API key (e.g. from a password manager)")
+    parser.add_argument(
+        "-G",
+        "--google-books-key-cmd",
+        help="A command to retrieve the Google Books API key (e.g. from a password manager)",
+    )
 
     # Take care to add help AND description to each subparser.
     # Help is shown by the parent parser
@@ -67,7 +77,7 @@ def makeparser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
 
     # Populate
-    #sp_pop =
+    # sp_pop =
     subparsers.add_parser("populate", help="Populate bibliographer.json files")
 
     # Audible
@@ -133,13 +143,13 @@ def get_example_config() -> str:
     for param in ConfigurationParameterSet.scalars():
         value = param.default
         if isinstance(value, str):
-            value = f"\"{value}\""
+            value = f'"{value}"'
         elif isinstance(value, bool):
             # Make this look right for TOML
             value = str(value).lower()
         result += f"{param.key} = {value}\n"
     for param in ConfigurationParameterSet.paths():
-        result += f"{param.key} = \"{param.default}\"\n"
+        result += f'{param.key} = "{param.default}"\n'
     return result
 
 
@@ -155,12 +165,13 @@ def find_file_in_parents(filenames: list[str]) -> Optional[pathlib.Path]:
     return None
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 @dataclasses.dataclass
 class ConfigurationParameter(Generic[T]):
     """A generic class for parameters set in the config file"""
+
     key: str
     vtype: Type[T]
     default: T
@@ -179,9 +190,9 @@ class SecretValueGetter:
         if key:
             self._key = key
         elif getcmd:
-            self._getter = lambda: subprocess.run(
-                getcmd, shell=True, check=True, capture_output=True
-            ).stdout.decode().strip()
+            self._getter = (
+                lambda: subprocess.run(getcmd, shell=True, check=True, capture_output=True).stdout.decode().strip()
+            )
 
     def get(self) -> str:
         if not self._key:
@@ -211,7 +222,9 @@ class ConfigurationParameterSet:
         """
         return [
             ConfigurationParameter("book_slug_root", pathlib.Path, pathlib.Path("./books")),
-            ConfigurationParameter("audible_login_file", pathlib.Path, pathlib.Path("./.bibliographer-audible-auth-INSECURE.json")),
+            ConfigurationParameter(
+                "audible_login_file", pathlib.Path, pathlib.Path("./.bibliographer-audible-auth-INSECURE.json")
+            ),
             ConfigurationParameter("bibliographer_data", pathlib.Path, pathlib.Path("./bibliographer_data")),
         ]
 
@@ -293,121 +306,85 @@ def main(arguments: list[str]) -> int:
         key=args.google_books_key,
     )
 
-    # Directory structure: we store API cache in "bibliographer_data/apicache" and user mappings in "bibliographer_data/usermappings"
-    apicache = args.bibliographer_data / "apicache"
-    usermappings = args.bibliographer_data / "usermappings"
-    apicache.mkdir(parents=True, exist_ok=True)
-    usermappings.mkdir(parents=True, exist_ok=True)
-
-    # apicache files
-    audible_library_metadata = apicache / "audible_library_metadata.json"
-    kindle_library_metadata = apicache / "kindle_library_metadata.json"
-    gbooks_volumes = apicache / "gbooks_volumes.json"
-
-    # usermappings files
-    asin2gbv_map_path = usermappings / "asin2gbv_map.json"
-    isbn2olid_map_path = usermappings / "isbn2olid_map.json"
-    search2asin_map_path = usermappings / "search2asin.json"
-    wikipedia_cache = usermappings / "wikipedia_relevant.json"
-
-    audible_library_metadata_enriched = usermappings / "audible_library_metadata_enriched.json"
-    kindle_library_enriched = usermappings / "kindle_library_metadata_enriched.json"
-
-    # manual file
-    manual_file = usermappings / "manual.json"
+    catalog = CardCatalog(args.bibliographer_data)
 
     # Dispatch
-    if args.subcommand == "populate":
-        populate_all_sources(
-            audible_library_metadata=audible_library_metadata,
-            audible_library_metadata_enriched=audible_library_metadata_enriched,
-            kindle_library_metadata=kindle_library_metadata,
-            kindle_library_enriched=kindle_library_enriched,
-            manual_file=manual_file,
-            asin2gbv_map=asin2gbv_map_path,
-            gbooks_volumes=gbooks_volumes,
-            isbn2olid_map=isbn2olid_map_path,
-            search2asin_map=search2asin_map_path,
-            book_slug_root=args.book_slug_root,
-            wikipedia_cache=wikipedia_cache,
-            google_books_key=google_books_key.get(),
-        )
-
-    elif args.subcommand == "audible":
-        client = audible_login(args.audible_login_file)
-        if args.audible_subcommand == "retrieve":
-            retrieve_audible_library(client, audible_library_metadata)
-            enrich_audible_library(
-                audible_library_metadata=audible_library_metadata,
-                audible_library_metadata_enriched=audible_library_metadata_enriched,
-                search2asin_map_path=search2asin_map_path,
+    try:
+        if args.subcommand == "populate":
+            populate_all_sources(
+                catalog=catalog,
+                book_slug_root=args.book_slug_root,
                 google_books_key=google_books_key.get(),
-                gbooks_volumes=gbooks_volumes,
-                asin2gbv_map_path=asin2gbv_map_path,
-                isbn2olid_map_path=isbn2olid_map_path,
             )
 
-    elif args.subcommand == "kindle":
-        if args.kindle_subcommand == "ingest":
-            ingest_kindle_library(kindle_library_metadata, args.export_json)
-            enrich_kindle_library(
-                kindle_library_metadata=kindle_library_metadata,
-                kindle_library_enriched=kindle_library_enriched,
-                search2asin_map_path=search2asin_map_path,
-                google_books_key=google_books_key.get(),
-                gbooks_volumes=gbooks_volumes,
-                asin2gbv_map_path=asin2gbv_map_path,
-                isbn2olid_map_path=isbn2olid_map_path,
-            )
+        elif args.subcommand == "audible":
+            client = audible_login(args.audible_login_file)
+            if args.audible_subcommand == "retrieve":
+                retrieve_audible_library(catalog, client)
+                enrich_audible_library(
+                    catalog=catalog,
+                    google_books_key=google_books_key.get(),
+                )
 
-    elif args.subcommand == "googlebook":
-        # We have "requery" subcommand
-        if args.googlebook_subcommand == "requery":
-            # Overwrite existing data with fresh from the server
-            volume_ids = args.volume_ids
-            for vid in volume_ids:
-                mlogger.info(f"Forcing re-query of volume ID {vid}")
-                # forcibly re-download
-                google_books_retrieve(key=google_books_key.get(), gbooks_volumes=gbooks_volumes, bookid=vid, overwrite=True)
-            print("Requery complete.")
+        elif args.subcommand == "kindle":
+            if args.kindle_subcommand == "ingest":
+                ingest_kindle_library(catalog, args.export_json)
+                enrich_kindle_library(
+                    catalog=catalog,
+                    google_books_key=google_books_key.get(),
+                )
 
-    elif args.subcommand == "manual":
-        if args.manual_subcommand == "add":
-            manual_add(
-                manual_file=manual_file,
-                title=args.title,
-                authors=args.authors,
-                isbn=args.isbn,
-                purchase_date=args.purchase_date,
-                read_date=args.read_date,
-                slug=args.slug,
-            )
+        elif args.subcommand == "googlebook":
+            # We have "requery" subcommand
+            if args.googlebook_subcommand == "requery":
+                # Overwrite existing data with fresh from the server
+                volume_ids = args.volume_ids
+                for vid in volume_ids:
+                    mlogger.info(f"Forcing re-query of volume ID {vid}")
+                    # forcibly re-download
+                    google_books_retrieve(catalog=catalog, key=google_books_key.get(), bookid=vid, overwrite=True)
+                print("Requery complete.")
 
-    elif args.subcommand == "amazon":
-        # We have "requery" for forced re-scrape
-        if args.amazon_subcommand == "requery":
-            for st in args.searchterms:
-                mlogger.info(f"Forced requery for Amazon search term: {st}")
-                new_asin = amazon_browser_search_cached(search2asin_map_path, st, force=True)
-                mlogger.info(f" => found ASIN: {new_asin}")
-            print("Amazon requery complete.")
+        elif args.subcommand == "manual":
+            if args.manual_subcommand == "add":
+                manual_add(
+                    catalog=catalog,
+                    title=args.title,
+                    authors=args.authors,
+                    isbn=args.isbn,
+                    purchase_date=args.purchase_date,
+                    read_date=args.read_date,
+                    slug=args.slug,
+                )
 
-    elif args.subcommand == "cover":
-        if args.cover_subcommand == "set":
-            # Set a cover image for a book
-            book_slug = args.slug
-            book_dir = args.book_slug_root / book_slug
-            cover_data = download_cover_from_url(args.url)
-            cover_dest = book_dir / cover_data.filename
-            with cover_dest.open("wb") as f:
-                f.write(cover_data.image_data)
-            print(f"Cover image set for {book_slug}")
+        elif args.subcommand == "amazon":
+            # We have "requery" for forced re-scrape
+            if args.amazon_subcommand == "requery":
+                for st in args.searchterms:
+                    mlogger.info(f"Forced requery for Amazon search term: {st}")
+                    new_asin = amazon_browser_search_cached(catalog, st, force=True)
+                    mlogger.info(f" => found ASIN: {new_asin}")
+                print("Amazon requery complete.")
 
-    else:
-        print("Unknown subcommand", file=sys.stderr)
-        return 1
+        elif args.subcommand == "cover":
+            if args.cover_subcommand == "set":
+                # Set a cover image for a book
+                book_slug = args.slug
+                book_dir = args.book_slug_root / book_slug
+                cover_data = download_cover_from_url(args.url)
+                cover_dest = book_dir / cover_data.filename
+                with cover_dest.open("wb") as f:
+                    f.write(cover_data.image_data)
+                print(f"Cover image set for {book_slug}")
 
-    return 0
+        else:
+            print("Unknown subcommand", file=sys.stderr)
+            return 1
+
+        return 0
+
+    finally:
+        catalog.persist()
 
 
 def wrapped_main():

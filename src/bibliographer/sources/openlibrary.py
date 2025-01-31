@@ -1,19 +1,18 @@
-import pathlib
 from typing import Optional
 
 import requests
 
 from bibliographer import mlogger
+from bibliographer.cardcatalog import CardCatalog
 from bibliographer.ratelimiter import RateLimiter
-from bibliographer.util.jsonutil import load_json, save_json
 
 
 @RateLimiter.limit("openlibrary.org", interval=1)
-def isbn2olid(isbn2olid_map: pathlib.Path, isbn: str) -> Optional[str]:
+def isbn2olid(catalog: CardCatalog, isbn: str) -> Optional[str]:
     """
     Store the OLID as just "OL12345M", not "/books/OL12345M".
     """
-    data = load_json(isbn2olid_map)
+    data = catalog.contents("usermaps_isbn2olid_map")
     if isbn in data:
         return data[isbn]
 
@@ -27,7 +26,6 @@ def isbn2olid(isbn2olid_map: pathlib.Path, isbn: str) -> Optional[str]:
     key = f"ISBN:{isbn}"
     if key not in j:
         data[isbn] = None
-        save_json(isbn2olid_map, data)
         return None
 
     book_info = j[key]
@@ -39,5 +37,4 @@ def isbn2olid(isbn2olid_map: pathlib.Path, isbn: str) -> Optional[str]:
         olid = raw
 
     data[isbn] = olid
-    save_json(isbn2olid_map, data)
     return olid
