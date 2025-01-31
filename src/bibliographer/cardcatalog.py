@@ -40,7 +40,7 @@ class CardCatalog:
         self.data_root = data_root
 
         self.dir_apicache = data_root / "apicache"
-        self.dir_usermaps = data_root / "usermappings"
+        self.dir_usermaps = data_root / "usermaps"
         self.dir_apicache.mkdir(parents=True, exist_ok=True)
         self.dir_usermaps.mkdir(parents=True, exist_ok=True)
 

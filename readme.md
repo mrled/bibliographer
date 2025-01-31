@@ -131,9 +131,9 @@ bibliographer kindle ingest /path/to/kindle-library.json
 bibliographer populate
 ```
 
-### Changing settings in usermappings
+### Changing settings in usermaps
 
-The usermappings directory is populated based on some heuristic queries,
+The usermaps directory is populated based on some heuristic queries,
 but you may want to override these.
 After enriching book metadata,
 you should always check that these heuristics found the correct data for your books.
@@ -176,7 +176,7 @@ hugosite/
     apicache/
       audible_library_metadata.json
       ...
-    usermappings/
+    usermaps/
       audible_library_metadata_enriched.json
       ...
 ```
@@ -337,7 +337,7 @@ Currently these files include:
 ### User mapping files
 
 Mapping of IDs and search queries from various sources to specific API results
-are stored in `{bibliographer_data}/usermappings/*.json` files.
+are stored in `{bibliographer_data}/usermaps/*.json` files.
 These **are** intended to be edited by hand.
 Currently these files include:
 
