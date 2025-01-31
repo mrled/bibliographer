@@ -26,4 +26,10 @@ bibliographer = { workspace = true }
 dev = ["bibliographer[dev]"]
 
 [project.optional-dependencies]
-dev = ["black>=24.0", "cogapp", "mypy>=1.14", "types-requests>=2.32.0.20241016"]
+dev = [
+    "black>=24.0",
+    "cogapp",
+    "invoke",
+    "mypy>=1.14",
+    "types-requests>=2.32.0.20241016",
+]
