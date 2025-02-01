@@ -184,6 +184,7 @@ hugosite/
 You might set the `bibliographer.toml` config file like:
 
 ```toml
+google_books_key = "your-google-books-key"
 bibliographer_data = "assets/bibliographer"
 book_slug_root = "content/books"
 individual_bibliographer_json = true
@@ -220,6 +221,7 @@ Your Hugo templates can get the JSON data and cover files like this:
   {{ $coverImg := (index (where (.Resources.Match "cover.*") "ResourceType" "in" (slice "image" "image/jpg" "image/jpeg" "image/png" "image/gif" "image/webp")) 0) }}
   <img src="{{ $coverImg.RelPermalink }}">
 
+  {{ $book := .Resources.Get "bibliographer.json" | transform.Unmarshal }}
   <dl class="public-book-metadata">
     <dt>Author</dt>
     <dd>{{ delimit $book.authors ", " }}</dd5>
@@ -229,26 +231,23 @@ Your Hugo templates can get the JSON data and cover files like this:
     <dd>{{ . }}</dd>
     {{ end }}
 
-    {{- with $book.links }}
     <dt>Book Data</dt>
     <dd>
       <ul>
-        {{ with .metadata.openlibrary }}<li><a href="{{ . }}">Open Library</a></li>{{ end }}
-        {{ with .metadata.googlebooks }}<li><a href="{{ . }}">Google Books</a></li>{{ end }}
+        {{ with $book.openlibrary_id }}<li><a href="https://openlibrary.org/books/{{ . }}">Open Library</a></li>{{ end }}
+        {{ with $book.gbooks_volid }}<li><a href="https://books.google.com/books?id={{ . }}">Google Books</a></li>{{ end }}
       </ul>
     </dd>
 
-    {{- if gt (len .other) 0 }}
+    {{- if and $book.urls_wikipedia (gt (len $book.urls_wikipedia) 0) }}
     <dt>Elsewhere</dt>
     <dd>
       <ul>
-        {{- range .other }}
-        <li><a href="{{ .url }}">{{ .title }}</a></li>
+        {{ range $title, $url := $book.urls_wikipedia }}
+        <li><a href="{{ $url }}">{{ $title }} - Wikipedia</a></li>
         {{- end }}
       </ul>
     </dd>
-    {{ end }}
-
     {{ end }}
   </dl>
 
@@ -258,7 +257,7 @@ Your Hugo templates can get the JSON data and cover files like this:
   {{ .Content }}
 </section>
 
-{{- end }
+{{- end }}
 ```
 
 ### Example output `bibliographer.json` file
@@ -380,6 +379,21 @@ google_books_key_cmd = "op item get GoogleBooksApi --field label=bibliographer-g
 ```
 
 This way you can safely store your config file in git without committing any secrets in plain text.
+
+You can also set the key directly in `bibliographer.toml` if you prefer:
+
+```toml
+google_books_key = "your key goes here"
+```
+
+## Future
+
+* <https://libro.fm> support mrled/bibliographer#6
+* Goodreads support mrled/bibliographer#11
+* Support other sites generically mrled/bibliographer#11
+
+Please comment on the above issues to register your interest,
+or open a new one if there are other services that would be helpful.
 
 ## Program help
 
