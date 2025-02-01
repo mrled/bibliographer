@@ -60,10 +60,11 @@ but it should work with regular pip as well.
 
 ```sh
 # With uv
-uv pip install git+https://github.com/username/repository.git
+uvx bibliographer --help
 
 # With pip
-pip install git+https://github.com/mrled/bibliographer.git
+pip install bibliographer
+bibliographer --help
 ```
 
 ### Installing for development
@@ -76,6 +77,14 @@ Clone the repo, and then:
 uv add --dev .[dev]
 . .venv/bin/activate
 ```
+
+## `bibliograhper` versioning
+
+We follow [Pride Versioning](https://pridever.org/).
+
+You can't expect [real stability](https://semver.org/)
+because the most important APIs we use are ~~user-hostile~~undocumented,
+so we might as well have fun.
 
 ## Usage examples
 
@@ -390,7 +399,7 @@ google_books_key = "your key goes here"
 
 * <https://libro.fm> support mrled/bibliographer#6
 * Goodreads support mrled/bibliographer#11
-* Support other sites generically mrled/bibliographer#11
+* Support other sites generically mrled/bibliographer#4
 
 Please comment on the above issues to register your interest,
 or open a new one if there are other services that would be helpful.
