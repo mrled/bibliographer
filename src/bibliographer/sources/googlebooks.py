@@ -20,9 +20,8 @@ def google_books_retrieve(catalog: CardCatalog, key: str, bookid: str, overwrite
       ["extraLarge", "large", "medium", "small", "thumbnail", "smallThumbnail"]
     in that order.
     """
-    data = catalog.contents("apicache_gbooks_volumes")
-    if (bookid in data) and not overwrite:
-        return data[bookid]
+    if (bookid in catalog.gbooks_volumes.contents) and not overwrite:
+        return catalog.gbooks_volumes.contents[bookid]
 
     url = (
         f"https://www.googleapis.com/books/v1/volumes/{bookid}"
@@ -65,7 +64,7 @@ def google_books_retrieve(catalog: CardCatalog, key: str, bookid: str, overwrite
         "publish_date": vi.get("publishedDate"),
         "image_urls": image_urls,
     }
-    data[bookid] = result
+    catalog.gbooks_volumes.contents[bookid] = result
     return result
 
 
@@ -91,14 +90,13 @@ def google_books_search(catalog: CardCatalog, key: str, title: str, author: str)
 
 
 def asin2gbv(catalog: CardCatalog, asin: str, title: str, author: str, google_books_key: str) -> Optional[str]:
-    data = catalog.contents("usermaps_asin2gbv_map")
-    if asin in data:
-        return data[asin]
+    if asin in catalog.asin2gbv_map.contents:
+        return catalog.asin2gbv_map.contents[asin]
 
     search_res = google_books_search(catalog, google_books_key, title, author)
     if not search_res:
-        data[asin] = None
+        catalog.asin2gbv_map.contents[asin] = None
     else:
-        data[asin] = search_res.get("bookid")
+        catalog.asin2gbv_map.contents[asin] = search_res.get("bookid")
 
-    return data[asin]
+    return catalog.asin2gbv_map.contents[asin]

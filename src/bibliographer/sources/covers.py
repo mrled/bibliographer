@@ -82,9 +82,12 @@ def google_books_cover_retreive(catalog: CardCatalog, gbooks_volid: str) -> Opti
     """
     Retrieve the largest image from Google Books for a volumeID.
     """
-    data = catalog.contents("apicache_gbooks_volumes").get(gbooks_volid)
-    if data and "image_urls" in data and data["image_urls"]:
-        img_url = data["image_urls"][0]  # only 1 stored if we followed the "largest" logic
+    if (
+        catalog.gbooks_volumes.contents
+        and "image_urls" in catalog.gbooks_volumes.contents
+        and catalog.gbooks_volumes.contents["image_urls"]
+    ):
+        img_url = catalog.gbooks_volumes.contents["image_urls"][0]  # only 1 stored if we followed the "largest" logic
         mlogger.debug(f"[COVER] Attempting GoogleBooks largest image {img_url}")
         return download_cover_from_url(img_url)
     mlogger.debug(f"[COVER] No image found for {gbooks_volid}")

@@ -2,7 +2,7 @@
 
 import dataclasses
 import pathlib
-from typing import Dict, Generic, Literal, Optional, TypedDict, TypeVar
+from typing import Any, Dict, Generic, Literal, Optional, Type, TypedDict, TypeVar
 
 from bibliographer.util.jsonutil import load_json, save_json
 
@@ -54,20 +54,6 @@ class CombinedCatalogBook:
         return cls(**data)
 
 
-# CardCatalogKey is a type hint for the keys of the CardCatalog.files dictionary.
-CardCatalogKey = Literal[
-    "apicache_audible_library",
-    "apicache_kindle_library",
-    "apicache_gbooks_volumes",
-    "usermaps_audible_slugs",
-    "usermaps_kindle_slugs",
-    "usermaps_asin2gbv_map",
-    "usermaps_isbn2olid_map",
-    "usermaps_search2asin",
-    "usermaps_wikipedia_relevant",
-]
-
-
 T = TypeVar("T", bound=object)
 
 
@@ -76,36 +62,33 @@ class TypedCardCatalogEntry(Generic[T]):
     """A single entry in the card catalog."""
 
     path: pathlib.Path
+    contents_type: Type[T]
     _contents: Dict[str, T] | None = None
 
     @property
     def contents(self):
         """Get the contents of this entry."""
         if self._contents is None:
-            loaded = load_json(self.path)
-            self._contents = {k: CombinedCatalogBook.from_dict(v) for k, v in loaded.items()}
+            if self.contents_type is CombinedCatalogBook:
+                loaded = load_json(self.path)
+                self._contents = {k: CombinedCatalogBook.from_dict(v) for k, v in loaded.items()}
+            else:
+                self._contents = load_json(self.path)
         return self._contents
 
     def save(self):
         """Save the in-memory data to disk."""
         if self._contents is not None:
-            serializable = {k: v.asdict for k, v in self._contents.items()}
+            if self.contents_type is CombinedCatalogBook:
+                serializable = {k: v.asdict for k, v in self._contents.items()}
+            else:
+                serializable = self._contents
             save_json(self.path, serializable)
             self._contents = None
 
 
-@dataclasses.dataclass
-class CardCatalogEntry:
-    """A single entry in the card catalog."""
-
-    path: pathlib.Path
-    contents: dict | None = None
-
-
 class CardCatalog:
     """CardCatalog: all data stores for bibliographer."""
-
-    files: dict[CardCatalogKey, CardCatalogEntry] = {}
 
     def __init__(self, data_root: pathlib.Path):
         self.data_root = data_root
@@ -115,58 +98,64 @@ class CardCatalog:
         self.dir_apicache.mkdir(parents=True, exist_ok=True)
         self.dir_usermaps.mkdir(parents=True, exist_ok=True)
 
-        self.combinedlib = TypedCardCatalogEntry[CombinedCatalogBook](
-            path=self.dir_usermaps / "combined_library.json",
+        # apicache
+        self.audiblelib = TypedCardCatalogEntry[dict](
+            path=self.dir_apicache / "audible_library_metadata.json",
+            contents_type=dict,
+        )
+        self.kindlelib = TypedCardCatalogEntry[dict](
+            path=self.dir_apicache / "kindle_library_metadata.json",
+            contents_type=dict,
+        )
+        self.gbooks_volumes = TypedCardCatalogEntry[dict](
+            path=self.dir_apicache / "gbooks_volumes.json",
+            contents_type=dict,
         )
 
-        self.files = {
-            # apicache
-            "apicache_audible_library": CardCatalogEntry(
-                path=self.dir_apicache / "audible_library_metadata.json",
-            ),
-            "apicache_kindle_library": CardCatalogEntry(
-                path=self.dir_apicache / "kindle_library_metadata.json",
-            ),
-            "apicache_gbooks_volumes": CardCatalogEntry(
-                path=self.dir_apicache / "gbooks_volumes.json",
-            ),
-            # usermaps
-            "usermaps_audible_slugs": CardCatalogEntry(
-                path=self.dir_usermaps / "audible_slugs.json",
-            ),
-            "usermaps_kindle_slugs": CardCatalogEntry(
-                path=self.dir_usermaps / "kindle_slugs.json",
-            ),
-            "usermaps_asin2gbv_map": CardCatalogEntry(
-                path=self.dir_usermaps / "asin2gbv_map.json",
-            ),
-            "usermaps_isbn2olid_map": CardCatalogEntry(
-                path=self.dir_usermaps / "isbn2olid_map.json",
-            ),
-            "usermaps_search2asin": CardCatalogEntry(
-                path=self.dir_usermaps / "search2asin.json",
-            ),
-            "usermaps_wikipedia_relevant": CardCatalogEntry(
-                path=self.dir_usermaps / "wikipedia_relevant.json",
-            ),
-        }
+        # usermaps
+        self.combinedlib = TypedCardCatalogEntry[CombinedCatalogBook](
+            path=self.dir_usermaps / "combined_library.json",
+            contents_type=CombinedCatalogBook,
+        )
+        self.audibleslugs = TypedCardCatalogEntry[str](
+            path=self.dir_usermaps / "audible_slugs.json",
+            contents_type=str,
+        )
+        self.kindleslugs = TypedCardCatalogEntry[str](
+            path=self.dir_usermaps / "kindle_slugs.json",
+            contents_type=str,
+        )
+        self.asin2gbv_map = TypedCardCatalogEntry[str](
+            path=self.dir_usermaps / "asin2gbv_map.json",
+            contents_type=str,
+        )
+        self.isbn2olid_map = TypedCardCatalogEntry[str](
+            path=self.dir_usermaps / "isbn2olid_map.json",
+            contents_type=str,
+        )
+        self.search2asin = TypedCardCatalogEntry[str](
+            path=self.dir_usermaps / "search2asin.json",
+            contents_type=str,
+        )
+        self.wikipedia_relevant = TypedCardCatalogEntry[Dict[str, str]](
+            path=self.dir_usermaps / "wikipedia_relevant.json",
+            contents_type=Dict[str, str],
+        )
 
-    def contents(self, key: CardCatalogKey):
-        """Get the contents of a specific file."""
-        entry = self.files[key]
-        if entry.contents is None:
-            entry.contents = load_json(entry.path)
-        return entry.contents
-
-    def save(self, key: CardCatalogKey, data: dict):
-        """Save data to a specific file."""
-        entry = self.files[key]
-        entry.contents = data
+        self.allentries: list[TypedCardCatalogEntry] = [
+            self.audiblelib,
+            self.kindlelib,
+            self.gbooks_volumes,
+            self.combinedlib,
+            self.audibleslugs,
+            self.kindleslugs,
+            self.asin2gbv_map,
+            self.isbn2olid_map,
+            self.search2asin,
+            self.wikipedia_relevant,
+        ]
 
     def persist(self):
         """Save all data to disk."""
-        for entry in self.files.values():
-            if entry.contents is not None:
-                save_json(entry.path, entry.contents)
-                entry.contents = None
-        self.combinedlib.save()
+        for entry in self.allentries:
+            entry.save()

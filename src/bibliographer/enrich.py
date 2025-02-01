@@ -135,15 +135,13 @@ def rename_slug(catalog: CardCatalog, books_root: pathlib.Path, old_slug: str, n
 
     mlogger.debug(f"Renaming slug {old_slug} to {new_slug}")
 
-    audibleslugs = catalog.contents("usermaps_audible_slugs")
-    for asin, slug in audibleslugs.items():
+    for asin, slug in catalog.audibleslugs.contents.items():
         if slug == old_slug:
-            audibleslugs[asin] = new_slug
+            catalog.audibleslugs.contents[asin] = new_slug
 
-    kindleslugs = catalog.contents("usermaps_kindle_slugs")
-    for asin, slug in kindleslugs.items():
+    for asin, slug in catalog.kindleslugs.contents.items():
         if slug == old_slug:
-            kindleslugs[asin] = new_slug
+            catalog.kindleslugs.contents[asin] = new_slug
 
     book = catalog.combinedlib.contents[old_slug]
     book.slug = new_slug

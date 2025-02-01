@@ -14,11 +14,10 @@ def wikipedia_relevant_pages(catalog: CardCatalog, title: str, authors: List[str
     Implementation detail: we only get the first valid match for the book
     but we try all authors, storing all valid matches.
     """
-    cache_data = catalog.contents("usermaps_wikipedia_relevant")
     authors = authors or []
     cache_key = f"title={title};authors={'|'.join(authors)}"
-    if cache_key in cache_data:
-        return cache_data[cache_key]
+    if cache_key in catalog.wikipedia_relevant.contents:
+        return catalog.wikipedia_relevant.contents[cache_key]
 
     def query_wikipedia(article: str):
         baseurl = "https://en.wikipedia.org/w/api.php"
@@ -56,5 +55,5 @@ def wikipedia_relevant_pages(catalog: CardCatalog, title: str, authors: List[str
         except:
             pass
 
-    cache_data[cache_key] = result
+    catalog.wikipedia_relevant.contents[cache_key] = result
     return result

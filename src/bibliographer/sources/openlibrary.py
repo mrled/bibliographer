@@ -12,9 +12,8 @@ def isbn2olid(catalog: CardCatalog, isbn: str) -> Optional[str]:
     """
     Store the OLID as just "OL12345M", not "/books/OL12345M".
     """
-    data = catalog.contents("usermaps_isbn2olid_map")
-    if isbn in data:
-        return data[isbn]
+    if isbn in catalog.isbn2olid_map.contents:
+        return catalog.isbn2olid_map.contents[isbn]
 
     url = f"https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&format=json&jscmd=data"
     mlogger.debug(f"[OPENLIBRARY] GET {url}")
@@ -25,7 +24,7 @@ def isbn2olid(catalog: CardCatalog, isbn: str) -> Optional[str]:
     j = r.json()
     key = f"ISBN:{isbn}"
     if key not in j:
-        data[isbn] = None
+        catalog.isbn2olid_map.contents[isbn] = None
         return None
 
     book_info = j[key]
@@ -36,5 +35,5 @@ def isbn2olid(catalog: CardCatalog, isbn: str) -> Optional[str]:
             raw = raw[len("/books/") :]  # just "OL12345M"
         olid = raw
 
-    data[isbn] = olid
+    catalog.isbn2olid_map.contents[isbn] = olid
     return olid

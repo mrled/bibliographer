@@ -11,7 +11,6 @@ def ingest_kindle_library(
     export_json: pathlib.Path,
 ):
     """Ingest a new Kindle library export and save to the Kindle library apicache."""
-    kindlelib = catalog.contents("apicache_kindle_library")
     new_data = load_json(export_json)
 
     for item in new_data:
@@ -19,7 +18,7 @@ def ingest_kindle_library(
         if not asin:
             mlogger.error(f"Missing ASIN in Kindle item {item}")
             continue
-        kindlelib[asin] = item
+        catalog.kindlelib.contents[asin] = item
 
 
 def process_kindle_library(
@@ -33,10 +32,7 @@ def process_kindle_library(
       and the single element contains each authors name terminated by a colon.
     - Set the 'kindle_asin' key to the original 'asin' key.
     """
-    kindlelib = catalog.contents("apicache_kindle_library")
-    kindleslugs = catalog.contents("usermaps_kindle_slugs")
-
-    for asin, item in kindlelib.items():
+    for asin, item in catalog.kindlelib.contents.items():
         mlogger.debug(f"Processing Kindle library ASIN {asin}")
         book = CombinedCatalogBook()
         book.kindle_asin = asin
@@ -44,9 +40,9 @@ def process_kindle_library(
         book.authors = item["authors"][0].rstrip(":").split(":")
         book.kindle_cover_url = item.get("productUrl")
 
-        if asin not in kindleslugs:
-            kindleslugs[asin] = slugify(item["title"])
-        book.slug = kindleslugs[asin]
+        if asin not in catalog.kindleslugs.contents:
+            catalog.kindleslugs.contents[asin] = slugify(item["title"])
+        book.slug = catalog.kindleslugs.contents[asin]
 
         if book.slug in catalog.combinedlib.contents:
             catalog.combinedlib.contents[book.slug].merge(book)

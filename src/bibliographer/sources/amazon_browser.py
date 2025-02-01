@@ -47,10 +47,9 @@ def amazon_browser_search(plus_term: str):
 
 def amazon_browser_search_cached(catalog: CardCatalog, searchterm: str, force=False):
     """Look up a search term in the search2asin_map cache, and if not present, search Amazon."""
-    data = catalog.contents("usermaps_search2asin")
     plus_term = "+".join(searchterm.strip().split())
 
-    if plus_term in data and not force:
-        return data[plus_term]
+    if plus_term in catalog.search2asin.contents and not force:
+        return catalog.search2asin.contents[plus_term]
 
     return amazon_browser_search(plus_term)

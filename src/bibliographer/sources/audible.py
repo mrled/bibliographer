@@ -49,8 +49,6 @@ def retrieve_audible_library(
          }
        }
     """
-    audiblelib = catalog.contents("apicache_audible_library")
-
     page = 1
     page_size = 1000
     while True:
@@ -65,7 +63,7 @@ def retrieve_audible_library(
 
         for item in items:
             asin = item["asin"]
-            audiblelib[asin] = item
+            catalog.audiblelib.contents[asin] = item
 
         page += 1
         if len(items) < page_size:
@@ -90,10 +88,7 @@ def process_audible_library(
          }
        }
     """
-    audiblelib = catalog.contents("apicache_audible_library")
-    audibleslugs = catalog.contents("usermaps_audible_slugs")
-
-    for asin, item in audiblelib.items():
+    for asin, item in catalog.audiblelib.contents.items():
         mlogger.debug(f"Processing Audible library ASIN {asin}")
         book = CombinedCatalogBook()
         book.audible_asin = asin
@@ -116,9 +111,9 @@ def process_audible_library(
         else:
             book.purchase_date = None
 
-        if asin not in audibleslugs:
-            audibleslugs[asin] = slugify(item["title"])
-        book.slug = audibleslugs[asin]
+        if asin not in catalog.audibleslugs.contents:
+            catalog.audibleslugs.contents[asin] = slugify(item["title"])
+        book.slug = catalog.audibleslugs.contents[asin]
 
         if book.slug in catalog.combinedlib.contents:
             catalog.combinedlib.contents[book.slug].merge(book)
