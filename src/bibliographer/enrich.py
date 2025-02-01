@@ -1,5 +1,6 @@
 import json
 import pathlib
+import shutil
 from typing import Optional
 
 from bibliographer import mlogger
@@ -121,3 +122,39 @@ def write_bibliographer_json_files(catalog: CardCatalog, books_root: pathlib.Pat
         book_dir.mkdir(exist_ok=True, parents=True)
         bibliographer_json_path = book_dir / "bibliographer.json"
         bibliographer_json_path.write_text(json.dumps(book.asdict, indent=2), encoding="utf-8")
+
+
+def rename_slug(catalog: CardCatalog, books_root: pathlib.Path, old_slug: str, new_slug: str):
+    """Change the slug of a book in the combined library.
+
+    This function will:
+    - Change the slug in the combined library.
+    - Move the book directory to the new slug.
+    - Update the index.md and bibliographer.json files.
+    """
+
+    mlogger.debug(f"Renaming slug {old_slug} to {new_slug}")
+
+    audibleslugs = catalog.contents("usermaps_audible_slugs")
+    for asin, slug in audibleslugs.items():
+        if slug == old_slug:
+            audibleslugs[asin] = new_slug
+
+    kindleslugs = catalog.contents("usermaps_kindle_slugs")
+    for asin, slug in kindleslugs.items():
+        if slug == old_slug:
+            kindleslugs[asin] = new_slug
+
+    book = catalog.combinedlib.contents[old_slug]
+    book.slug = new_slug
+
+    if new_slug not in catalog.combinedlib.contents:
+        catalog.combinedlib.contents[new_slug] = catalog.combinedlib.contents[old_slug]
+    del catalog.combinedlib.contents[old_slug]
+
+    old_slug_path = books_root / old_slug
+    new_slug_path = books_root / new_slug
+    if new_slug_path.exists() and old_slug_path.exists():
+        shutil.rmtree(old_slug_path)
+    elif not new_slug_path.exists() and old_slug_path.exists():
+        old_slug_path.rename(new_slug_path)

@@ -17,11 +17,13 @@ from bibliographer.cli.util import (
     idb_excepthook,
 )
 from bibliographer.enrich import (
+    rename_slug,
     enrich_combined_library,
     retrieve_covers,
     write_bibliographer_json_files,
     write_index_md_files,
 )
+from bibliographer.hugo import slugify
 from bibliographer.sources.amazon_browser import amazon_browser_search_cached
 from bibliographer.sources.audible import audible_login, process_audible_library, retrieve_audible_library
 from bibliographer.sources.covers import download_cover_from_url
@@ -125,6 +127,23 @@ def makeparser() -> argparse.ArgumentParser:
     sp_ma_add.add_argument("--purchase-date", help="Purchase date if any (YYYY-MM-DD)")
     sp_ma_add.add_argument("--read-date", help="Read date if any (YYYY-MM-DD)")
     sp_ma_add.add_argument("--slug", help="Slug for URL (set to a slugified title by default)")
+
+    # slug subcommand
+    sp_slug = subparsers.add_parser("slug", help="Manage slugs")
+    sp_slug_sub = sp_slug.add_subparsers(dest="slug_subcommand", required=True)
+
+    # slug show
+    sp_slug_show = sp_slug_sub.add_parser("show", help="Show what slug would be generated for a given title")
+    sp_slug_show.add_argument("title", help="Title to slugify")
+
+    # slug rename
+    sp_slug_rename = sp_slug_sub.add_parser("rename", help="Renamed a slug")
+    sp_slug_rename.add_argument("old_slug", help="Old slug")
+    sp_slug_rename.add_argument("new_slug", help="New slug")
+
+    # slug regenerate
+    sp_slug_regen = sp_slug_sub.add_parser("regenerate", help="Regenerate a slug")
+    sp_slug_regen.add_argument("slug", help="Slug to regenerate")
 
     # cover subcommand
     sp_cover = subparsers.add_parser("cover", help="Cover operations")
@@ -382,6 +401,16 @@ def main(arguments: list[str]) -> int:
                 with cover_dest.open("wb") as f:
                     f.write(cover_data.image_data)
                 print(f"Cover image set for {book_slug}")
+
+        elif args.subcommand == "slug":
+            if args.slug_subcommand == "show":
+                print(slugify(args.title))
+            elif args.slug_subcommand == "rename":
+                rename_slug(catalog, args.book_slug_root, args.old_slug, args.new_slug)
+            elif args.slug_subcommand == "regenerate":
+                slug = args.slug
+                new_slug = slugify(catalog.combinedlib.contents[slug].title)
+                rename_slug(catalog, args.book_slug_root, slug, new_slug)
 
         else:
             print("Unknown subcommand", file=sys.stderr)
