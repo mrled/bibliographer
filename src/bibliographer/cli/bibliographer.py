@@ -144,6 +144,7 @@ def makeparser() -> argparse.ArgumentParser:
     # slug regenerate
     sp_slug_regen = sp_slug_sub.add_parser("regenerate", help="Regenerate a slug")
     sp_slug_regen.add_argument("slug", help="Slug to regenerate")
+    sp_slug_regen.add_argument("--interactive", "-i", action="store_true", help="Prompt before taking any action")
 
     # cover subcommand
     sp_cover = subparsers.add_parser("cover", help="Cover operations")
@@ -408,9 +409,14 @@ def main(arguments: list[str]) -> int:
             elif args.slug_subcommand == "rename":
                 rename_slug(catalog, args.book_slug_root, args.old_slug, args.new_slug)
             elif args.slug_subcommand == "regenerate":
-                slug = args.slug
-                new_slug = slugify(catalog.combinedlib.contents[slug].title)
-                rename_slug(catalog, args.book_slug_root, slug, new_slug)
+                new_slug = slugify(catalog.combinedlib.contents[args.slug].title)
+                if new_slug == args.slug:
+                    print(f"Slug for {args.slug} is already {new_slug}")
+                    return 0
+                if args.interactive:
+                    if input(f"Change slug from {args.slug} to {new_slug}? [y/N] ").strip().lower() != "y":
+                        return 1
+                rename_slug(catalog, args.book_slug_root, args.slug, new_slug)
 
         else:
             print("Unknown subcommand", file=sys.stderr)
