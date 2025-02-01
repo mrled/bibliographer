@@ -51,7 +51,7 @@ def release(ctx, version=None, primary="main"):
 
     # Commit the change
     ctx.run(f"git add pyproject.toml")
-    ctx.run(f'git commit -m "Bump version to {version}"')
+    ctx.run(f'git commit -m "Update version to {version}"')
 
     # Tag the release
     ctx.run(f"git tag -a v{version} -m 'Version {version}'")
