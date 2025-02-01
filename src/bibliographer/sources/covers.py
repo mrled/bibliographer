@@ -107,8 +107,15 @@ def lookup_cover(
 
     If a cover is already present, don't re-fetch unless 'force' is True.
     """
-    if cover_path(book_dir) and not force:
-        return
+    existing_cover = cover_path(book_dir)
+    if existing_cover:
+        if force:
+            mlogger.debug(f"[cover] already exists at {existing_cover} and force is passed, redownloading...")
+        else:
+            mlogger.debug(f"[cover] already exists at {existing_cover}, will not redownload")
+            return
+    else:
+        mlogger.debug(f"[cover] downloading for {book_dir}...")
 
     cover_data = None
     if gbooks_volid:
@@ -119,6 +126,8 @@ def lookup_cover(
     # if not cover_data and fallback_asin:
     #     cover_data = amazon_cover_retreive(fallback_asin)
     if cover_data:
+        book_dir.mkdir(exist_ok=True, parents=True)
+
         while existing_cover := cover_path(book_dir):
             existing_cover.unlink()
 
@@ -132,6 +141,8 @@ def cover_path(book_dir: pathlib.Path) -> Optional[pathlib.Path]:
 
     slice "image" "image/jpg" "image/jpeg" "image/png" "image/gif" "image/webp")) 0) }}
     """
+    if not book_dir.is_dir():
+        return None
     for child in book_dir.iterdir():
         if child.is_file() and child.suffix.lower() in [".jpg", ".jpeg", ".png", ".gif", ".webp"]:
             return child

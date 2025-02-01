@@ -8,23 +8,26 @@ from typing import Callable, Generic, List, Optional, Type, TypeVar
 import logging
 import subprocess
 
-from bibliographer.sources.amazon_browser import amazon_browser_search_cached
-from bibliographer.sources.audible import audible_login, retrieve_audible_library
-
 from bibliographer import add_console_handler, mlogger
-from bibliographer.sources.covers import download_cover_from_url
-from bibliographer.enrich import enrich_audible_library, enrich_kindle_library
-from bibliographer.sources.googlebooks import google_books_retrieve
-from bibliographer.sources.kindle import ingest_kindle_library
-from bibliographer.sources.manual import manual_add
-from bibliographer.populate import populate_all_sources
+from bibliographer.cardcatalog import CardCatalog
 from bibliographer.cli.util import (
     AutoDescriptionArgumentParser,
     exceptional_exception_handler,
     get_argparse_help_string,
     idb_excepthook,
 )
-from bibliographer.cardcatalog import CardCatalog
+from bibliographer.enrich import (
+    enrich_combined_library,
+    retrieve_covers,
+    write_bibliographer_json_files,
+    write_index_md_files,
+)
+from bibliographer.sources.amazon_browser import amazon_browser_search_cached
+from bibliographer.sources.audible import audible_login, process_audible_library, retrieve_audible_library
+from bibliographer.sources.covers import download_cover_from_url
+from bibliographer.sources.googlebooks import google_books_retrieve
+from bibliographer.sources.kindle import ingest_kindle_library, process_kindle_library
+from bibliographer.sources.manual import manual_add
 
 
 def find_repo_root() -> Optional[pathlib.Path]:
@@ -58,8 +61,14 @@ def makeparser() -> argparse.ArgumentParser:
         help="Path to TOML config file, defaulting to a file called .bibliographer.toml in the repo root",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging of API calls.")
-    parser.add_argument("-b", "--bibliographer-data", help="Defaults to ./bibliographer_data")
-    parser.add_argument("-s", "--book-slug-root", help="Defaults to ./books")
+    parser.add_argument("-b", "--bibliographer-data", help="Defaults to ./bibliographer/data")
+    parser.add_argument("-s", "--book-slug-root", help="Defaults to ./bibliographer/books")
+    parser.add_argument(
+        "-i",
+        "--individual-bibliographer-json",
+        action="store_true",
+        help="Write out each book to its own JSON file (in addition to the combined bibliographer.json), under book_slug_root/SLUG/bibliographer.json",
+    )
     parser.add_argument("-a", "--audible-login-file", help="Defaults to ./.bibliographer-audible-auth-INSECURE.json")
     parser.add_argument("-g", "--google-books-key", help="Google Books API key")
     parser.add_argument(
@@ -213,6 +222,7 @@ class ConfigurationParameterSet:
             ConfigurationParameter("verbose", bool, False),
             ConfigurationParameter("google_books_key", str, ""),
             ConfigurationParameter("google_books_key_cmd", str, ""),
+            ConfigurationParameter("individual_bibliographer_json", bool, False),
         ]
 
     @staticmethod
@@ -223,11 +233,11 @@ class ConfigurationParameterSet:
         while relative paths set in the config file are resolved relative to the config file's directory.
         """
         return [
-            ConfigurationParameter("book_slug_root", pathlib.Path, pathlib.Path("./books")),
+            ConfigurationParameter("book_slug_root", pathlib.Path, pathlib.Path("./bibliographer/books")),
             ConfigurationParameter(
                 "audible_login_file", pathlib.Path, pathlib.Path("./.bibliographer-audible-auth-INSECURE.json")
             ),
-            ConfigurationParameter("bibliographer_data", pathlib.Path, pathlib.Path("./bibliographer_data")),
+            ConfigurationParameter("bibliographer_data", pathlib.Path, pathlib.Path("./bibliographer/data")),
         ]
 
 
@@ -313,28 +323,22 @@ def main(arguments: list[str]) -> int:
     # Dispatch
     try:
         if args.subcommand == "populate":
-            populate_all_sources(
-                catalog=catalog,
-                book_slug_root=args.book_slug_root,
-                google_books_key=google_books_key.get(),
-            )
+            process_audible_library(catalog)
+            process_kindle_library(catalog)
+            enrich_combined_library(catalog, google_books_key.get())
+            retrieve_covers(catalog, args.book_slug_root)
+            write_index_md_files(catalog, args.book_slug_root)
+            if args.individual_bibliographer_json:
+                write_bibliographer_json_files(catalog, args.book_slug_root)
 
         elif args.subcommand == "audible":
             client = audible_login(args.audible_login_file)
             if args.audible_subcommand == "retrieve":
                 retrieve_audible_library(catalog, client)
-                enrich_audible_library(
-                    catalog=catalog,
-                    google_books_key=google_books_key.get(),
-                )
 
         elif args.subcommand == "kindle":
             if args.kindle_subcommand == "ingest":
                 ingest_kindle_library(catalog, args.export_json)
-                enrich_kindle_library(
-                    catalog=catalog,
-                    google_books_key=google_books_key.get(),
-                )
 
         elif args.subcommand == "googlebook":
             # We have "requery" subcommand
