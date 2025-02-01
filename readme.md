@@ -184,7 +184,9 @@ hugosite/
 You might set the `bibliographer.toml` config file like:
 
 ```toml
+bibliographer_data = "assets/bibliographer"
 book_slug_root = "content/books"
+individual_bibliographer_json = true
 ```
 
 And run the program like:
