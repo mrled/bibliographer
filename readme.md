@@ -409,9 +409,9 @@ or open a new one if there are other services that would be helpful.
 <!--[[[cog
 import cog
 from bibliographer.cli.bibliographer import get_help_string
-cog.out(f"```\n{get_help_string()}```\n")
+cog.out(f"```text\n{get_help_string()}```\n")
 ]]]-->
-```
+```text
 > bibliographer --help
 usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-b BIBLIOGRAPHER_DATA]
                      [-s BOOK_SLUG_ROOT] [-i] [-a AUDIBLE_LOGIN_FILE]
