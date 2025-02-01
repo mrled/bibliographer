@@ -29,6 +29,7 @@ from bibliographer.sources.audible import audible_login, process_audible_library
 from bibliographer.sources.covers import download_cover_from_url
 from bibliographer.sources.googlebooks import google_books_retrieve
 from bibliographer.sources.kindle import ingest_kindle_library, process_kindle_library
+from bibliographer.sources.librofm import librofm_login, librofm_retrieve_library
 from bibliographer.sources.manual import manual_add
 
 
@@ -78,6 +79,18 @@ def makeparser() -> argparse.ArgumentParser:
         "--google-books-key-cmd",
         help="A command to retrieve the Google Books API key (e.g. from a password manager)",
     )
+    parser.add_argument(
+        "--librofm-username",
+        help="Libro.fm username (email address)",
+    )
+    parser.add_argument(
+        "--librofm-password",
+        help="Libro.fm password",
+    )
+    parser.add_argument(
+        "--librofm-password-cmd",
+        help="A command to retrieve the Libro.fm password (e.g. from a password manager)",
+    )
 
     # Take care to add help AND description to each subparser.
     # Help is shown by the parent parser
@@ -114,6 +127,11 @@ def makeparser() -> argparse.ArgumentParser:
     sp_amazon_sub = sp_amazon.add_subparsers(dest="amazon_subcommand", required=True)
     sp_amazon_req = sp_amazon_sub.add_parser("requery", help="Force re-scrape for one or more search terms.")
     sp_amazon_req.add_argument("searchterms", nargs="+", help="Search terms to re-scrape from Amazon")
+
+    # Libro.fm subcommand
+    sp_librofm = subparsers.add_parser("librofm", help="Libro.fm operations")
+    sp_librofm_sub = sp_librofm.add_subparsers(dest="librofm_subcommand", required=True)
+    sp_librofm_sub.add_parser("retrieve", help="Retrieve the Libro.fm library")
 
     # Manual subcommand
     sp_manual = subparsers.add_parser("manual", help="Manage manually-entered books")
@@ -242,6 +260,9 @@ class ConfigurationParameterSet:
             ConfigurationParameter("verbose", bool, False),
             ConfigurationParameter("google_books_key", str, ""),
             ConfigurationParameter("google_books_key_cmd", str, ""),
+            ConfigurationParameter("librofm_username", str, ""),
+            ConfigurationParameter("librofm_password", str, ""),
+            ConfigurationParameter("librofm_password_cmd", str, ""),
             ConfigurationParameter("individual_bibliographer_json", bool, False),
         ]
 
@@ -337,6 +358,7 @@ def main(arguments: list[str]) -> int:
         getcmd=args.google_books_key_cmd,
         key=args.google_books_key,
     )
+    librofm_password = SecretValueGetter(getcmd=args.librofm_password_cmd, key=args.librofm_password)
 
     catalog = CardCatalog(args.bibliographer_data)
 
@@ -359,6 +381,11 @@ def main(arguments: list[str]) -> int:
         elif args.subcommand == "kindle":
             if args.kindle_subcommand == "ingest":
                 ingest_kindle_library(catalog, args.export_json)
+
+        elif args.subcommand == "librofm":
+            if args.librofm_subcommand == "retrieve":
+                token = librofm_login(args.librofm_username, librofm_password.get())
+                result = librofm_retrieve_library(catalog, token)
 
         elif args.subcommand == "googlebook":
             # We have "requery" subcommand

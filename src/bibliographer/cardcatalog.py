@@ -111,6 +111,10 @@ class CardCatalog:
             path=self.dir_apicache / "gbooks_volumes.json",
             contents_type=dict,
         )
+        self.librofmlib = TypedCardCatalogEntry[dict](
+            path=self.dir_apicache / "librofm_library.json",
+            contents_type=dict,
+        )
 
         # usermaps
         self.combinedlib = TypedCardCatalogEntry[CombinedCatalogBook](
@@ -145,6 +149,7 @@ class CardCatalog:
         self.allentries: list[TypedCardCatalogEntry] = [
             self.audiblelib,
             self.kindlelib,
+            self.librofmlib,
             self.gbooks_volumes,
             self.combinedlib,
             self.audibleslugs,
