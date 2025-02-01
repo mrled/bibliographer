@@ -318,9 +318,10 @@ debug = false
 verbose = false
 google_books_key = ""
 google_books_key_cmd = ""
-book_slug_root = "books"
+individual_bibliographer_json = false
+book_slug_root = "bibliographer/books"
 audible_login_file = ".bibliographer-audible-auth-INSECURE.json"
-bibliographer_data = "bibliographer_data"
+bibliographer_data = "bibliographer/data"
 ```
 <!--[[[end]]]-->
 
@@ -388,21 +389,22 @@ cog.out(f"```\n{get_help_string()}```\n")
 ```
 > bibliographer --help
 usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-b BIBLIOGRAPHER_DATA]
-                     [-s BOOK_SLUG_ROOT] [-a AUDIBLE_LOGIN_FILE]
+                     [-s BOOK_SLUG_ROOT] [-i] [-a AUDIBLE_LOGIN_FILE]
                      [-g GOOGLE_BOOKS_KEY] [-G GOOGLE_BOOKS_KEY_CMD]
-                     {populate,audible,kindle,googlebook,amazon,manual,cover}
+                     {populate,audible,kindle,googlebook,amazon,manual,slug,cover}
                      ...
 
 Manage Audible/Kindle libraries, enrich them, and populate local book repos.
 
 positional arguments:
-  {populate,audible,kindle,googlebook,amazon,manual,cover}
+  {populate,audible,kindle,googlebook,amazon,manual,slug,cover}
     populate            Populate bibliographer.json files
     audible             Audible operations
     kindle              Kindle operations
     googlebook          Operate on Google Books data
     amazon              Amazon forced re-scrape
     manual              Manage manually-entered books
+    slug                Manage slugs
     cover               Cover operations
 
 options:
@@ -414,9 +416,13 @@ options:
                         .bibliographer.toml in the repo root
   -v, --verbose         Enable verbose logging of API calls.
   -b BIBLIOGRAPHER_DATA, --bibliographer-data BIBLIOGRAPHER_DATA
-                        Defaults to ./bibliographer_data
+                        Defaults to ./bibliographer/data
   -s BOOK_SLUG_ROOT, --book-slug-root BOOK_SLUG_ROOT
-                        Defaults to ./books
+                        Defaults to ./bibliographer/books
+  -i, --individual-bibliographer-json
+                        Write out each book to its own JSON file (in addition to
+                        the combined bibliographer.json), under
+                        book_slug_root/SLUG/bibliographer.json
   -a AUDIBLE_LOGIN_FILE, --audible-login-file AUDIBLE_LOGIN_FILE
                         Defaults to ./.bibliographer-audible-auth-INSECURE.json
   -g GOOGLE_BOOKS_KEY, --google-books-key GOOGLE_BOOKS_KEY
@@ -575,6 +581,63 @@ options:
   --read-date READ_DATE
                         Read date if any (YYYY-MM-DD)
   --slug SLUG           Slug for URL (set to a slugified title by default)
+
+________________________________________________________________________
+
+> bibliographer slug --help
+usage: bibliographer slug [-h] {show,rename,regenerate} ...
+
+Manage slugs
+
+positional arguments:
+  {show,rename,regenerate}
+    show                Show what slug would be generated for a given title
+    rename              Renamed a slug
+    regenerate          Regenerate a slug
+
+options:
+  -h, --help            show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer slug show --help
+usage: bibliographer slug show [-h] title
+
+Show what slug would be generated for a given title
+
+positional arguments:
+  title       Title to slugify
+
+options:
+  -h, --help  show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer slug rename --help
+usage: bibliographer slug rename [-h] old_slug new_slug
+
+Renamed a slug
+
+positional arguments:
+  old_slug    Old slug
+  new_slug    New slug
+
+options:
+  -h, --help  show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer slug regenerate --help
+usage: bibliographer slug regenerate [-h] [--interactive] slug
+
+Regenerate a slug
+
+positional arguments:
+  slug               Slug to regenerate
+
+options:
+  -h, --help         show this help message and exit
+  --interactive, -i  Prompt before taking any action
 
 ________________________________________________________________________
 
