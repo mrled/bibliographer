@@ -73,9 +73,16 @@ In theory there's nothing uv-specific about the code,
 but only uv is tested.
 Clone the repo, and then:
 
-```python
+```sh
 uv add --dev .[dev]
 . .venv/bin/activate
+```
+
+`bibliographer` supports the `--debug`/`-D` flag
+which will drop you into the debugger on any unhandled exception.
+
+```sh
+bibliographer -D ...
 ```
 
 ## `bibliograhper` versioning
@@ -138,6 +145,16 @@ Now ingest the data and populate the `bibliographer.json` metadata files with:
 ```sh
 bibliographer kindle ingest /path/to/kindle-library.json
 bibliographer populate
+```
+
+### Logging
+
+Passing the `--verbose`/`-v` flag provides detailed log messages.
+If you're ingesting more than a handful of books at a time,
+it's nice to do this to know that the process hasn't gotten stuck.
+
+```sh
+bibliographer -v ...
 ```
 
 ### Changing settings in usermaps
