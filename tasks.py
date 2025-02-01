@@ -16,19 +16,21 @@ def mypy(ctx):
 
 
 @task
-def release(ctx, version=None):
+def release(ctx, version=None, primary="main"):
     """Update the version in pyproject.toml, tag the release, and push the tag.
 
     Set the version to the specified version or increment the patch version by 1.
+
+    Only allow the release to happen on the primary branch.
     """
 
     # Fail if there are uncommitted changes
     ctx.run("git diff --exit-code")
 
-    # Fail if not on the main branch
+    # Fail if not on the primary branch
     branch = ctx.run("git branch --show-current", hide=True).stdout.strip()
-    if branch != "main":
-        raise Exception("Not on the main branch")
+    if branch != primary:
+        raise Exception(f"Not on the primary branch '{primary}'")
 
     # Update the version in pyproject.toml
     with open("pyproject.toml") as f:
@@ -54,5 +56,5 @@ def release(ctx, version=None):
     # Tag the release
     ctx.run(f"git tag -a v{version} -m 'Version {version}'")
 
-    # Push the tag and main
-    ctx.run("git push --tags")
+    # Push the tag and primary branch
+    ctx.run(f"git push origin {primary} v{version}")
