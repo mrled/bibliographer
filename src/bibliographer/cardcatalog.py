@@ -75,7 +75,6 @@ T = TypeVar("T", bound=object)
 class TypedCardCatalogEntry(Generic[T]):
     """A single entry in the card catalog."""
 
-    name: str
     path: pathlib.Path
     _contents: Dict[str, T] | None = None
 
@@ -99,7 +98,6 @@ class TypedCardCatalogEntry(Generic[T]):
 class CardCatalogEntry:
     """A single entry in the card catalog."""
 
-    name: str
     path: pathlib.Path
     contents: dict | None = None
 
@@ -118,47 +116,37 @@ class CardCatalog:
         self.dir_usermaps.mkdir(parents=True, exist_ok=True)
 
         self.combinedlib = TypedCardCatalogEntry[CombinedCatalogBook](
-            name="combined_library",
             path=self.dir_usermaps / "combined_library.json",
         )
 
         self.files = {
             # apicache
             "apicache_audible_library": CardCatalogEntry(
-                name="audible_library_metadata",
                 path=self.dir_apicache / "audible_library_metadata.json",
             ),
             "apicache_kindle_library": CardCatalogEntry(
-                name="kindle_library_metadata",
                 path=self.dir_apicache / "kindle_library_metadata.json",
             ),
             "apicache_gbooks_volumes": CardCatalogEntry(
-                name="gbooks_volumes",
                 path=self.dir_apicache / "gbooks_volumes.json",
             ),
             # usermaps
             "usermaps_audible_slugs": CardCatalogEntry(
-                name="audible_slugs",
                 path=self.dir_usermaps / "audible_slugs.json",
             ),
             "usermaps_kindle_slugs": CardCatalogEntry(
-                name="kindle_slugs",
                 path=self.dir_usermaps / "kindle_slugs.json",
             ),
             "usermaps_asin2gbv_map": CardCatalogEntry(
-                name="asin2gbv_map",
                 path=self.dir_usermaps / "asin2gbv_map.json",
             ),
             "usermaps_isbn2olid_map": CardCatalogEntry(
-                name="isbn2olid_map",
                 path=self.dir_usermaps / "isbn2olid_map.json",
             ),
             "usermaps_search2asin": CardCatalogEntry(
-                name="search2asin",
                 path=self.dir_usermaps / "search2asin.json",
             ),
             "usermaps_wikipedia_relevant": CardCatalogEntry(
-                name="wikipedia_relevant",
                 path=self.dir_usermaps / "wikipedia_relevant.json",
             ),
         }
