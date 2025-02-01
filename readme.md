@@ -95,14 +95,14 @@ Without any other configuration, this will:
 * Prompt you to log in to your Audible account
 * Retrieve your Audible library
 * Retrieve metadata from various APIs like OpenLibrary
-* Save your Audible library to `bibliographer_data/apicache/audible_library_metadata.json`
-* Populate some mapping files in `bibliographer_data/apicache`:
+* Save your Audible library to `bibliographer/data/apicache/audible_library_metadata.json`
+* Populate some mapping files in `bibliographer/data/usermaps`:
   * `audible_library_metadata_enriched.json`: to save enriched data about your books
   * `isbn2olid_map.json`: to map your books to OpenLibrary IDs
   * `search2asin.json`: to find an ASIN on Amazon.com for your books
   * `wikipedia_relevant.json`: to contain a list of relevant Wikipedia pages
-* Create a slug directory inside `./books` for each book based on its title,
-  like `./books/getting-things-done`.
+* Create a slug directory inside `bibliographer/books` for each book based on its title,
+  like `bibliographer/books/getting-things-done`.
   The slug can be configured inside `audible_library_metadata_enriched.json`.
 * Create a `cover.jpg` (or `.png` etc) inside each slug directory
 * Create a `bibliographer.json` file containing enriched metadata inside each slug directory
@@ -152,7 +152,7 @@ For instance, the book
 is by design historian [Paul Shaw](https://en.wikipedia.org/wiki/Paul_Shaw_%28design_historian%29),
 but Wikipedia knows [several people](https://en.wikipedia.org/wiki/Paul_Shaw)
 by that name and may have returned the disambiguation page or one of the other individuals.
-To fix that, you can edit the `bibliographer_data/apicache/wikipedia_relevant.json` file
+To fix that, you can edit the `bibliographer/data/apicache/wikipedia_relevant.json` file
 to point to the correct Paul Shaw.
 
 ```json
@@ -172,6 +172,14 @@ it's useful to set a config file in the Hugo repository root.
 
 ```text
 hugosite/
+  assets/
+    bibliographer/
+      apicache/
+        audible_library_metadata.json
+        ...
+      usermaps/
+        audible_library_metadata_enriched.json
+        ...
   content/
     books/
       getting-things-done/
@@ -179,15 +187,8 @@ hugosite/
         bibliographer.json
         cover.jpg
       ...
-  hugo.toml
   bibliographer.toml
-  bibliographer_data/
-    apicache/
-      audible_library_metadata.json
-      ...
-    usermaps/
-      audible_library_metadata_enriched.json
-      ...
+  hugo.toml
 ```
 
 You might set the `bibliographer.toml` config file like:
