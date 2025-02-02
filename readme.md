@@ -346,6 +346,9 @@ debug = false
 verbose = false
 google_books_key = ""
 google_books_key_cmd = ""
+librofm_username = ""
+librofm_password = ""
+librofm_password_cmd = ""
 individual_bibliographer_json = false
 book_slug_root = "bibliographer/books"
 audible_login_file = ".bibliographer-audible-auth-INSECURE.json"
@@ -434,18 +437,22 @@ cog.out(f"```text\n{get_help_string()}```\n")
 usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-b BIBLIOGRAPHER_DATA]
                      [-s BOOK_SLUG_ROOT] [-i] [-a AUDIBLE_LOGIN_FILE]
                      [-g GOOGLE_BOOKS_KEY] [-G GOOGLE_BOOKS_KEY_CMD]
-                     {populate,audible,kindle,googlebook,amazon,manual,slug,cover}
+                     [--librofm-username LIBROFM_USERNAME]
+                     [--librofm-password LIBROFM_PASSWORD]
+                     [--librofm-password-cmd LIBROFM_PASSWORD_CMD]
+                     {populate,audible,kindle,googlebook,amazon,librofm,manual,slug,cover}
                      ...
 
 Manage Audible/Kindle libraries, enrich them, and populate local book repos.
 
 positional arguments:
-  {populate,audible,kindle,googlebook,amazon,manual,slug,cover}
+  {populate,audible,kindle,googlebook,amazon,librofm,manual,slug,cover}
     populate            Populate bibliographer.json files
     audible             Audible operations
     kindle              Kindle operations
     googlebook          Operate on Google Books data
     amazon              Amazon forced re-scrape
+    librofm             Libro.fm operations
     manual              Manage manually-entered books
     slug                Manage slugs
     cover               Cover operations
@@ -473,6 +480,13 @@ options:
   -G GOOGLE_BOOKS_KEY_CMD, --google-books-key-cmd GOOGLE_BOOKS_KEY_CMD
                         A command to retrieve the Google Books API key (e.g.
                         from a password manager)
+  --librofm-username LIBROFM_USERNAME
+                        Libro.fm username (email address)
+  --librofm-password LIBROFM_PASSWORD
+                        Libro.fm password
+  --librofm-password-cmd LIBROFM_PASSWORD_CMD
+                        A command to retrieve the Libro.fm password (e.g. from a
+                        password manager)
 
 ________________________________________________________________________
 
@@ -588,6 +602,30 @@ positional arguments:
 
 options:
   -h, --help   show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer librofm --help
+usage: bibliographer librofm [-h] {retrieve} ...
+
+Libro.fm operations
+
+positional arguments:
+  {retrieve}
+    retrieve  Retrieve the Libro.fm library
+
+options:
+  -h, --help  show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer librofm retrieve --help
+usage: bibliographer librofm retrieve [-h]
+
+Retrieve the Libro.fm library
+
+options:
+  -h, --help  show this help message and exit
 
 ________________________________________________________________________
 
