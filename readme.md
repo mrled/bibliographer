@@ -34,6 +34,8 @@ and work is ongoing to improve this.
 - Library ingestion
   - Automatically pull your library from Audible,
     which requires your username, password, and 2 factor OTP
+  - Automatically pull your library from Libro.fm,
+    which requires your username and password
   - Parse your library from Kindle,
     which requires you to generate it by logging in to <https://read.amazon.com>
     and running some code in the web dev tools
@@ -120,6 +122,16 @@ bibliographer audible
 
 # Populate bibliographer.json metadata files
 bibliograhper populate
+```
+
+### Simple usage with libro.fm
+
+```sh
+# Retrieve library from Libro.fm
+bibliographer --librofm-username you@example.com --librofm-password p@ssw0rd librofm retrieve
+
+# Populate bibliographer.json metadata files
+bibliographer populate
 ```
 
 ### Simple usage with Kindle
@@ -418,9 +430,8 @@ google_books_key = "your key goes here"
 
 ## Future
 
-* <https://libro.fm> support mrled/bibliographer#6
 * Goodreads support mrled/bibliographer#11
-* Support other sites generically mrled/bibliographer#4
+* Support other site generators besides Hugo generically mrled/bibliographer#4
 
 Please comment on the above issues to register your interest,
 or open a new one if there are other services that would be helpful.
