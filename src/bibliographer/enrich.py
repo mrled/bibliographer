@@ -143,6 +143,10 @@ def rename_slug(catalog: CardCatalog, books_root: pathlib.Path, old_slug: str, n
         if slug == old_slug:
             catalog.kindleslugs.contents[asin] = new_slug
 
+    for librofm_isbn, slug in catalog.librofmslugs.contents.items():
+        if slug == old_slug:
+            catalog.librofmslugs.contents[librofm_isbn] = new_slug
+
     book = catalog.combinedlib.contents[old_slug]
     book.slug = new_slug
 

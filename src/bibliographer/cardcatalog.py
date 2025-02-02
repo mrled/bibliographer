@@ -34,7 +34,7 @@ class CombinedCatalogBook:
     """
 
     publish_date: Optional[str] = None
-    """The publish date of the book."""
+    """The publication date of the original edition of the book."""
 
     purchase_date: Optional[str] = None
     """The date the book was purchased."""
@@ -57,11 +57,24 @@ class CombinedCatalogBook:
     audible_asin: Optional[str] = None
     """The Amazon ASIN of the Audible edition of the book."""
 
+    librofm_isbn: Optional[str] = None
+    """The ISBN of the Libro.fm edition of the book.
+
+    It appears that Libro.fm ISBNs are unique to Libro.fm;
+    there isn't a generic audio ISBN. ?
+    """
+
+    librofm_publish_date: Optional[str] = None
+    """The publication date of the Libro.fm edition of the book."""
+
     audible_cover_url: Optional[str] = None
     """The URL of the Audible cover image."""
 
     kindle_cover_url: Optional[str] = None
     """The URL of the Kindle cover image."""
+
+    librofm_cover_url: Optional[str] = None
+    """The URL of the Libro.fm cover image."""
 
     urls_wikipedia: Optional[Dict[str, str]] = None
     """URLs to Wikipedia pages for the book and its authors, if any."""
@@ -162,6 +175,10 @@ class CardCatalog:
             path=self.dir_usermaps / "kindle_slugs.json",
             contents_type=str,
         )
+        self.librofmslugs = TypedCardCatalogEntry[str](
+            path=self.dir_usermaps / "librofm_slugs.json",
+            contents_type=str,
+        )
         self.asin2gbv_map = TypedCardCatalogEntry[str](
             path=self.dir_usermaps / "asin2gbv_map.json",
             contents_type=str,
@@ -186,6 +203,7 @@ class CardCatalog:
             self.gbooks_volumes,
             self.combinedlib,
             self.audibleslugs,
+            self.librofmslugs,
             self.kindleslugs,
             self.asin2gbv_map,
             self.isbn2olid_map,

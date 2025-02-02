@@ -1,8 +1,10 @@
 import json
+import re
 import requests
 
 from bibliographer import mlogger
-from bibliographer.cardcatalog import CardCatalog
+from bibliographer.cardcatalog import CardCatalog, CombinedCatalogBook
+from bibliographer.hugo import slugify
 
 LIBRO_BASE_URL = "https://libro.fm"
 LOGIN_ENDPOINT = "/oauth/token"
@@ -51,3 +53,26 @@ def librofm_retrieve_library(catalog: CardCatalog, token: str):
         if page >= data["total_pages"]:
             break
         page += 1
+
+
+def process_librofm_library(catalog: CardCatalog):
+    """Process the librofm library data and save to the combined library."""
+    for librofm_isbn, item in catalog.librofmlib.contents.items():
+        mlogger.debug(f"Processing librofm library ISBN {librofm_isbn}")
+        book = CombinedCatalogBook()
+        book.librofm_isbn = librofm_isbn
+        book.title = item["title"]
+        book.authors = item["authors"]
+        book.librofm_publish_date = item.get("publication_date")
+
+        # The cover URL is in format "//covers.libro.fm/9780593829097_1120.jpg"
+        book.librofm_cover_url = re.sub(r"^//", "https://", item.get("cover_url", ""))
+
+        if book.librofm_isbn not in catalog.librofmslugs.contents:
+            catalog.librofmslugs.contents[book.librofm_isbn] = slugify(item["title"])
+        book.slug = catalog.librofmslugs.contents[book.librofm_isbn]
+
+        if book.slug in catalog.combinedlib.contents:
+            catalog.combinedlib.contents[book.slug].merge(book)
+        else:
+            catalog.combinedlib.contents[book.slug] = book

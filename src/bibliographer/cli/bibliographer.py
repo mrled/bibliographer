@@ -29,7 +29,7 @@ from bibliographer.sources.audible import audible_login, process_audible_library
 from bibliographer.sources.covers import download_cover_from_url
 from bibliographer.sources.googlebooks import google_books_retrieve
 from bibliographer.sources.kindle import ingest_kindle_library, process_kindle_library
-from bibliographer.sources.librofm import librofm_login, librofm_retrieve_library
+from bibliographer.sources.librofm import librofm_login, librofm_retrieve_library, process_librofm_library
 from bibliographer.sources.manual import manual_add
 
 
@@ -367,6 +367,7 @@ def main(arguments: list[str]) -> int:
         if args.subcommand == "populate":
             process_audible_library(catalog)
             process_kindle_library(catalog)
+            process_librofm_library(catalog)
             enrich_combined_library(catalog, google_books_key.get())
             retrieve_covers(catalog, args.book_slug_root)
             write_index_md_files(catalog, args.book_slug_root)
