@@ -11,20 +11,20 @@ from bibliographer.util.jsonutil import load_json, save_json
 class CombinedCatalogBook:
     """A single book entry in the combined library."""
 
-    title: str | None = None
+    title: Optional[str] = None
     """The book title."""
 
     authors: list[str] = dataclasses.field(default_factory=list)
     """A list of authors"""
 
-    isbn: str | None = None
+    isbn: Optional[str] = None
     """The ISBN of the best* print edition of the book.
 
     Best* meaning something like the first edition,
     or the easiest to buy new.
     """
 
-    slug: str | None = None
+    slug: Optional[str] = None
     """A slugified version of the title for use in URLs."""
 
     skip: bool = False
@@ -36,31 +36,31 @@ class CombinedCatalogBook:
     publish_date: Optional[str] = None
     """The publish date of the book."""
 
-    purchase_date: str | None = None
+    purchase_date: Optional[str] = None
     """The date the book was purchased."""
 
-    read_date: str | None = None
+    read_date: Optional[str] = None
     """The date the user read the book."""
 
-    gbooks_volid: str | None = None
+    gbooks_volid: Optional[str] = None
     """The Google Books volume ID."""
 
-    openlibrary_id: str | None = None
+    openlibrary_id: Optional[str] = None
     """The OpenLibrary OLID."""
 
-    book_asin: str | None = None
+    book_asin: Optional[str] = None
     """The Amazon ASIN of a currently-available print edition of the book."""
 
-    kindle_asin: str | None = None
+    kindle_asin: Optional[str] = None
     """The Amazon ASIN of the Kindle edition of the book."""
 
-    audible_asin: str | None = None
+    audible_asin: Optional[str] = None
     """The Amazon ASIN of the Audible edition of the book."""
 
-    audible_cover_url: str | None = None
+    audible_cover_url: Optional[str] = None
     """The URL of the Audible cover image."""
 
-    kindle_cover_url: str | None = None
+    kindle_cover_url: Optional[str] = None
     """The URL of the Kindle cover image."""
 
     urls_wikipedia: Optional[Dict[str, str]] = None
@@ -96,7 +96,7 @@ class TypedCardCatalogEntry(Generic[T]):
 
     path: pathlib.Path
     contents_type: Type[T]
-    _contents: Dict[str, T] | None = None
+    _contents: Optional[Dict[str, T]] = None
 
     @property
     def contents(self):
