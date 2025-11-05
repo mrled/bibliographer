@@ -46,6 +46,72 @@ def find_repo_root() -> Optional[pathlib.Path]:
     return None
 
 
+def get_version() -> str:
+    """Get the version string
+
+    If the package is installed editable, return the git revision with "-dirty" if dirty.
+    Otherwise, return the version from pyproject.toml.
+    """
+    # Check if we're in an editable install by looking for the package source
+    try:
+        import bibliographer
+        package_path = pathlib.Path(bibliographer.__file__).parent
+
+        # Look for .git directory starting from the package directory
+        git_dir = None
+        current = package_path
+        while current != current.parent:
+            if (current / ".git").exists():
+                git_dir = current
+                break
+            current = current.parent
+
+        if git_dir:
+            # We found a git repository, so this is likely an editable install
+            # Get the git revision
+            result = subprocess.run(
+                ["git", "rev-parse", "--short", "HEAD"],
+                cwd=git_dir,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            revision = result.stdout.strip()
+
+            # Check if the working tree is dirty
+            result = subprocess.run(
+                ["git", "status", "--porcelain"],
+                cwd=git_dir,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            is_dirty = bool(result.stdout.strip())
+
+            if is_dirty:
+                return f"{revision}-dirty"
+            return revision
+    except Exception:
+        # If anything goes wrong, fall through to reading from pyproject.toml
+        pass
+
+    # Not an editable install or git detection failed, read from pyproject.toml
+    try:
+        # Find pyproject.toml relative to the package
+        import bibliographer
+        package_path = pathlib.Path(bibliographer.__file__).parent
+        pyproject_path = package_path.parent.parent / "pyproject.toml"
+
+        if pyproject_path.exists():
+            with open(pyproject_path, "rb") as f:
+                pyproject_data = tomllib.load(f)
+                return pyproject_data.get("project", {}).get("version", "unknown")
+    except Exception:
+        pass
+
+    return "unknown"
+
+
 def makeparser() -> argparse.ArgumentParser:
     """Return the argument parser"""
     parser = AutoDescriptionArgumentParser(
@@ -170,6 +236,9 @@ def makeparser() -> argparse.ArgumentParser:
     sp_cover_set = sp_cover_sub.add_parser("set", help="Set a cover image")
     sp_cover_set.add_argument("slug", help="Book slug")
     sp_cover_set.add_argument("url", help="URL for a cover image")
+
+    # version subcommand
+    subparsers.add_parser("version", help="Show version information")
 
     return parser
 
@@ -445,6 +514,9 @@ def main(arguments: list[str]) -> int:
                     if input(f"Change slug from {args.slug} to {new_slug}? [y/N] ").strip().lower() != "y":
                         return 1
                 rename_slug(catalog, args.book_slug_root, args.slug, new_slug)
+
+        elif args.subcommand == "version":
+            print(get_version())
 
         else:
             print("Unknown subcommand", file=sys.stderr)
