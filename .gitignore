@@ -4,4 +4,4 @@ venv*
 .venv*
 __pycache__
 *.egg-info
-.audible-auth-INSECURE.json
+.bibliographer-audible-auth-INSECURE.json
