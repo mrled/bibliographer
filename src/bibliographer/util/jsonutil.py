@@ -17,7 +17,8 @@ def save_json(path: pathlib.Path, data: dict):
     """Save JSON to a file, overwriting."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
+        json.dump(data, f, indent=2, sort_keys=True, ensure_ascii=False)
+        f.write("\n")
 
 
 def merge_json(old_data: dict, new_data: dict) -> dict:
