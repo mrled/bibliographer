@@ -451,13 +451,12 @@ usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-b BIBLIOGRAPHER_DATA]
                      [--librofm-username LIBROFM_USERNAME]
                      [--librofm-password LIBROFM_PASSWORD]
                      [--librofm-password-cmd LIBROFM_PASSWORD_CMD]
-                     {populate,audible,kindle,googlebook,amazon,librofm,manual,slug,cover}
-                     ...
+                     {populate,audible,kindle,googlebook,amazon,librofm,manual,slug,cover,version} ...
 
 Manage Audible/Kindle libraries, enrich them, and populate local book repos.
 
 positional arguments:
-  {populate,audible,kindle,googlebook,amazon,librofm,manual,slug,cover}
+  {populate,audible,kindle,googlebook,amazon,librofm,manual,slug,cover,version}
     populate            Populate bibliographer.json files
     audible             Audible operations
     kindle              Kindle operations
@@ -467,28 +466,28 @@ positional arguments:
     manual              Manage manually-entered books
     slug                Manage slugs
     cover               Cover operations
+    version             Show version information
 
 options:
   -h, --help            show this help message and exit
   -D, --debug           Drop into an interactive debugger on unhandled
                         exceptions.
-  -c CONFIG, --config CONFIG
-                        Path to TOML config file, defaulting to a file called
+  -c, --config CONFIG   Path to TOML config file, defaulting to a file called
                         .bibliographer.toml in the repo root
   -v, --verbose         Enable verbose logging of API calls.
-  -b BIBLIOGRAPHER_DATA, --bibliographer-data BIBLIOGRAPHER_DATA
+  -b, --bibliographer-data BIBLIOGRAPHER_DATA
                         Defaults to ./bibliographer/data
-  -s BOOK_SLUG_ROOT, --book-slug-root BOOK_SLUG_ROOT
+  -s, --book-slug-root BOOK_SLUG_ROOT
                         Defaults to ./bibliographer/books
   -i, --individual-bibliographer-json
                         Write out each book to its own JSON file (in addition to
                         the combined bibliographer.json), under
                         book_slug_root/SLUG/bibliographer.json
-  -a AUDIBLE_LOGIN_FILE, --audible-login-file AUDIBLE_LOGIN_FILE
+  -a, --audible-login-file AUDIBLE_LOGIN_FILE
                         Defaults to ./.bibliographer-audible-auth-INSECURE.json
-  -g GOOGLE_BOOKS_KEY, --google-books-key GOOGLE_BOOKS_KEY
+  -g, --google-books-key GOOGLE_BOOKS_KEY
                         Google Books API key
-  -G GOOGLE_BOOKS_KEY_CMD, --google-books-key-cmd GOOGLE_BOOKS_KEY_CMD
+  -G, --google-books-key-cmd GOOGLE_BOOKS_KEY_CMD
                         A command to retrieve the Google Books API key (e.g.
                         from a password manager)
   --librofm-username LIBROFM_USERNAME
@@ -755,6 +754,16 @@ Set a cover image
 positional arguments:
   slug        Book slug
   url         URL for a cover image
+
+options:
+  -h, --help  show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer version --help
+usage: bibliographer version [-h]
+
+Show version information
 
 options:
   -h, --help  show this help message and exit
