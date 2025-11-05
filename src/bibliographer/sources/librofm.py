@@ -48,7 +48,7 @@ def librofm_retrieve_library(catalog: CardCatalog, token: str):
 
         for book in data["audiobooks"]:
             mlogger.debug(f"[LIBROFM] Retrieving metadata for ISBN {book['isbn']}")
-            catalog.librofmlib.contents[book["isbn"]] = book
+            catalog.librofmlib.contents[str(book["isbn"])] = book
 
         if page >= data["total_pages"]:
             break
