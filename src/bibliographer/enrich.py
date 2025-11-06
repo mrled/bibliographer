@@ -121,7 +121,7 @@ def write_bibliographer_json_files(catalog: CardCatalog, books_root: pathlib.Pat
         book_dir = books_root / book.slug
         book_dir.mkdir(exist_ok=True, parents=True)
         bibliographer_json_path = book_dir / "bibliographer.json"
-        bibliographer_json_path.write_text(json.dumps(book.asdict, indent=2), encoding="utf-8")
+        bibliographer_json_path.write_text(json.dumps(book.asdict, indent=2, sort_keys=True), encoding="utf-8")
 
 
 def rename_slug(catalog: CardCatalog, books_root: pathlib.Path, old_slug: str, new_slug: str):
