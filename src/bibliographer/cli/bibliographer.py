@@ -236,6 +236,7 @@ def makeparser() -> argparse.ArgumentParser:
     sp_cover_set = sp_cover_sub.add_parser("set", help="Set a cover image")
     sp_cover_set.add_argument("slug", help="Book slug")
     sp_cover_set.add_argument("url", help="URL for a cover image")
+    sp_cover_sub.add_parser("retrieve", help="Retrieve cover images for all books that don't have them")
 
     # version subcommand
     subparsers.add_parser("version", help="Show version information")
@@ -499,6 +500,10 @@ def main(arguments: list[str]) -> int:
                 with cover_dest.open("wb") as f:
                     f.write(cover_data.image_data)
                 print(f"Cover image set for {book_slug}")
+            elif args.cover_subcommand == "retrieve":
+                # Retrieve cover images for all books that don't have them
+                retrieve_covers(catalog, args.book_slug_root)
+                print("Cover retrieval complete.")
 
         elif args.subcommand == "slug":
             if args.slug_subcommand == "show":
