@@ -26,7 +26,7 @@ from bibliographer.enrich import (
 from bibliographer.hugo import slugify
 from bibliographer.sources.amazon_browser import amazon_browser_search_cached
 from bibliographer.sources.audible import audible_login, process_audible_library, retrieve_audible_library
-from bibliographer.sources.covers import download_cover_from_url
+from bibliographer.sources.covers import download_cover_from_url, cover_path
 from bibliographer.sources.googlebooks import google_books_retrieve
 from bibliographer.sources.kindle import ingest_kindle_library, process_kindle_library
 from bibliographer.sources.librofm import librofm_login, librofm_retrieve_library, process_librofm_library
@@ -236,6 +236,8 @@ def makeparser() -> argparse.ArgumentParser:
     sp_cover_set = sp_cover_sub.add_parser("set", help="Set a cover image")
     sp_cover_set.add_argument("slug", help="Book slug")
     sp_cover_set.add_argument("url", help="URL for a cover image")
+    sp_cover_list_missing = sp_cover_sub.add_parser("list-missing", help="List books missing cover images")
+
 
     # version subcommand
     subparsers.add_parser("version", help="Show version information")
@@ -499,6 +501,24 @@ def main(arguments: list[str]) -> int:
                 with cover_dest.open("wb") as f:
                     f.write(cover_data.image_data)
                 print(f"Cover image set for {book_slug}")
+            elif args.cover_subcommand == "list-missing":
+                # List books missing cover images
+                missing_covers = []
+                if not args.book_slug_root.exists():
+                    print(f"Error: book_slug_root directory does not exist: {args.book_slug_root}", file=sys.stderr)
+                    return 1
+
+                for book_dir in args.book_slug_root.iterdir():
+                    if book_dir.is_dir():
+                        if cover_path(book_dir) is None:
+                            missing_covers.append(book_dir.name)
+
+                if missing_covers:
+                    print("Books missing cover images:")
+                    for slug in sorted(missing_covers):
+                        print(f"  {slug}")
+                else:
+                    print("All books have cover images.")
 
         elif args.subcommand == "slug":
             if args.slug_subcommand == "show":
