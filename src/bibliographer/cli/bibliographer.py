@@ -26,7 +26,7 @@ from bibliographer.enrich import (
 from bibliographer.hugo import slugify
 from bibliographer.sources.amazon_browser import amazon_browser_search_cached
 from bibliographer.sources.audible import audible_login, process_audible_library, retrieve_audible_library
-from bibliographer.sources.covers import download_cover_from_url
+from bibliographer.sources.covers import cover_path, download_cover_from_url
 from bibliographer.sources.googlebooks import google_books_retrieve
 from bibliographer.sources.kindle import ingest_kindle_library, process_kindle_library
 from bibliographer.sources.librofm import librofm_login, librofm_retrieve_library, process_librofm_library
@@ -55,6 +55,7 @@ def get_version() -> str:
     # Check if we're in an editable install by looking for the package source
     try:
         import bibliographer
+
         package_path = pathlib.Path(bibliographer.__file__).parent
 
         # Look for .git directory starting from the package directory
@@ -70,21 +71,13 @@ def get_version() -> str:
             # We found a git repository, so this is likely an editable install
             # Get the git revision
             result = subprocess.run(
-                ["git", "rev-parse", "--short", "HEAD"],
-                cwd=git_dir,
-                capture_output=True,
-                text=True,
-                check=True
+                ["git", "rev-parse", "--short", "HEAD"], cwd=git_dir, capture_output=True, text=True, check=True
             )
             revision = result.stdout.strip()
 
             # Check if the working tree is dirty
             result = subprocess.run(
-                ["git", "status", "--porcelain"],
-                cwd=git_dir,
-                capture_output=True,
-                text=True,
-                check=True
+                ["git", "status", "--porcelain"], cwd=git_dir, capture_output=True, text=True, check=True
             )
             is_dirty = bool(result.stdout.strip())
 
@@ -99,6 +92,7 @@ def get_version() -> str:
     try:
         # Find pyproject.toml relative to the package
         import bibliographer
+
         package_path = pathlib.Path(bibliographer.__file__).parent
         pyproject_path = package_path.parent.parent / "pyproject.toml"
 
@@ -236,7 +230,12 @@ def makeparser() -> argparse.ArgumentParser:
     sp_cover_set = sp_cover_sub.add_parser("set", help="Set a cover image")
     sp_cover_set.add_argument("slug", help="Book slug")
     sp_cover_set.add_argument("url", help="URL for a cover image")
+
+    # cover retrieve
     sp_cover_sub.add_parser("retrieve", help="Retrieve cover images for all books that don't have them")
+
+    # cover list-missing
+    sp_cover_sub.add_parser("list-missing", help="List books missing cover images")
 
     # version subcommand
     subparsers.add_parser("version", help="Show version information")
@@ -504,6 +503,19 @@ def main(arguments: list[str]) -> int:
                 # Retrieve cover images for all books that don't have them
                 retrieve_covers(catalog, args.book_slug_root)
                 print("Cover retrieval complete.")
+            elif args.cover_subcommand == "list-missing":
+                # List books missing cover images
+                missing_covers = []
+                for book_dir in args.book_slug_root.iterdir():
+                    if book_dir.is_dir():
+                        if cover_path(book_dir) is None:
+                            missing_covers.append(book_dir.name)
+                if missing_covers:
+                    print("Books missing cover images:")
+                    for slug in sorted(missing_covers):
+                        print(f"  {slug}")
+                else:
+                    print("All books have cover images.")
 
         elif args.subcommand == "slug":
             if args.slug_subcommand == "show":
