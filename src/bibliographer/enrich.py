@@ -8,7 +8,7 @@ from bibliographer.cardcatalog import CardCatalog
 from bibliographer.hugo import slugify
 from bibliographer.sources.amazon_browser import amazon_browser_search_cached
 from bibliographer.sources.covers import lookup_cover
-from bibliographer.sources.googlebooks import asin2gbv, google_books_retrieve, google_books_search
+from bibliographer.sources.googlebooks import google_books_retrieve, google_books_search
 from bibliographer.sources.openlibrary import isbn2olid
 from bibliographer.sources.wikipedia import wikipedia_relevant_pages
 

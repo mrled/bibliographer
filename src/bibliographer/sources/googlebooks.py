@@ -89,14 +89,3 @@ def google_books_search(catalog: CardCatalog, key: str, title: str, author: str)
     return google_books_retrieve(catalog, key, first_id)
 
 
-def asin2gbv(catalog: CardCatalog, asin: str, title: str, author: str, google_books_key: str) -> Optional[str]:
-    if asin in catalog.asin2gbv_map.contents:
-        return catalog.asin2gbv_map.contents[asin]
-
-    search_res = google_books_search(catalog, google_books_key, title, author)
-    if not search_res:
-        catalog.asin2gbv_map.contents[asin] = None
-    else:
-        catalog.asin2gbv_map.contents[asin] = search_res.get("bookid")
-
-    return catalog.asin2gbv_map.contents[asin]
