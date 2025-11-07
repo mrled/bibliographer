@@ -385,8 +385,6 @@ are stored in `{bibliographer_data}/usermaps/*.json` files.
 These **are** intended to be edited by hand.
 Currently these files include:
 
-* `asin2gbv_map.json`:
-  Mapping ASINs (Amazon product IDs used by Kindle and Audible) to Google Books volume IDs
 * `isbn2olid_map.json`:
   Mapping ISBNs to OpenLibrary IDs
 * `search2asin.json`:

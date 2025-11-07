@@ -179,10 +179,6 @@ class CardCatalog:
             path=self.dir_usermaps / "librofm_slugs.json",
             contents_type=str,
         )
-        self.asin2gbv_map = TypedCardCatalogEntry[str](
-            path=self.dir_usermaps / "asin2gbv_map.json",
-            contents_type=str,
-        )
         self.isbn2olid_map = TypedCardCatalogEntry[str](
             path=self.dir_usermaps / "isbn2olid_map.json",
             contents_type=str,
@@ -205,7 +201,6 @@ class CardCatalog:
             self.audibleslugs,
             self.librofmslugs,
             self.kindleslugs,
-            self.asin2gbv_map,
             self.isbn2olid_map,
             self.search2asin,
             self.wikipedia_relevant,
