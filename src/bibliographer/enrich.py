@@ -16,11 +16,14 @@ from bibliographer.sources.wikipedia import wikipedia_relevant_pages
 def enrich_combined_library(
     catalog: CardCatalog,
     google_books_key: str,
+    slug_filter: Optional[str] = None,
 ):
-    """Enrich all entries in the combined library."""
+    """Enrich all entries in the combined library, or just one if slug_filter is provided."""
     mlogger.debug("Enriching combined library...")
 
     for slug, book in catalog.combinedlib.contents.items():
+        if slug_filter and slug != slug_filter:
+            continue
         if book.skip:
             mlogger.debug(f"Skipping {slug}")
             continue
@@ -59,9 +62,11 @@ def enrich_combined_library(
     return
 
 
-def retrieve_covers(catalog: CardCatalog, cover_assets_root: pathlib.Path):
-    """Retrieve cover images for all entries in the combined library."""
+def retrieve_covers(catalog: CardCatalog, cover_assets_root: pathlib.Path, slug_filter: Optional[str] = None):
+    """Retrieve cover images for all entries in the combined library, or just one if slug_filter is provided."""
     for book in catalog.combinedlib.contents.values():
+        if slug_filter and book.slug != slug_filter:
+            continue
         if book.skip:
             mlogger.debug(f"Skipping cover retrieval for {book.slug}")
             continue
@@ -76,12 +81,14 @@ def retrieve_covers(catalog: CardCatalog, cover_assets_root: pathlib.Path):
         )
 
 
-def write_index_md_files(catalog: CardCatalog, books_root: pathlib.Path):
-    """Create index.md files for all entries in the combined library.
+def write_index_md_files(catalog: CardCatalog, books_root: pathlib.Path, slug_filter: Optional[str] = None):
+    """Create index.md files for all entries in the combined library, or just one if slug_filter is provided.
 
     Never overwrite an existing index.md file.
     """
     for book in catalog.combinedlib.contents.values():
+        if slug_filter and book.slug != slug_filter:
+            continue
         if book.skip:
             mlogger.debug(f"[index.md] skipping for {book.slug}")
             continue
@@ -108,12 +115,14 @@ def write_index_md_files(catalog: CardCatalog, books_root: pathlib.Path):
             index_md_path.write_text(frontmatter, encoding="utf-8")
 
 
-def write_bibliographer_json_files(catalog: CardCatalog, books_root: pathlib.Path):
-    """Create bibliographer.json files for all entries in the combined library.
+def write_bibliographer_json_files(catalog: CardCatalog, books_root: pathlib.Path, slug_filter: Optional[str] = None):
+    """Create bibliographer.json files for all entries in the combined library, or just one if slug_filter is provided.
 
     Always overwrite bibliographer.json files.
     """
     for book in catalog.combinedlib.contents.values():
+        if slug_filter and book.slug != slug_filter:
+            continue
         if book.skip:
             mlogger.debug(f"[bibliographer.json] skipping for {book.slug}")
             continue
