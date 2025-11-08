@@ -161,8 +161,8 @@ def makeparser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
 
     # Populate
-    # sp_pop =
-    subparsers.add_parser("populate", help="Populate bibliographer.json files")
+    sp_pop = subparsers.add_parser("populate", help="Populate bibliographer.json files")
+    sp_pop.add_argument("--slug", nargs="*", help="Populate only specific books by slug (can specify multiple)")
 
     # Audible
     sp_audible = subparsers.add_parser("audible", help="Audible operations")
@@ -434,14 +434,30 @@ def main(arguments: list[str]) -> int:
     # Dispatch
     try:
         if args.subcommand == "populate":
-            process_audible_library(catalog)
-            process_kindle_library(catalog)
-            process_librofm_library(catalog)
-            enrich_combined_library(catalog, google_books_key.get())
-            retrieve_covers(catalog, args.book_slug_root)
-            write_index_md_files(catalog, args.book_slug_root)
+            slug_filter = getattr(args, 'slug', None)
+            # Convert empty list to None for consistency
+            if slug_filter is not None and len(slug_filter) == 0:
+                slug_filter = None
+
+            # If slug filters are provided, validate they all exist
+            if slug_filter:
+                invalid_slugs = [slug for slug in slug_filter if slug not in catalog.combinedlib.contents]
+                if invalid_slugs:
+                    print(f"Error: the following slugs were not found in combined library: {', '.join(invalid_slugs)}", file=sys.stderr)
+                    return 1
+                mlogger.info(f"Populating only slugs: {', '.join(slug_filter)}")
+
+            # Only process libraries if no slug filter (we don't want to re-process everything)
+            if not slug_filter:
+                process_audible_library(catalog)
+                process_kindle_library(catalog)
+                process_librofm_library(catalog)
+
+            enrich_combined_library(catalog, google_books_key.get(), slug_filter)
+            retrieve_covers(catalog, args.book_slug_root, slug_filter)
+            write_index_md_files(catalog, args.book_slug_root, slug_filter)
             if args.individual_bibliographer_json:
-                write_bibliographer_json_files(catalog, args.book_slug_root)
+                write_bibliographer_json_files(catalog, args.book_slug_root, slug_filter)
 
         elif args.subcommand == "audible":
             client = audible_login(args.audible_login_file)
