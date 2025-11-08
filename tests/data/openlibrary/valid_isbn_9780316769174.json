@@ -1,0 +1,90 @@
+{
+    "ISBN:9780316769174": {
+        "url": "https://openlibrary.org/books/OL18290341M/The_catcher_in_the_rye",
+        "key": "/books/OL18290341M",
+        "title": "The catcher in the rye",
+        "authors": [
+            {
+                "url": "https://openlibrary.org/authors/OL540486A/J._D._Salinger",
+                "name": "J. D. Salinger"
+            },
+            {
+                "url": "https://openlibrary.org/authors/OL2964716A/SparkNotes",
+                "name": "SparkNotes"
+            }
+        ],
+        "number_of_pages": 277,
+        "pagination": "277 p. ;",
+        "by_statement": "J.D. Salinger.",
+        "identifiers": {
+            "librarything": [
+                "4053418"
+            ],
+            "goodreads": [
+                "5107"
+            ],
+            "wikidata": [
+                "Q125291968"
+            ],
+            "isbn_10": [
+                "0316769177"
+            ],
+            "isbn_13": [
+                "9780316769174"
+            ],
+            "lccn": [
+                "00108915"
+            ],
+            "oclc": [
+                "45798952",
+                "421351130"
+            ],
+            "openlibrary": [
+                "OL18290341M"
+            ]
+        },
+        "classifications": {
+            "lc_classifications": [
+                "PS3537.A426 C3 2001",
+                "PS3537.A426 C3 2001",
+                "PS3537.A426 C32 2001"
+            ]
+        },
+        "publishers": [
+            {
+                "name": "Little, Brown"
+            },
+            {
+                "name": "Back Bay Books"
+            },
+            {
+                "name": "Little, Brown and Company"
+            }
+        ],
+        "publish_places": [
+            {
+                "name": "Boston"
+            }
+        ],
+        "publish_date": "2001",
+        "subjects": [
+            {
+                "name": "fictional works",
+                "url": "https://openlibrary.org/subjects/fictional_works"
+            },
+            {
+                "name": "Runaway teenagers",
+                "url": "https://openlibrary.org/subjects/runaway_teenagers"
+            },
+            {
+                "name": "Fiction",
+                "url": "https://openlibrary.org/subjects/fiction"
+            }
+        ],
+        "cover": {
+            "small": "https://covers.openlibrary.org/b/id/14813208-S.jpg",
+            "medium": "https://covers.openlibrary.org/b/id/14813208-M.jpg",
+            "large": "https://covers.openlibrary.org/b/id/14813208-L.jpg"
+        }
+    }
+}
