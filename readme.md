@@ -499,12 +499,13 @@ options:
 ________________________________________________________________________
 
 > bibliographer populate --help
-usage: bibliographer populate [-h]
+usage: bibliographer populate [-h] [--slug [SLUG ...]]
 
 Populate bibliographer.json files
 
 options:
-  -h, --help  show this help message and exit
+  -h, --help         show this help message and exit
+  --slug [SLUG ...]  Populate only specific books by slug (can specify multiple)
 
 ________________________________________________________________________
 
@@ -731,16 +732,18 @@ options:
 ________________________________________________________________________
 
 > bibliographer cover --help
-usage: bibliographer cover [-h] {set} ...
+usage: bibliographer cover [-h] {set,retrieve,list-missing} ...
 
 Cover operations
 
 positional arguments:
-  {set}
-    set       Set a cover image
+  {set,retrieve,list-missing}
+    set                 Set a cover image
+    retrieve            Retrieve cover images for all books that don't have them
+    list-missing        List books missing cover images
 
 options:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
 
 ________________________________________________________________________
 
@@ -752,6 +755,26 @@ Set a cover image
 positional arguments:
   slug        Book slug
   url         URL for a cover image
+
+options:
+  -h, --help  show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer cover retrieve --help
+usage: bibliographer cover retrieve [-h]
+
+Retrieve cover images for all books that don't have them
+
+options:
+  -h, --help  show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer cover list-missing --help
+usage: bibliographer cover list-missing [-h]
+
+List books missing cover images
 
 options:
   -h, --help  show this help message and exit
