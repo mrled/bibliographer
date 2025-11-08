@@ -5,6 +5,7 @@ from getpass import getpass
 import json
 import pathlib
 import re
+import tempfile
 from typing import Any, Mapping, Optional, TYPE_CHECKING
 
 import audible
@@ -90,17 +91,22 @@ def decrypt_credentials(authfile: pathlib.Path, password_getter: "SecretValueGet
 
 def encrypt_credentials(authfile: pathlib.Path, password_getter: "SecretValueGetter") -> str:
     """
-    Load an unencrypted Audible credentials file and encrypt it.
+    Load an unencrypted Audible credentials file and output encrypted JSON.
 
     Args:
         authfile: Path to the unencrypted authentication file
         password_getter: SecretValueGetter to retrieve encryption password
 
     Returns:
-        Confirmation message indicating the file was encrypted
+        JSON string of encrypted credentials
 
     Raises:
         ValueError: If no encryption password is provided
+
+    Note:
+        We have to use a temporary file because to_dict() doesn't encrypt.
+        The only way to get encrypted output is to use to_file() with encryption,
+        then read back the encrypted file.
     """
     if not password_getter:
         raise ValueError("audible_auth_password_cmd must be configured")
@@ -111,9 +117,18 @@ def encrypt_credentials(authfile: pathlib.Path, password_getter: "SecretValueGet
 
     # Load unencrypted file
     authenticator = audible.Authenticator.from_file(authfile)
-    # Save it back encrypted
-    authenticator.to_file(authfile, password=encryption_password, encryption="json")
-    return f"Successfully encrypted credentials file: {authfile}"
+
+    # Save to temporary file with encryption (to_dict() doesn't encrypt)
+    with tempfile.NamedTemporaryFile(mode='r', delete=False, suffix='.json') as tmp:
+        tmp_path = pathlib.Path(tmp.name)
+
+    try:
+        authenticator.to_file(tmp_path, password=encryption_password, encryption="json")
+        encrypted_content = tmp_path.read_text()
+        return encrypted_content
+    finally:
+        # Clean up temp file
+        tmp_path.unlink(missing_ok=True)
 
 
 def retrieve_audible_library(
