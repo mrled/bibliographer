@@ -90,14 +90,14 @@ def decrypt_credentials(authfile: pathlib.Path, password_getter: "SecretValueGet
 
 def encrypt_credentials(authfile: pathlib.Path, password_getter: "SecretValueGetter") -> str:
     """
-    Load an unencrypted Audible credentials file and return as JSON string.
+    Load an unencrypted Audible credentials file and encrypt it.
 
     Args:
         authfile: Path to the unencrypted authentication file
-        password_getter: SecretValueGetter to retrieve encryption password (unused for unencrypted files)
+        password_getter: SecretValueGetter to retrieve encryption password
 
     Returns:
-        JSON string of decrypted credentials
+        Confirmation message indicating the file was encrypted
 
     Raises:
         ValueError: If no encryption password is provided
@@ -111,7 +111,9 @@ def encrypt_credentials(authfile: pathlib.Path, password_getter: "SecretValueGet
 
     # Load unencrypted file
     authenticator = audible.Authenticator.from_file(authfile)
-    return json.dumps(authenticator.to_dict(), indent=2)
+    # Save it back encrypted
+    authenticator.to_file(authfile, password=encryption_password, encryption="json")
+    return f"Successfully encrypted credentials file: {authfile}"
 
 
 def retrieve_audible_library(
