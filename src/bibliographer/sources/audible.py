@@ -36,20 +36,11 @@ def audible_login(
     """
     # Require encryption password
     if not password_getter:
-        raise ValueError(
-            "Audible authentication requires encryption. "
-            "Please configure audible_auth_password_cmd in your bibliographer.toml file "
-            "to retrieve an encryption password from your password manager.\n"
-            "Example: audible_auth_password_cmd = \"op read 'op://Personal/Audible/auth-password'\""
-        )
+        raise ValueError("audible_auth_password_cmd must be configured")
 
     encryption_password = password_getter.get()
     if not encryption_password:
-        raise ValueError(
-            "Failed to retrieve Audible auth encryption password. "
-            "Please check your audible_auth_password_cmd configuration.\n"
-            "The command should output the password to stdout."
-        )
+        raise ValueError("Failed to retrieve Audible auth encryption password")
 
     if authfile.exists():
         mlogger.debug(f"[AUDIBLE] Using existing authenticator from {authfile}")
@@ -58,10 +49,6 @@ def audible_login(
             mlogger.debug("[AUDIBLE] Loaded encrypted auth file")
         except Exception as e:
             mlogger.error(f"[AUDIBLE] Failed to load encrypted auth file: {e}")
-            mlogger.error(
-                "If you have an old unencrypted auth file, please delete it and log in again. "
-                "Unencrypted credentials are no longer supported."
-            )
             raise
     else:
         email = input("Enter your Audible/Amazon email: ")
