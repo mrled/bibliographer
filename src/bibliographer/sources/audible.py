@@ -2,8 +2,10 @@
 """
 
 from getpass import getpass
+import json
 import pathlib
 import re
+import tempfile
 from typing import Any, Mapping, Optional, TYPE_CHECKING
 
 import audible
@@ -60,6 +62,66 @@ def audible_login(
 
     client = audible.Client(authenticator)
     return client
+
+
+def decrypt_credentials(authfile: pathlib.Path, password_getter: "SecretValueGetter") -> str:
+    """
+    Decrypt an encrypted Audible credentials file and return as JSON string.
+
+    Args:
+        authfile: Path to the encrypted authentication file
+        password_getter: SecretValueGetter to retrieve encryption password
+
+    Returns:
+        JSON string of decrypted credentials
+
+    Raises:
+        ValueError: If no encryption password is provided
+    """
+    if not password_getter:
+        raise ValueError("audible_auth_password_cmd must be configured")
+
+    encryption_password = password_getter.get()
+    if not encryption_password:
+        raise ValueError("Failed to retrieve Audible auth encryption password")
+
+    authenticator = audible.Authenticator.from_file(authfile, password=encryption_password)
+    return json.dumps(authenticator.to_dict(), indent=2)
+
+
+def encrypt_credentials(authfile: pathlib.Path, password_getter: "SecretValueGetter") -> str:
+    """
+    Encrypt an unencrypted Audible credentials file and return as JSON string.
+
+    Args:
+        authfile: Path to the unencrypted authentication file
+        password_getter: SecretValueGetter to retrieve encryption password
+
+    Returns:
+        JSON string of encrypted credentials file content
+
+    Raises:
+        ValueError: If no encryption password is provided
+    """
+    if not password_getter:
+        raise ValueError("audible_auth_password_cmd must be configured")
+
+    encryption_password = password_getter.get()
+    if not encryption_password:
+        raise ValueError("Failed to retrieve Audible auth encryption password")
+
+    # Load unencrypted file
+    authenticator = audible.Authenticator.from_file(authfile)
+
+    # Write to temp file with encryption, then read back
+    with tempfile.NamedTemporaryFile(mode='r', suffix='.json', delete=False) as tmp:
+        tmp_path = pathlib.Path(tmp.name)
+
+    try:
+        authenticator.to_file(tmp_path, password=encryption_password, encryption="json")
+        return tmp_path.read_text()
+    finally:
+        tmp_path.unlink()
 
 
 def retrieve_audible_library(

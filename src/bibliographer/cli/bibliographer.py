@@ -25,7 +25,13 @@ from bibliographer.enrich import (
 )
 from bibliographer.hugo import slugify
 from bibliographer.sources.amazon_browser import amazon_browser_search_cached
-from bibliographer.sources.audible import audible_login, process_audible_library, retrieve_audible_library
+from bibliographer.sources.audible import (
+    audible_login,
+    decrypt_credentials,
+    encrypt_credentials,
+    process_audible_library,
+    retrieve_audible_library,
+)
 from bibliographer.sources.covers import cover_path, download_cover_from_url
 from bibliographer.sources.googlebooks import google_books_retrieve
 from bibliographer.sources.kindle import ingest_kindle_library, process_kindle_library
@@ -176,6 +182,14 @@ def makeparser() -> argparse.ArgumentParser:
     sp_audible = subparsers.add_parser("audible", help="Audible operations")
     sp_audible_sub = sp_audible.add_subparsers(dest="audible_subcommand", required=True)
     sp_audible_sub.add_parser("retrieve", help="Retrieve the Audible library")
+
+    # Audible credentials subcommand
+    sp_audible_cred = sp_audible_sub.add_parser("credentials", help="Manage Audible credentials")
+    sp_audible_cred_sub = sp_audible_cred.add_subparsers(dest="credentials_subcommand", required=True)
+    sp_audible_cred_enc = sp_audible_cred_sub.add_parser("encrypt", help="Encrypt credentials file and output to terminal")
+    sp_audible_cred_enc.add_argument("source", type=pathlib.Path, help="Path to unencrypted credentials file")
+    sp_audible_cred_dec = sp_audible_cred_sub.add_parser("decrypt", help="Decrypt credentials file and output to terminal")
+    sp_audible_cred_dec.add_argument("source", type=pathlib.Path, help="Path to encrypted credentials file")
 
     # Kindle
     sp_kindle = subparsers.add_parser("kindle", help="Kindle operations")
@@ -474,9 +488,16 @@ def main(arguments: list[str]) -> int:
                 write_bibliographer_json_files(catalog, args.book_slug_root, slug_filter)
 
         elif args.subcommand == "audible":
-            client = audible_login(args.audible_login_file, audible_auth_password)
             if args.audible_subcommand == "retrieve":
+                client = audible_login(args.audible_login_file, audible_auth_password)
                 retrieve_audible_library(catalog, client)
+            elif args.audible_subcommand == "credentials":
+                if args.credentials_subcommand == "encrypt":
+                    encrypted = encrypt_credentials(args.source, audible_auth_password)
+                    print(encrypted)
+                elif args.credentials_subcommand == "decrypt":
+                    decrypted = decrypt_credentials(args.source, audible_auth_password)
+                    print(decrypted)
 
         elif args.subcommand == "kindle":
             if args.kindle_subcommand == "ingest":
