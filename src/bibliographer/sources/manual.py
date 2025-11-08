@@ -2,6 +2,7 @@ from typing import Optional
 
 from bibliographer.cardcatalog import CardCatalog, CombinedCatalogBook
 from bibliographer.hugo import slugify
+from bibliographer.util.isbnutil import normalize_isbn
 
 
 def manual_add(
@@ -19,7 +20,7 @@ def manual_add(
         raise Exception("Must specify at least --title or --isbn")
 
     if isbn:
-        isbn = isbn.replace("-", "").replace(" ", "")
+        isbn = normalize_isbn(isbn)
 
     # We'll create a slug from either the title or the ISBN
     if not slug:
