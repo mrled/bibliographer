@@ -7,6 +7,32 @@ from bibliographer.cardcatalog import CardCatalog
 from bibliographer.ratelimiter import RateLimiter
 
 
+def normalize_olid(olid: Optional[str]) -> Optional[str]:
+    """Normalize an OpenLibrary ID to just the ID part.
+
+    Handles various formats:
+    - "/books/OL12345M" -> "OL12345M"
+    - "/works/OL12345W" -> "OL12345W"
+    - "OL12345M" -> "OL12345M" (unchanged)
+    - None -> None
+
+    Returns the normalized OLID or None.
+    """
+    if not olid:
+        return None
+
+    # Strip common OpenLibrary path prefixes
+    if olid.startswith("/books/"):
+        return olid[len("/books/"):]
+    if olid.startswith("/works/"):
+        return olid[len("/works/"):]
+    if olid.startswith("/authors/"):
+        return olid[len("/authors/"):]
+
+    # Return as-is if no prefix found
+    return olid
+
+
 @RateLimiter.limit("openlibrary.org", interval=1)
 def _fetch_openlibrary_api(isbn: str) -> Optional[dict]:
     """Fetch book data from OpenLibrary API. Returns None if not found or on error."""
@@ -24,8 +50,9 @@ def _fetch_openlibrary_api(isbn: str) -> Optional[dict]:
 
 
 def isbn2olid(catalog: CardCatalog, isbn: str) -> Optional[str]:
-    """
-    Store the OLID as just "OL12345M", not "/books/OL12345M".
+    """Look up the OpenLibrary ID for an ISBN.
+
+    The OLID is stored as just "OL12345M", not "/books/OL12345M".
     """
     if isbn in catalog.isbn2olid_map.contents:
         return catalog.isbn2olid_map.contents[isbn]
@@ -37,10 +64,7 @@ def isbn2olid(catalog: CardCatalog, isbn: str) -> Optional[str]:
 
     olid = None
     if "key" in book_info:
-        raw = book_info["key"]  # e.g. "/books/OL12345M"
-        if raw.startswith("/books/"):
-            raw = raw[len("/books/") :]  # just "OL12345M"
-        olid = raw
+        olid = normalize_olid(book_info["key"])
 
     catalog.isbn2olid_map.contents[isbn] = olid
     return olid

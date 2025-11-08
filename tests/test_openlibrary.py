@@ -5,8 +5,9 @@ import pathlib
 import tempfile
 from unittest.mock import patch
 
-from bibliographer.cardcatalog import CardCatalog
-from bibliographer.sources.openlibrary import isbn2olid
+from bibliographer.cardcatalog import CardCatalog, CombinedCatalogBook
+from bibliographer.sources.openlibrary import isbn2olid, normalize_olid
+from bibliographer.enrich import enrich_combined_library
 
 
 def test_isbn2olid_success_and_caching():
@@ -66,3 +67,74 @@ def test_isbn2olid_not_found_caches_none():
             result2 = isbn2olid(catalog, isbn)
             assert result2 is None, f"Expected cached None, got '{result2}'"
             assert mock_fetch.call_count == 1, "Should NOT call API again (None cached)"
+
+
+def test_normalize_olid_strips_prefixes():
+    """Test that normalize_olid strips all common OpenLibrary prefixes."""
+    # Books/editions prefix
+    assert normalize_olid("/books/OL12345M") == "OL12345M"
+    assert normalize_olid("/editions/OL12345M") == "/editions/OL12345M"  # Not implemented yet
+
+    # Works prefix
+    assert normalize_olid("/works/OL67890W") == "OL67890W"
+
+    # Authors prefix
+    assert normalize_olid("/authors/OL99999A") == "OL99999A"
+
+
+def test_normalize_olid_handles_already_normalized():
+    """Test that normalize_olid leaves already-normalized IDs unchanged."""
+    assert normalize_olid("OL12345M") == "OL12345M"
+    assert normalize_olid("OL67890W") == "OL67890W"
+    assert normalize_olid("OL99999A") == "OL99999A"
+
+
+def test_normalize_olid_handles_edge_cases():
+    """Test that normalize_olid handles None and empty strings."""
+    assert normalize_olid(None) is None
+    assert normalize_olid("") is None
+    assert normalize_olid("   ") == "   "  # Whitespace is returned as-is
+
+
+def test_enrich_normalizes_existing_olids():
+    """Test that enrichment normalizes existing OLIDs in combined library."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        data_root = pathlib.Path(tmpdir)
+        catalog = CardCatalog(data_root)
+
+        # Create a book with a prefixed OLID (simulating manual edit or old data)
+        book = CombinedCatalogBook(
+            title="Test Book",
+            authors=["Test Author"],
+            slug="test-book",
+            openlibrary_id="/books/OL12345M"  # Prefixed OLID
+        )
+        catalog.combinedlib.contents["test-book"] = book
+
+        # Run enrichment with empty google_books_key (we don't need Google Books for this test)
+        enrich_combined_library(catalog, google_books_key="", slug_filter=["test-book"])
+
+        # Verify OLID was normalized
+        assert book.openlibrary_id == "OL12345M", f"Expected normalized 'OL12345M', got '{book.openlibrary_id}'"
+
+
+def test_enrich_normalizes_work_ids():
+    """Test that enrichment normalizes work IDs from OpenLibrary."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        data_root = pathlib.Path(tmpdir)
+        catalog = CardCatalog(data_root)
+
+        # Create a book with a work ID (another possible prefix)
+        book = CombinedCatalogBook(
+            title="Test Book",
+            authors=["Test Author"],
+            slug="test-work",
+            openlibrary_id="/works/OL67890W"  # Work ID with prefix
+        )
+        catalog.combinedlib.contents["test-work"] = book
+
+        # Run enrichment
+        enrich_combined_library(catalog, google_books_key="", slug_filter=["test-work"])
+
+        # Verify work ID was normalized
+        assert book.openlibrary_id == "OL67890W", f"Expected normalized 'OL67890W', got '{book.openlibrary_id}'"

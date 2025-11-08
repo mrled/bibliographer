@@ -9,7 +9,7 @@ from bibliographer.hugo import slugify
 from bibliographer.sources.amazon_browser import amazon_browser_search_cached
 from bibliographer.sources.covers import lookup_cover
 from bibliographer.sources.googlebooks import google_books_retrieve, google_books_search
-from bibliographer.sources.openlibrary import isbn2olid
+from bibliographer.sources.openlibrary import isbn2olid, normalize_olid
 from bibliographer.sources.wikipedia import wikipedia_relevant_pages
 
 
@@ -47,9 +47,11 @@ def enrich_combined_library(
                 if gbook:
                     book.publish_date = gbook.get("publishedDate")
 
-        if not book.openlibrary_id:
-            if book.isbn:
-                book.openlibrary_id = isbn2olid(catalog, book.isbn)
+        # Normalize any existing OLID and fetch if missing
+        if book.openlibrary_id:
+            book.openlibrary_id = normalize_olid(book.openlibrary_id)
+        elif book.isbn:
+            book.openlibrary_id = isbn2olid(catalog, book.isbn)
 
         if not book.book_asin:
             if book.title and book.authors:
