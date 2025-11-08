@@ -132,7 +132,7 @@ def makeparser() -> argparse.ArgumentParser:
         action="store_true",
         help="Write out each book to its own JSON file (in addition to the combined bibliographer.json), under book_slug_root/SLUG/bibliographer.json",
     )
-    parser.add_argument("-a", "--audible-login-file", help="Defaults to ./.bibliographer-audible-auth-INSECURE.json")
+    parser.add_argument("-a", "--audible-login-file", help="Defaults to ./.bibliographer-audible-auth.json")
     parser.add_argument(
         "--audible-auth-password",
         help="Password to encrypt/decrypt the Audible authentication file",
@@ -355,7 +355,7 @@ class ConfigurationParameterSet:
         return [
             ConfigurationParameter("book_slug_root", pathlib.Path, pathlib.Path("./bibliographer/books")),
             ConfigurationParameter(
-                "audible_login_file", pathlib.Path, pathlib.Path("./.bibliographer-audible-auth-INSECURE.json")
+                "audible_login_file", pathlib.Path, pathlib.Path("./.bibliographer-audible-auth.json")
             ),
             ConfigurationParameter("bibliographer_data", pathlib.Path, pathlib.Path("./bibliographer/data")),
         ]

@@ -18,10 +18,12 @@ and work is ongoing to improve this.
 > Retrieving your Audible library via this program relies on the
 > [audible](https://github.com/mkb79/Audible) Python package
 > and may violate Amazon's terms of service.
-> By default, Audible credentials are saved unencrypted to a file called
-> `./.bibliographer-audible-auth-INSECURE.json`.
-> **However, you can encrypt this file using a password from your password manager**
-> (see "Securing Audible Credentials" below).
+
+> [!IMPORTANT]
+> **Audible credentials are encrypted at rest and require password manager integration.**
+> You must configure `audible_auth_password_cmd` to retrieve an encryption password
+> from your password manager before using Audible features.
+> See "Securing Audible Credentials" below for setup instructions.
 
 > [!CAUTION]
 > Retrieving ASINs (Amazon product IDs) via this program scrapes `https://amazon.com`
@@ -367,7 +369,7 @@ librofm_password = ""
 librofm_password_cmd = ""
 individual_bibliographer_json = false
 book_slug_root = "bibliographer/books"
-audible_login_file = ".bibliographer-audible-auth-INSECURE.json"
+audible_login_file = ".bibliographer-audible-auth.json"
 bibliographer_data = "bibliographer/data"
 ```
 <!--[[[end]]]-->
@@ -430,13 +432,13 @@ You can also set the key directly in `bibliographer.toml` if you prefer:
 google_books_key = "your key goes here"
 ```
 
-### Securing Audible Credentials
+### Securing Audible Credentials (REQUIRED)
 
-By default, Audible credentials are stored unencrypted in a file on your filesystem.
-To improve security, you can encrypt this file using a password stored in your password manager.
+**Audible credentials MUST be encrypted.** This program will not save unencrypted credentials to disk.
+You must configure password manager integration before using Audible features.
 
-The encrypted file uses AES-256 encryption in CBC mode with PBKDF2 key derivation,
-so your Audible tokens are never stored in plain text.
+The encrypted file uses AES-256 encryption in CBC mode with PBKDF2 key derivation.
+Your Audible tokens are never stored in plain text.
 
 #### Setup Instructions
 
@@ -448,14 +450,14 @@ so your Audible tokens are never stored in plain text.
 2. **Store the password in your password manager**.
    For example, in 1Password, create an item called "Audible" with a field for the auth file password.
 
-3. **Configure bibliographer to use the password**:
+3. **Configure bibliographer to retrieve the password** (REQUIRED):
 
    In your `bibliographer.toml`:
    ```toml
-   # Change the auth file path to remove "INSECURE" from the name
+   # Set a secure auth file path (no "INSECURE" in the name)
    audible_login_file = ".bibliographer-audible-auth.json"
 
-   # Add a command to retrieve the encryption password
+   # REQUIRED: Command to retrieve the encryption password
    # For 1Password:
    audible_auth_password_cmd = "op read 'op://Personal/Audible/auth-password'"
 
@@ -464,36 +466,44 @@ so your Audible tokens are never stored in plain text.
 
    # For Bitwarden:
    # audible_auth_password_cmd = "bw get password 'Audible Auth'"
+
+   # For Keeper:
+   # audible_auth_password_cmd = "keeper get --format=password 'Audible Auth'"
    ```
 
-4. **Migration from unencrypted files**:
-   If you already have an unencrypted auth file, `bibliographer` will automatically
-   detect it and re-save it with encryption the next time you run an Audible command.
-   You'll see a message like:
+4. **First login**:
+   When logging in for the first time, credentials will be automatically saved encrypted:
    ```
-   [AUDIBLE] Loaded unencrypted auth file. It will be re-saved with encryption on next login.
-   [AUDIBLE] Auth file has been encrypted and saved to .bibliographer-audible-auth.json
-   ```
-
-5. **New logins**:
-   When logging in for the first time with encryption configured,
-   credentials will be automatically saved encrypted:
-   ```
+   Enter your Audible/Amazon email: you@example.com
+   Enter your password + TOTP code (no spaces):
    [AUDIBLE] Auth saved with encryption to .bibliographer-audible-auth.json
    ```
 
-#### Comparison: Encrypted vs Unencrypted
+5. **Subsequent uses**:
+   The encrypted file will be loaded automatically:
+   ```
+   [AUDIBLE] Loaded encrypted auth file
+   ```
 
-**Without encryption** (default):
-- File: `.bibliographer-audible-auth-INSECURE.json`
-- Contains plain JSON with tokens, keys, and cookies
-- Anyone with filesystem access can read your credentials
+#### What Credentials Are Stored
 
-**With encryption** (recommended):
-- File: `.bibliographer-audible-auth.json` (or your custom name)
-- Encrypted with AES-256
-- Password retrieved from your password manager
-- Credentials are protected even if someone gains filesystem access
+The encrypted file contains:
+- Access tokens and refresh tokens
+- Device private keys
+- Activation bytes
+- Website cookies
+- Customer information
+
+All of this is encrypted with your password manager password and never stored in plain text.
+
+#### Migration from Unencrypted Files
+
+If you have an old unencrypted auth file (e.g., `.bibliographer-audible-auth-INSECURE.json`):
+1. Delete the old file
+2. Configure `audible_auth_password_cmd` as shown above
+3. Log in again to create a new encrypted file
+
+The program will not automatically migrate unencrypted files for security reasons.
 
 ## Future
 
@@ -553,7 +563,7 @@ options:
                         the combined bibliographer.json), under
                         book_slug_root/SLUG/bibliographer.json
   -a, --audible-login-file AUDIBLE_LOGIN_FILE
-                        Defaults to ./.bibliographer-audible-auth-INSECURE.json
+                        Defaults to ./.bibliographer-audible-auth.json
   --audible-auth-password AUDIBLE_AUTH_PASSWORD
                         Password to encrypt/decrypt the Audible authentication
                         file
