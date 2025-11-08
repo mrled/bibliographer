@@ -1,0 +1,50 @@
+# Example bibliographer.toml configuration file
+#
+# This file demonstrates how to configure bibliographer with password manager integration.
+# Copy this file to bibliographer.toml and customize for your setup.
+
+# Enable verbose logging (optional)
+# verbose = true
+
+# Google Books API key (optional, but recommended)
+# Option 1: Store key directly (less secure)
+# google_books_key = "your-google-books-api-key"
+
+# Option 2: Retrieve from password manager (recommended)
+# google_books_key_cmd = "op read 'op://Personal/GoogleBooksAPI/key'"
+# google_books_key_cmd = "pass show bibliographer/google-books-key"
+# google_books_key_cmd = "bw get password 'Google Books API'"
+
+# Audible authentication encryption (RECOMMENDED for security)
+# By default, Audible credentials are stored unencrypted.
+# Use these settings to encrypt the auth file with a password from your password manager.
+
+# Change the auth file path to remove "INSECURE" from the name
+audible_login_file = ".bibliographer-audible-auth.json"
+
+# Command to retrieve the encryption password from your password manager
+# For 1Password:
+# audible_auth_password_cmd = "op read 'op://Personal/Audible/auth-password'"
+
+# For pass:
+# audible_auth_password_cmd = "pass show bibliographer/audible-auth"
+
+# For Bitwarden:
+# audible_auth_password_cmd = "bw get password 'Audible Auth'"
+
+# For Keeper:
+# audible_auth_password_cmd = "keeper get --format=password 'Audible Auth'"
+
+# Libro.fm credentials (optional, if you use libro.fm)
+# librofm_username = "your@email.com"
+# Option 1: Store password directly (less secure)
+# librofm_password = "your-password"
+# Option 2: Retrieve from password manager (recommended)
+# librofm_password_cmd = "op read 'op://Personal/Libro.fm/password'"
+
+# Directory paths (customize for your Hugo site structure)
+# bibliographer_data = "assets/bibliographer"
+# book_slug_root = "content/books"
+
+# Write individual JSON files for each book (useful for Hugo)
+# individual_bibliographer_json = true

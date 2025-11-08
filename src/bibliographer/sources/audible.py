@@ -4,7 +4,7 @@
 from getpass import getpass
 import pathlib
 import re
-from typing import Any, Mapping
+from typing import Any, Mapping, Optional, TYPE_CHECKING
 
 import audible
 
@@ -12,22 +12,73 @@ from bibliographer import mlogger
 from bibliographer.cardcatalog import CardCatalog, CombinedCatalogBook
 from bibliographer.hugo import slugify
 
+if TYPE_CHECKING:
+    from bibliographer.cli.bibliographer import SecretValueGetter
 
-def audible_login(authfile: pathlib.Path) -> audible.Client:
+
+def audible_login(
+    authfile: pathlib.Path,
+    password_getter: Optional["SecretValueGetter"] = None,
+) -> audible.Client:
     """
     If the authfile doesn't exist, prompt for email/password+TOTP. Otherwise reuse existing.
     Return an audible.Client instance.
+
+    Args:
+        authfile: Path to the authentication file
+        password_getter: Optional SecretValueGetter to retrieve encryption password for the auth file
     """
+    # Get the encryption password if available
+    encryption_password = password_getter.get() if password_getter else None
+
     if authfile.exists():
         mlogger.debug(f"[AUDIBLE] Using existing authenticator from {authfile}")
-        authenticator = audible.Authenticator.from_file(authfile)
+
+        # Try to load with encryption password first
+        if encryption_password:
+            try:
+                authenticator = audible.Authenticator.from_file(authfile, password=encryption_password)
+                mlogger.debug("[AUDIBLE] Loaded encrypted auth file")
+            except Exception as e:
+                # Migration path: file might be unencrypted, try without password
+                mlogger.debug(f"[AUDIBLE] Failed to load with password, trying unencrypted: {e}")
+                try:
+                    authenticator = audible.Authenticator.from_file(authfile)
+                    mlogger.warning(
+                        "[AUDIBLE] Loaded unencrypted auth file. "
+                        "It will be re-saved with encryption on next login."
+                    )
+                    # Re-save with encryption
+                    authenticator.to_file(authfile, password=encryption_password, encryption="json")
+                    mlogger.info(f"[AUDIBLE] Auth file has been encrypted and saved to {authfile}")
+                except Exception as e2:
+                    mlogger.error(f"[AUDIBLE] Failed to load auth file: {e2}")
+                    raise
+        else:
+            # No password provided, load without encryption
+            authenticator = audible.Authenticator.from_file(authfile)
+            if "INSECURE" not in str(authfile):
+                mlogger.warning(
+                    "[AUDIBLE] Loading auth file without encryption. "
+                    "Consider setting audible_auth_password_cmd to encrypt credentials."
+                )
     else:
         email = input("Enter your Audible/Amazon email: ")
         password_totp = getpass("Enter your password + TOTP code (no spaces): ")
         mlogger.debug("[AUDIBLE] Logging in via from_login(...)")
         authenticator = audible.Authenticator.from_login(email, password_totp, locale="us")
-        authenticator.to_file(authfile)
-        mlogger.debug(f"[AUDIBLE] Auth saved to {authfile}")
+
+        # Save with encryption if password is available
+        if encryption_password:
+            authenticator.to_file(authfile, password=encryption_password, encryption="json")
+            mlogger.info(f"[AUDIBLE] Auth saved with encryption to {authfile}")
+        else:
+            authenticator.to_file(authfile)
+            mlogger.warning(
+                f"[AUDIBLE] Auth saved WITHOUT encryption to {authfile}. "
+                "Consider setting audible_auth_password_cmd to encrypt credentials."
+            )
+
     client = audible.Client(authenticator)
     return client
 

@@ -18,8 +18,10 @@ and work is ongoing to improve this.
 > Retrieving your Audible library via this program relies on the
 > [audible](https://github.com/mkb79/Audible) Python package
 > and may violate Amazon's terms of service.
-> It also saves your Audible credentials in plain text to your filesystem,
-> by default in a file called `./.bibliographer-audible-auth-INSECURE.json`.
+> By default, Audible credentials are saved unencrypted to a file called
+> `./.bibliographer-audible-auth-INSECURE.json`.
+> **However, you can encrypt this file using a password from your password manager**
+> (see "Securing Audible Credentials" below).
 
 > [!CAUTION]
 > Retrieving ASINs (Amazon product IDs) via this program scrapes `https://amazon.com`
@@ -358,6 +360,8 @@ debug = false
 verbose = false
 google_books_key = ""
 google_books_key_cmd = ""
+audible_auth_password = ""
+audible_auth_password_cmd = ""
 librofm_username = ""
 librofm_password = ""
 librofm_password_cmd = ""
@@ -426,6 +430,71 @@ You can also set the key directly in `bibliographer.toml` if you prefer:
 google_books_key = "your key goes here"
 ```
 
+### Securing Audible Credentials
+
+By default, Audible credentials are stored unencrypted in a file on your filesystem.
+To improve security, you can encrypt this file using a password stored in your password manager.
+
+The encrypted file uses AES-256 encryption in CBC mode with PBKDF2 key derivation,
+so your Audible tokens are never stored in plain text.
+
+#### Setup Instructions
+
+1. **Generate an encryption password**:
+   ```sh
+   openssl rand -base64 32
+   ```
+
+2. **Store the password in your password manager**.
+   For example, in 1Password, create an item called "Audible" with a field for the auth file password.
+
+3. **Configure bibliographer to use the password**:
+
+   In your `bibliographer.toml`:
+   ```toml
+   # Change the auth file path to remove "INSECURE" from the name
+   audible_login_file = ".bibliographer-audible-auth.json"
+
+   # Add a command to retrieve the encryption password
+   # For 1Password:
+   audible_auth_password_cmd = "op read 'op://Personal/Audible/auth-password'"
+
+   # For pass:
+   # audible_auth_password_cmd = "pass show bibliographer/audible-auth"
+
+   # For Bitwarden:
+   # audible_auth_password_cmd = "bw get password 'Audible Auth'"
+   ```
+
+4. **Migration from unencrypted files**:
+   If you already have an unencrypted auth file, `bibliographer` will automatically
+   detect it and re-save it with encryption the next time you run an Audible command.
+   You'll see a message like:
+   ```
+   [AUDIBLE] Loaded unencrypted auth file. It will be re-saved with encryption on next login.
+   [AUDIBLE] Auth file has been encrypted and saved to .bibliographer-audible-auth.json
+   ```
+
+5. **New logins**:
+   When logging in for the first time with encryption configured,
+   credentials will be automatically saved encrypted:
+   ```
+   [AUDIBLE] Auth saved with encryption to .bibliographer-audible-auth.json
+   ```
+
+#### Comparison: Encrypted vs Unencrypted
+
+**Without encryption** (default):
+- File: `.bibliographer-audible-auth-INSECURE.json`
+- Contains plain JSON with tokens, keys, and cookies
+- Anyone with filesystem access can read your credentials
+
+**With encryption** (recommended):
+- File: `.bibliographer-audible-auth.json` (or your custom name)
+- Encrypted with AES-256
+- Password retrieved from your password manager
+- Credentials are protected even if someone gains filesystem access
+
 ## Future
 
 * Goodreads support mrled/bibliographer#11
@@ -445,6 +514,8 @@ cog.out(f"```text\n{get_help_string()}```\n")
 > bibliographer --help
 usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-b BIBLIOGRAPHER_DATA]
                      [-s BOOK_SLUG_ROOT] [-i] [-a AUDIBLE_LOGIN_FILE]
+                     [--audible-auth-password AUDIBLE_AUTH_PASSWORD]
+                     [--audible-auth-password-cmd AUDIBLE_AUTH_PASSWORD_CMD]
                      [-g GOOGLE_BOOKS_KEY] [-G GOOGLE_BOOKS_KEY_CMD]
                      [--librofm-username LIBROFM_USERNAME]
                      [--librofm-password LIBROFM_PASSWORD]
@@ -483,6 +554,12 @@ options:
                         book_slug_root/SLUG/bibliographer.json
   -a, --audible-login-file AUDIBLE_LOGIN_FILE
                         Defaults to ./.bibliographer-audible-auth-INSECURE.json
+  --audible-auth-password AUDIBLE_AUTH_PASSWORD
+                        Password to encrypt/decrypt the Audible authentication
+                        file
+  --audible-auth-password-cmd AUDIBLE_AUTH_PASSWORD_CMD
+                        A command to retrieve the password for Audible auth file
+                        encryption (e.g. from a password manager)
   -g, --google-books-key GOOGLE_BOOKS_KEY
                         Google Books API key
   -G, --google-books-key-cmd GOOGLE_BOOKS_KEY_CMD

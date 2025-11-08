@@ -133,6 +133,14 @@ def makeparser() -> argparse.ArgumentParser:
         help="Write out each book to its own JSON file (in addition to the combined bibliographer.json), under book_slug_root/SLUG/bibliographer.json",
     )
     parser.add_argument("-a", "--audible-login-file", help="Defaults to ./.bibliographer-audible-auth-INSECURE.json")
+    parser.add_argument(
+        "--audible-auth-password",
+        help="Password to encrypt/decrypt the Audible authentication file",
+    )
+    parser.add_argument(
+        "--audible-auth-password-cmd",
+        help="A command to retrieve the password for Audible auth file encryption (e.g. from a password manager)",
+    )
     parser.add_argument("-g", "--google-books-key", help="Google Books API key")
     parser.add_argument(
         "-G",
@@ -329,6 +337,8 @@ class ConfigurationParameterSet:
             ConfigurationParameter("verbose", bool, False),
             ConfigurationParameter("google_books_key", str, ""),
             ConfigurationParameter("google_books_key_cmd", str, ""),
+            ConfigurationParameter("audible_auth_password", str, ""),
+            ConfigurationParameter("audible_auth_password_cmd", str, ""),
             ConfigurationParameter("librofm_username", str, ""),
             ConfigurationParameter("librofm_password", str, ""),
             ConfigurationParameter("librofm_password_cmd", str, ""),
@@ -427,6 +437,10 @@ def main(arguments: list[str]) -> int:
         getcmd=args.google_books_key_cmd,
         key=args.google_books_key,
     )
+    audible_auth_password = SecretValueGetter(
+        getcmd=args.audible_auth_password_cmd,
+        key=args.audible_auth_password,
+    )
     librofm_password = SecretValueGetter(getcmd=args.librofm_password_cmd, key=args.librofm_password)
 
     catalog = CardCatalog(args.bibliographer_data)
@@ -460,7 +474,7 @@ def main(arguments: list[str]) -> int:
                 write_bibliographer_json_files(catalog, args.book_slug_root, slug_filter)
 
         elif args.subcommand == "audible":
-            client = audible_login(args.audible_login_file)
+            client = audible_login(args.audible_login_file, audible_auth_password)
             if args.audible_subcommand == "retrieve":
                 retrieve_audible_library(catalog, client)
 
