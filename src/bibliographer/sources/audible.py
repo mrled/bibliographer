@@ -5,7 +5,6 @@ from getpass import getpass
 import json
 import pathlib
 import re
-import tempfile
 from typing import Any, Mapping, Optional, TYPE_CHECKING
 
 import audible
@@ -91,14 +90,14 @@ def decrypt_credentials(authfile: pathlib.Path, password_getter: "SecretValueGet
 
 def encrypt_credentials(authfile: pathlib.Path, password_getter: "SecretValueGetter") -> str:
     """
-    Encrypt an unencrypted Audible credentials file and return as JSON string.
+    Load an unencrypted Audible credentials file and return as JSON string.
 
     Args:
         authfile: Path to the unencrypted authentication file
-        password_getter: SecretValueGetter to retrieve encryption password
+        password_getter: SecretValueGetter to retrieve encryption password (unused for unencrypted files)
 
     Returns:
-        JSON string of encrypted credentials file content
+        JSON string of decrypted credentials
 
     Raises:
         ValueError: If no encryption password is provided
@@ -112,16 +111,7 @@ def encrypt_credentials(authfile: pathlib.Path, password_getter: "SecretValueGet
 
     # Load unencrypted file
     authenticator = audible.Authenticator.from_file(authfile)
-
-    # Write to temp file with encryption, then read back
-    with tempfile.NamedTemporaryFile(mode='r', suffix='.json', delete=False) as tmp:
-        tmp_path = pathlib.Path(tmp.name)
-
-    try:
-        authenticator.to_file(tmp_path, password=encryption_password, encryption="json")
-        return tmp_path.read_text()
-    finally:
-        tmp_path.unlink()
+    return json.dumps(authenticator.to_dict(), indent=2)
 
 
 def retrieve_audible_library(

@@ -186,9 +186,9 @@ def makeparser() -> argparse.ArgumentParser:
     # Audible credentials subcommand
     sp_audible_cred = sp_audible_sub.add_parser("credentials", help="Manage Audible credentials")
     sp_audible_cred_sub = sp_audible_cred.add_subparsers(dest="credentials_subcommand", required=True)
-    sp_audible_cred_enc = sp_audible_cred_sub.add_parser("encrypt", help="Encrypt credentials file and output to terminal")
+    sp_audible_cred_enc = sp_audible_cred_sub.add_parser("encrypt", help="Load unencrypted credentials and output to terminal")
     sp_audible_cred_enc.add_argument("source", type=pathlib.Path, help="Path to unencrypted credentials file")
-    sp_audible_cred_dec = sp_audible_cred_sub.add_parser("decrypt", help="Decrypt credentials file and output to terminal")
+    sp_audible_cred_dec = sp_audible_cred_sub.add_parser("decrypt", help="Load encrypted credentials and output to terminal")
     sp_audible_cred_dec.add_argument("source", type=pathlib.Path, help="Path to encrypted credentials file")
 
     # Kindle
