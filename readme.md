@@ -520,16 +520,17 @@ options:
 ________________________________________________________________________
 
 > bibliographer audible --help
-usage: bibliographer audible [-h] {retrieve} ...
+usage: bibliographer audible [-h] {retrieve,credentials} ...
 
 Audible operations
 
 positional arguments:
-  {retrieve}
-    retrieve  Retrieve the Audible library
+  {retrieve,credentials}
+    retrieve            Retrieve the Audible library
+    credentials         Manage Audible credentials
 
 options:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
 
 ________________________________________________________________________
 
@@ -537,6 +538,47 @@ ________________________________________________________________________
 usage: bibliographer audible retrieve [-h]
 
 Retrieve the Audible library
+
+options:
+  -h, --help  show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer audible credentials --help
+usage: bibliographer audible credentials [-h] {encrypt,decrypt} ...
+
+Manage Audible credentials
+
+positional arguments:
+  {encrypt,decrypt}
+    encrypt          Load unencrypted credentials and output to terminal
+    decrypt          Load encrypted credentials and output to terminal
+
+options:
+  -h, --help         show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer audible credentials encrypt --help
+usage: bibliographer audible credentials encrypt [-h] source
+
+Load unencrypted credentials and output to terminal
+
+positional arguments:
+  source      Path to unencrypted credentials file
+
+options:
+  -h, --help  show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer audible credentials decrypt --help
+usage: bibliographer audible credentials decrypt [-h] source
+
+Load encrypted credentials and output to terminal
+
+positional arguments:
+  source      Path to encrypted credentials file
 
 options:
   -h, --help  show this help message and exit
