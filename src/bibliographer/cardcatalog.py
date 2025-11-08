@@ -161,6 +161,10 @@ class CardCatalog:
             path=self.dir_apicache / "librofm_library.json",
             contents_type=dict,
         )
+        self.wikipedia_api_cache = TypedCardCatalogEntry[str](
+            path=self.dir_apicache / "wikipedia_api_cache.json",
+            contents_type=str,
+        )
 
         # usermaps
         self.combinedlib = TypedCardCatalogEntry[CombinedCatalogBook](
@@ -187,8 +191,8 @@ class CardCatalog:
             path=self.dir_usermaps / "search2asin.json",
             contents_type=str,
         )
-        self.wikipedia_relevant = TypedCardCatalogEntry[Dict[str, str]](
-            path=self.dir_usermaps / "wikipedia_relevant.json",
+        self.wikipedia_usermap = TypedCardCatalogEntry[Dict[str, str]](
+            path=self.dir_usermaps / "wikipedia_usermap.json",
             contents_type=Dict[str, str],
         )
 
@@ -197,13 +201,14 @@ class CardCatalog:
             self.kindlelib,
             self.librofmlib,
             self.gbooks_volumes,
+            self.wikipedia_api_cache,
             self.combinedlib,
             self.audibleslugs,
             self.librofmslugs,
             self.kindleslugs,
             self.isbn2olid_map,
             self.search2asin,
-            self.wikipedia_relevant,
+            self.wikipedia_usermap,
         ]
 
     def persist(self):

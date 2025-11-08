@@ -54,7 +54,13 @@ def enrich_combined_library(
                 book.book_asin = amazon_browser_search_cached(catalog, searchterm)
 
         if book.urls_wikipedia is None:
-            book.urls_wikipedia = wikipedia_relevant_pages(catalog, book.title, book.authors)
+            # Check if we have a user-curated mapping for this slug
+            if slug in catalog.wikipedia_usermap.contents:
+                book.urls_wikipedia = catalog.wikipedia_usermap.contents[slug]
+            else:
+                # Generate from API and store in usermap
+                book.urls_wikipedia = wikipedia_relevant_pages(catalog, book.title, book.authors)
+                catalog.wikipedia_usermap.contents[slug] = book.urls_wikipedia
 
     return
 

@@ -109,7 +109,7 @@ Without any other configuration, this will:
   * `audible_library_metadata_enriched.json`: to save enriched data about your books
   * `isbn2olid_map.json`: to map your books to OpenLibrary IDs
   * `search2asin.json`: to find an ASIN on Amazon.com for your books
-  * `wikipedia_relevant.json`: to contain a list of relevant Wikipedia pages
+  * `wikipedia_usermap.json`: to map book slugs to relevant Wikipedia pages
 * Create a slug directory inside `bibliographer/books` for each book based on its title,
   like `bibliographer/books/getting-things-done`.
   The slug can be configured inside `audible_library_metadata_enriched.json`.
@@ -181,13 +181,14 @@ For instance, the book
 is by design historian [Paul Shaw](https://en.wikipedia.org/wiki/Paul_Shaw_%28design_historian%29),
 but Wikipedia knows [several people](https://en.wikipedia.org/wiki/Paul_Shaw)
 by that name and may have returned the disambiguation page or one of the other individuals.
-To fix that, you can edit the `bibliographer/data/apicache/wikipedia_relevant.json` file
+To fix that, you can edit the `bibliographer/data/usermaps/wikipedia_usermap.json` file
 to point to the correct Paul Shaw.
 
 ```json
 {
   // ...
-  "title=Blackletter: Type and National Identity;authors=Peter Bain|Paul Shaw": {
+  "blackletter-type-and-national-identity": {
+    "Blackletter": "https://en.wikipedia.org/wiki/Blackletter",
     "Paul Shaw": "https://en.wikipedia.org/wiki/Paul_Shaw_(design_historian)"
   },
   // ...
@@ -377,6 +378,7 @@ Currently these files include:
 * `audible_library_metadata.json`
 * `kindle_library_metadata.json`
 * `gbooks_volumes.json`
+* `wikipedia_api_cache.json`
 
 ### User mapping files
 
@@ -389,8 +391,8 @@ Currently these files include:
   Mapping ISBNs to OpenLibrary IDs
 * `search2asin.json`:
   Mapping a search term, which might be an ISBN or a title + author, to ASIN
-* `wikipedia_relevant.json`:
-  Mapping a search time, like a title or an author, to a Wikipedia page
+* `wikipedia_usermap.json`:
+  Mapping book slugs to relevant Wikipedia pages for the book and its authors
 * `audible_library_metadata_enriched.json`:
   "Enriched" data for the Audible library, including the Audible ASIN as a key,
   and an object with ISBN, links, etc as a value.
