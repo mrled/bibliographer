@@ -2,9 +2,10 @@
 """
 
 from getpass import getpass
+import json
 import pathlib
 import re
-from typing import Any, Mapping
+from typing import Any, Mapping, Optional, TYPE_CHECKING
 
 import audible
 
@@ -12,24 +13,105 @@ from bibliographer import mlogger
 from bibliographer.cardcatalog import CardCatalog, CombinedCatalogBook
 from bibliographer.hugo import slugify
 
+if TYPE_CHECKING:
+    from bibliographer.cli.bibliographer import SecretValueGetter
 
-def audible_login(authfile: pathlib.Path) -> audible.Client:
+
+def audible_login(
+    authfile: pathlib.Path,
+    password_getter: Optional["SecretValueGetter"] = None,
+) -> audible.Client:
     """
     If the authfile doesn't exist, prompt for email/password+TOTP. Otherwise reuse existing.
     Return an audible.Client instance.
+
+    SECURITY: This function REQUIRES an encryption password. Audible credentials will NOT be
+    saved unencrypted to disk. If no password is provided, the function will fail.
+
+    Args:
+        authfile: Path to the authentication file
+        password_getter: SecretValueGetter to retrieve encryption password for the auth file (REQUIRED)
+
+    Raises:
+        ValueError: If no encryption password is provided
     """
+    # Require encryption password
+    if not password_getter:
+        raise ValueError("audible_auth_password_cmd must be configured")
+
+    encryption_password = password_getter.get()
+    if not encryption_password:
+        raise ValueError("Failed to retrieve Audible auth encryption password")
+
     if authfile.exists():
         mlogger.debug(f"[AUDIBLE] Using existing authenticator from {authfile}")
-        authenticator = audible.Authenticator.from_file(authfile)
+        try:
+            authenticator = audible.Authenticator.from_file(authfile, password=encryption_password)
+            mlogger.debug("[AUDIBLE] Loaded encrypted auth file")
+        except Exception as e:
+            mlogger.error(f"[AUDIBLE] Failed to load encrypted auth file: {e}")
+            raise
     else:
         email = input("Enter your Audible/Amazon email: ")
         password_totp = getpass("Enter your password + TOTP code (no spaces): ")
         mlogger.debug("[AUDIBLE] Logging in via from_login(...)")
         authenticator = audible.Authenticator.from_login(email, password_totp, locale="us")
-        authenticator.to_file(authfile)
-        mlogger.debug(f"[AUDIBLE] Auth saved to {authfile}")
+        authenticator.to_file(authfile, password=encryption_password, encryption="json")
+        mlogger.info(f"[AUDIBLE] Auth saved with encryption to {authfile}")
+
     client = audible.Client(authenticator)
     return client
+
+
+def decrypt_credentials(authfile: pathlib.Path, password_getter: "SecretValueGetter") -> str:
+    """
+    Decrypt an encrypted Audible credentials file and return as JSON string.
+
+    Args:
+        authfile: Path to the encrypted authentication file
+        password_getter: SecretValueGetter to retrieve encryption password
+
+    Returns:
+        JSON string of decrypted credentials
+
+    Raises:
+        ValueError: If no encryption password is provided
+    """
+    if not password_getter:
+        raise ValueError("audible_auth_password_cmd must be configured")
+
+    encryption_password = password_getter.get()
+    if not encryption_password:
+        raise ValueError("Failed to retrieve Audible auth encryption password")
+
+    authenticator = audible.Authenticator.from_file(authfile, password=encryption_password)
+    return json.dumps(authenticator.to_dict(), indent=2)
+
+
+def encrypt_credentials(authfile: pathlib.Path, password_getter: "SecretValueGetter") -> str:
+    """
+    Load an unencrypted Audible credentials file and return as JSON string.
+
+    Args:
+        authfile: Path to the unencrypted authentication file
+        password_getter: SecretValueGetter to retrieve encryption password (unused for unencrypted files)
+
+    Returns:
+        JSON string of decrypted credentials
+
+    Raises:
+        ValueError: If no encryption password is provided
+    """
+    if not password_getter:
+        raise ValueError("audible_auth_password_cmd must be configured")
+
+    encryption_password = password_getter.get()
+    if not encryption_password:
+        raise ValueError("Failed to retrieve Audible auth encryption password")
+
+    # Load unencrypted file
+    authenticator = audible.Authenticator.from_file(authfile)
+    return json.dumps(authenticator.to_dict(), indent=2)
 
 
 def retrieve_audible_library(

@@ -18,8 +18,8 @@ and work is ongoing to improve this.
 > Retrieving your Audible library via this program relies on the
 > [audible](https://github.com/mkb79/Audible) Python package
 > and may violate Amazon's terms of service.
-> It also saves your Audible credentials in plain text to your filesystem,
-> by default in a file called `./.bibliographer-audible-auth-INSECURE.json`.
+> You must configure `audible_auth_password_cmd` to set an encryption password
+> for the Audible credentials file.
 
 > [!CAUTION]
 > Retrieving ASINs (Amazon product IDs) via this program scrapes `https://amazon.com`
@@ -358,12 +358,14 @@ debug = false
 verbose = false
 google_books_key = ""
 google_books_key_cmd = ""
+audible_auth_password = ""
+audible_auth_password_cmd = ""
 librofm_username = ""
 librofm_password = ""
 librofm_password_cmd = ""
 individual_bibliographer_json = false
 book_slug_root = "bibliographer/books"
-audible_login_file = ".bibliographer-audible-auth-INSECURE.json"
+audible_login_file = ".bibliographer-audible-auth.json"
 bibliographer_data = "bibliographer/data"
 ```
 <!--[[[end]]]-->
@@ -445,6 +447,8 @@ cog.out(f"```text\n{get_help_string()}```\n")
 > bibliographer --help
 usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-b BIBLIOGRAPHER_DATA]
                      [-s BOOK_SLUG_ROOT] [-i] [-a AUDIBLE_LOGIN_FILE]
+                     [--audible-auth-password AUDIBLE_AUTH_PASSWORD]
+                     [--audible-auth-password-cmd AUDIBLE_AUTH_PASSWORD_CMD]
                      [-g GOOGLE_BOOKS_KEY] [-G GOOGLE_BOOKS_KEY_CMD]
                      [--librofm-username LIBROFM_USERNAME]
                      [--librofm-password LIBROFM_PASSWORD]
@@ -482,7 +486,13 @@ options:
                         the combined bibliographer.json), under
                         book_slug_root/SLUG/bibliographer.json
   -a, --audible-login-file AUDIBLE_LOGIN_FILE
-                        Defaults to ./.bibliographer-audible-auth-INSECURE.json
+                        Defaults to ./.bibliographer-audible-auth.json
+  --audible-auth-password AUDIBLE_AUTH_PASSWORD
+                        Password to encrypt/decrypt the Audible authentication
+                        file
+  --audible-auth-password-cmd AUDIBLE_AUTH_PASSWORD_CMD
+                        A command to retrieve the password for Audible auth file
+                        encryption (e.g. from a password manager)
   -g, --google-books-key GOOGLE_BOOKS_KEY
                         Google Books API key
   -G, --google-books-key-cmd GOOGLE_BOOKS_KEY_CMD
