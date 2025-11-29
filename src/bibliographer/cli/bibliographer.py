@@ -36,7 +36,7 @@ from bibliographer.sources.covers import cover_path, download_cover_from_url
 from bibliographer.sources.googlebooks import google_books_retrieve
 from bibliographer.sources.kindle import ingest_kindle_library, process_kindle_library
 from bibliographer.sources.librofm import librofm_login, librofm_retrieve_library, process_librofm_library
-from bibliographer.sources.manual import manual_add
+from bibliographer.sources.manual import manual_add, manual_add_work
 
 
 def find_repo_root() -> Optional[pathlib.Path]:
@@ -147,6 +147,8 @@ def makeparser() -> argparse.ArgumentParser:
     parser.add_argument("--isbn2olid-map-file", help="Path to ISBN to OpenLibrary ID mapping file")
     parser.add_argument("--search2asin-file", help="Path to search term to ASIN mapping file")
     parser.add_argument("--wikipedia-relevant-file", help="Path to Wikipedia relevant pages file")
+    parser.add_argument("--manual-works-file", help="Path to manual works file")
+    parser.add_argument("--combined-works-file", help="Path to combined works file")
     parser.add_argument(
         "-i",
         "--individual-bibliographer-json",
@@ -255,6 +257,15 @@ def makeparser() -> argparse.ArgumentParser:
     sp_add_ib.add_argument("--purchase-date", help="Purchase date if any (YYYY-MM-DD)")
     sp_add_ib.add_argument("--read-date", help="Read date if any (YYYY-MM-DD)")
     sp_add_ib.add_argument("--slug", help="Slug for URL (set to a slugified title by default)")
+
+    # add manualarticle
+    sp_add_ma = sp_add_sub.add_parser("manualarticle", help="Add a manually-entered article")
+    sp_add_ma.add_argument("--title", help="Article title")
+    sp_add_ma.add_argument("--url", help="Article URL")
+    sp_add_ma.add_argument("--authors", nargs="+", help="Authors (allows multiple)")
+    sp_add_ma.add_argument("--read-date", help="Read date if any (YYYY-MM-DD)")
+    sp_add_ma.add_argument("--publish-date", help="Publish date if any (YYYY-MM-DD)")
+    sp_add_ma.add_argument("--slug", required=True, help="Slug for URL (mandatory)")
 
     # slug subcommand
     sp_slug = subparsers.add_parser("slug", help="Manage slugs")
@@ -415,6 +426,8 @@ class ConfigurationParameterSet:
             ConfigurationParameter("isbn2olid_map_file", pathlib.Path, None),
             ConfigurationParameter("search2asin_file", pathlib.Path, None),
             ConfigurationParameter("wikipedia_relevant_file", pathlib.Path, None),
+            ConfigurationParameter("manual_works_file", pathlib.Path, None),
+            ConfigurationParameter("combined_works_file", pathlib.Path, None),
         ]
 
 
@@ -505,6 +518,10 @@ def parseargs(arguments: List[str]):
         parsed.search2asin_file = usermaps_dir / "search2asin.json"
     if parsed.wikipedia_relevant_file is None:
         parsed.wikipedia_relevant_file = usermaps_dir / "wikipedia_relevant.json"
+    if parsed.manual_works_file is None:
+        parsed.manual_works_file = usermaps_dir / "manual_works.json"
+    if parsed.combined_works_file is None:
+        parsed.combined_works_file = usermaps_dir / "combined_works.json"
 
     return parsed
 
@@ -546,6 +563,8 @@ def main(arguments: list[str]) -> int:
         isbn2olid_map_file=args.isbn2olid_map_file,
         search2asin_file=args.search2asin_file,
         wikipedia_relevant_file=args.wikipedia_relevant_file,
+        manual_works_file=args.manual_works_file,
+        combined_works_file=args.combined_works_file,
     )
 
     # Dispatch
@@ -630,6 +649,17 @@ def main(arguments: list[str]) -> int:
                     purchase_date=args.purchase_date,
                     read_date=args.read_date,
                     slug=args.slug,
+                )
+            elif args.add_subcommand == "manualarticle":
+                manual_add_work(
+                    catalog=catalog,
+                    work_type="article",
+                    slug=args.slug,
+                    title=args.title,
+                    url=args.url,
+                    authors=args.authors,
+                    read_date=args.read_date,
+                    publish_date=args.publish_date,
                 )
 
         elif args.subcommand == "amazon":

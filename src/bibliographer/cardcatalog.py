@@ -8,6 +8,106 @@ from bibliographer.util.jsonutil import load_json, save_json
 
 
 @dataclasses.dataclass
+class ManualWork:
+    """A manually added work entry (article, book, etc.)."""
+
+    slug: str
+    """A slugified identifier for use in URLs (mandatory)."""
+
+    work_type: str = "article"
+    """The type of work (article, book, etc.)."""
+
+    title: Optional[str] = None
+    """The work title."""
+
+    authors: list[str] = dataclasses.field(default_factory=list)
+    """A list of authors."""
+
+    url: Optional[str] = None
+    """The URL of the work (for articles and web-based works)."""
+
+    read_date: Optional[str] = None
+    """The date the user read/consumed the work."""
+
+    publish_date: Optional[str] = None
+    """The publication date of the work."""
+
+    isbn: Optional[str] = None
+    """The ISBN (for books)."""
+
+    purchase_date: Optional[str] = None
+    """The date the work was purchased (for books)."""
+
+    @property
+    def asdict(self):
+        """Return a JSON-serializable dict of this object."""
+        return dataclasses.asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        """Create a new ManualWork from a dict."""
+        return cls(**data)
+
+
+@dataclasses.dataclass
+class CombinedWork:
+    """A combined work entry that can represent any type of content."""
+
+    slug: str
+    """A slugified identifier for use in URLs."""
+
+    work_type: str = "article"
+    """The type of work (article, book, etc.)."""
+
+    title: Optional[str] = None
+    """The work title."""
+
+    authors: list[str] = dataclasses.field(default_factory=list)
+    """A list of authors."""
+
+    url: Optional[str] = None
+    """The URL of the work (for articles and web-based works)."""
+
+    read_date: Optional[str] = None
+    """The date the user read/consumed the work."""
+
+    publish_date: Optional[str] = None
+    """The publication date of the work."""
+
+    isbn: Optional[str] = None
+    """The ISBN (for books)."""
+
+    purchase_date: Optional[str] = None
+    """The date the work was purchased (for books)."""
+
+    skip: bool = False
+    """Whether to skip the work.
+
+    If true, don't generate any content pages for the work.
+    """
+
+    def merge(self, other: "CombinedWork"):
+        """Merge another CombinedWork into this one.
+
+        Do not overwrite any existing values;
+        only add new values from the other object.
+        """
+        for key in dataclasses.fields(self):
+            if getattr(self, key.name) is None:
+                setattr(self, key.name, getattr(other, key.name))
+
+    @property
+    def asdict(self):
+        """Return a JSON-serializable dict of this object."""
+        return dataclasses.asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        """Create a new CombinedWork from a dict."""
+        return cls(**data)
+
+
+@dataclasses.dataclass
 class CombinedCatalogBook:
     """A single book entry in the combined library."""
 
@@ -118,6 +218,12 @@ class TypedCardCatalogEntry(Generic[T]):
             if self.contents_type is CombinedCatalogBook:
                 loaded = load_json(self.path)
                 self._contents = {k: CombinedCatalogBook.from_dict(v) for k, v in loaded.items()}
+            elif self.contents_type is ManualWork:
+                loaded = load_json(self.path)
+                self._contents = {k: ManualWork.from_dict(v) for k, v in loaded.items()}
+            elif self.contents_type is CombinedWork:
+                loaded = load_json(self.path)
+                self._contents = {k: CombinedWork.from_dict(v) for k, v in loaded.items()}
             else:
                 self._contents = load_json(self.path)
         return self._contents
@@ -125,7 +231,7 @@ class TypedCardCatalogEntry(Generic[T]):
     def save(self):
         """Save the in-memory data to disk."""
         if self._contents is not None:
-            if self.contents_type is CombinedCatalogBook:
+            if self.contents_type in (CombinedCatalogBook, ManualWork, CombinedWork):
                 serializable = {k: v.asdict for k, v in self._contents.items()}
             else:
                 serializable = self._contents
@@ -160,6 +266,8 @@ class CardCatalog:
             isbn2olid_map_file=usermaps_dir / "isbn2olid_map.json",
             search2asin_file=usermaps_dir / "search2asin.json",
             wikipedia_relevant_file=usermaps_dir / "wikipedia_relevant.json",
+            manual_works_file=usermaps_dir / "manual_works.json",
+            combined_works_file=usermaps_dir / "combined_works.json",
         )
 
     def __init__(
@@ -176,6 +284,8 @@ class CardCatalog:
         isbn2olid_map_file: pathlib.Path,
         search2asin_file: pathlib.Path,
         wikipedia_relevant_file: pathlib.Path,
+        manual_works_file: pathlib.Path,
+        combined_works_file: pathlib.Path,
     ):
         # Create parent directories for all files
         for filepath in [
@@ -190,6 +300,8 @@ class CardCatalog:
             isbn2olid_map_file,
             search2asin_file,
             wikipedia_relevant_file,
+            manual_works_file,
+            combined_works_file,
         ]:
             filepath.parent.mkdir(parents=True, exist_ok=True)
 
@@ -240,6 +352,14 @@ class CardCatalog:
             path=wikipedia_relevant_file,
             contents_type=Dict[str, str],
         )
+        self.manualworks = TypedCardCatalogEntry[ManualWork](
+            path=manual_works_file,
+            contents_type=ManualWork,
+        )
+        self.combinedworks = TypedCardCatalogEntry[CombinedWork](
+            path=combined_works_file,
+            contents_type=CombinedWork,
+        )
 
         self.allentries: list[TypedCardCatalogEntry] = [
             self.audiblelib,
@@ -253,6 +373,8 @@ class CardCatalog:
             self.isbn2olid_map,
             self.search2asin,
             self.wikipedia_relevant,
+            self.manualworks,
+            self.combinedworks,
         ]
 
     def persist(self):
