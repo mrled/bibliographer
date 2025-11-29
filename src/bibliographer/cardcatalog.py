@@ -136,59 +136,108 @@ class TypedCardCatalogEntry(Generic[T]):
 class CardCatalog:
     """CardCatalog: all data stores for bibliographer."""
 
-    def __init__(self, data_root: pathlib.Path):
-        self.data_root = data_root
+    @classmethod
+    def from_data_root(cls, data_root: pathlib.Path) -> "CardCatalog":
+        """Create a CardCatalog from a data root directory.
 
-        self.dir_apicache = data_root / "apicache"
-        self.dir_usermaps = data_root / "usermaps"
-        self.dir_apicache.mkdir(parents=True, exist_ok=True)
-        self.dir_usermaps.mkdir(parents=True, exist_ok=True)
+        This is a convenience method for backward compatibility and testing.
+        It uses the default directory structure:
+        - data_root/apicache/ for API cache files
+        - data_root/usermaps/ for user mapping files
+        """
+        apicache_dir = data_root / "apicache"
+        usermaps_dir = data_root / "usermaps"
+
+        return cls(
+            audible_library_file=apicache_dir / "audible_library_metadata.json",
+            kindle_library_file=apicache_dir / "kindle_library_metadata.json",
+            gbooks_volumes_file=apicache_dir / "gbooks_volumes.json",
+            librofm_library_file=apicache_dir / "librofm_library.json",
+            combined_library_file=usermaps_dir / "combined_library.json",
+            audible_slugs_file=usermaps_dir / "audible_slugs.json",
+            kindle_slugs_file=usermaps_dir / "kindle_slugs.json",
+            librofm_slugs_file=usermaps_dir / "librofm_slugs.json",
+            isbn2olid_map_file=usermaps_dir / "isbn2olid_map.json",
+            search2asin_file=usermaps_dir / "search2asin.json",
+            wikipedia_relevant_file=usermaps_dir / "wikipedia_relevant.json",
+        )
+
+    def __init__(
+        self,
+        # Individual file paths
+        audible_library_file: pathlib.Path,
+        kindle_library_file: pathlib.Path,
+        gbooks_volumes_file: pathlib.Path,
+        librofm_library_file: pathlib.Path,
+        combined_library_file: pathlib.Path,
+        audible_slugs_file: pathlib.Path,
+        kindle_slugs_file: pathlib.Path,
+        librofm_slugs_file: pathlib.Path,
+        isbn2olid_map_file: pathlib.Path,
+        search2asin_file: pathlib.Path,
+        wikipedia_relevant_file: pathlib.Path,
+    ):
+        # Create parent directories for all files
+        for filepath in [
+            audible_library_file,
+            kindle_library_file,
+            gbooks_volumes_file,
+            librofm_library_file,
+            combined_library_file,
+            audible_slugs_file,
+            kindle_slugs_file,
+            librofm_slugs_file,
+            isbn2olid_map_file,
+            search2asin_file,
+            wikipedia_relevant_file,
+        ]:
+            filepath.parent.mkdir(parents=True, exist_ok=True)
 
         # apicache
         self.audiblelib = TypedCardCatalogEntry[dict](
-            path=self.dir_apicache / "audible_library_metadata.json",
+            path=audible_library_file,
             contents_type=dict,
         )
         self.kindlelib = TypedCardCatalogEntry[dict](
-            path=self.dir_apicache / "kindle_library_metadata.json",
+            path=kindle_library_file,
             contents_type=dict,
         )
         self.gbooks_volumes = TypedCardCatalogEntry[dict](
-            path=self.dir_apicache / "gbooks_volumes.json",
+            path=gbooks_volumes_file,
             contents_type=dict,
         )
         self.librofmlib = TypedCardCatalogEntry[dict](
-            path=self.dir_apicache / "librofm_library.json",
+            path=librofm_library_file,
             contents_type=dict,
         )
 
         # usermaps
         self.combinedlib = TypedCardCatalogEntry[CombinedCatalogBook](
-            path=self.dir_usermaps / "combined_library.json",
+            path=combined_library_file,
             contents_type=CombinedCatalogBook,
         )
         self.audibleslugs = TypedCardCatalogEntry[str](
-            path=self.dir_usermaps / "audible_slugs.json",
+            path=audible_slugs_file,
             contents_type=str,
         )
         self.kindleslugs = TypedCardCatalogEntry[str](
-            path=self.dir_usermaps / "kindle_slugs.json",
+            path=kindle_slugs_file,
             contents_type=str,
         )
         self.librofmslugs = TypedCardCatalogEntry[str](
-            path=self.dir_usermaps / "librofm_slugs.json",
+            path=librofm_slugs_file,
             contents_type=str,
         )
         self.isbn2olid_map = TypedCardCatalogEntry[str](
-            path=self.dir_usermaps / "isbn2olid_map.json",
+            path=isbn2olid_map_file,
             contents_type=str,
         )
         self.search2asin = TypedCardCatalogEntry[str](
-            path=self.dir_usermaps / "search2asin.json",
+            path=search2asin_file,
             contents_type=str,
         )
         self.wikipedia_relevant = TypedCardCatalogEntry[Dict[str, str]](
-            path=self.dir_usermaps / "wikipedia_relevant.json",
+            path=wikipedia_relevant_file,
             contents_type=Dict[str, str],
         )
 

@@ -130,8 +130,27 @@ def makeparser() -> argparse.ArgumentParser:
         help="Path to TOML config file, defaulting to a file called .bibliographer.toml in the repo root",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging of API calls.")
-    parser.add_argument("-b", "--bibliographer-data", help="Defaults to ./bibliographer/data")
+    parser.add_argument("-b", "--bibliographer-data-root", help="Root directory for bibliographer data. Defaults to ./bibliographer/data")
     parser.add_argument("-s", "--book-slug-root", help="Defaults to ./bibliographer/books")
+
+    # Directory overrides
+    parser.add_argument("--apicache-dir", help="Directory for API cache files. Defaults to {bibliographer_data_root}/apicache")
+    parser.add_argument("--usermaps-dir", help="Directory for user mapping files. Defaults to {bibliographer_data_root}/usermaps")
+
+    # Individual file overrides for apicache
+    parser.add_argument("--audible-library-file", help="Path to audible library metadata file")
+    parser.add_argument("--kindle-library-file", help="Path to kindle library metadata file")
+    parser.add_argument("--gbooks-volumes-file", help="Path to Google Books volumes cache file")
+    parser.add_argument("--librofm-library-file", help="Path to Libro.fm library metadata file")
+
+    # Individual file overrides for usermaps
+    parser.add_argument("--combined-library-file", help="Path to combined library file")
+    parser.add_argument("--audible-slugs-file", help="Path to Audible slugs mapping file")
+    parser.add_argument("--kindle-slugs-file", help="Path to Kindle slugs mapping file")
+    parser.add_argument("--librofm-slugs-file", help="Path to Libro.fm slugs mapping file")
+    parser.add_argument("--isbn2olid-map-file", help="Path to ISBN to OpenLibrary ID mapping file")
+    parser.add_argument("--search2asin-file", help="Path to search term to ASIN mapping file")
+    parser.add_argument("--wikipedia-relevant-file", help="Path to Wikipedia relevant pages file")
     parser.add_argument(
         "-i",
         "--individual-bibliographer-json",
@@ -371,7 +390,23 @@ class ConfigurationParameterSet:
             ConfigurationParameter(
                 "audible_login_file", pathlib.Path, pathlib.Path("./.bibliographer-audible-auth.json")
             ),
-            ConfigurationParameter("bibliographer_data", pathlib.Path, pathlib.Path("./bibliographer/data")),
+            ConfigurationParameter("bibliographer_data_root", pathlib.Path, pathlib.Path("./bibliographer/data")),
+            # Directory overrides
+            ConfigurationParameter("apicache_dir", pathlib.Path, None),
+            ConfigurationParameter("usermaps_dir", pathlib.Path, None),
+            # Individual file overrides for apicache
+            ConfigurationParameter("audible_library_file", pathlib.Path, None),
+            ConfigurationParameter("kindle_library_file", pathlib.Path, None),
+            ConfigurationParameter("gbooks_volumes_file", pathlib.Path, None),
+            ConfigurationParameter("librofm_library_file", pathlib.Path, None),
+            # Individual file overrides for usermaps
+            ConfigurationParameter("combined_library_file", pathlib.Path, None),
+            ConfigurationParameter("audible_slugs_file", pathlib.Path, None),
+            ConfigurationParameter("kindle_slugs_file", pathlib.Path, None),
+            ConfigurationParameter("librofm_slugs_file", pathlib.Path, None),
+            ConfigurationParameter("isbn2olid_map_file", pathlib.Path, None),
+            ConfigurationParameter("search2asin_file", pathlib.Path, None),
+            ConfigurationParameter("wikipedia_relevant_file", pathlib.Path, None),
         ]
 
 
@@ -418,8 +453,11 @@ def parseargs(arguments: List[str]):
     # Handle paths specially,
     # so that relative paths in the config file are resolved relative to the config file's directory
     for param in ConfigurationParameterSet.paths():
-        # Set the path to the default value first
-        path = resolve_path_if_relative(param.default, pathlib.Path.cwd())
+        # Set the path to the default value first (may be None)
+        path = None
+        if param.default is not None:
+            path = resolve_path_if_relative(param.default, pathlib.Path.cwd())
+
         clival = getattr(parsed, param.key)
         if clival:
             # This is a command-line argument, so resolve it relative to $PWD
@@ -428,6 +466,40 @@ def parseargs(arguments: List[str]):
             # The value was set in the config file, so resolve it relative to the config file's directory
             path = resolve_path_if_relative(config_data[param.key], parsed.config.parent)
         setattr(parsed, param.key, path)
+
+    # Now compute derived paths for directories and files that weren't explicitly set
+    data_root = parsed.bibliographer_data_root
+
+    # Set directory defaults based on data_root if not explicitly set
+    if parsed.apicache_dir is None:
+        parsed.apicache_dir = data_root / "apicache"
+    if parsed.usermaps_dir is None:
+        parsed.usermaps_dir = data_root / "usermaps"
+
+    # Set individual file defaults based on directory paths if not explicitly set
+    if parsed.audible_library_file is None:
+        parsed.audible_library_file = parsed.apicache_dir / "audible_library_metadata.json"
+    if parsed.kindle_library_file is None:
+        parsed.kindle_library_file = parsed.apicache_dir / "kindle_library_metadata.json"
+    if parsed.gbooks_volumes_file is None:
+        parsed.gbooks_volumes_file = parsed.apicache_dir / "gbooks_volumes.json"
+    if parsed.librofm_library_file is None:
+        parsed.librofm_library_file = parsed.apicache_dir / "librofm_library.json"
+
+    if parsed.combined_library_file is None:
+        parsed.combined_library_file = parsed.usermaps_dir / "combined_library.json"
+    if parsed.audible_slugs_file is None:
+        parsed.audible_slugs_file = parsed.usermaps_dir / "audible_slugs.json"
+    if parsed.kindle_slugs_file is None:
+        parsed.kindle_slugs_file = parsed.usermaps_dir / "kindle_slugs.json"
+    if parsed.librofm_slugs_file is None:
+        parsed.librofm_slugs_file = parsed.usermaps_dir / "librofm_slugs.json"
+    if parsed.isbn2olid_map_file is None:
+        parsed.isbn2olid_map_file = parsed.usermaps_dir / "isbn2olid_map.json"
+    if parsed.search2asin_file is None:
+        parsed.search2asin_file = parsed.usermaps_dir / "search2asin.json"
+    if parsed.wikipedia_relevant_file is None:
+        parsed.wikipedia_relevant_file = parsed.usermaps_dir / "wikipedia_relevant.json"
 
     return parsed
 
@@ -457,7 +529,19 @@ def main(arguments: list[str]) -> int:
     )
     librofm_password = SecretValueGetter(getcmd=args.librofm_password_cmd, key=args.librofm_password)
 
-    catalog = CardCatalog(args.bibliographer_data)
+    catalog = CardCatalog(
+        audible_library_file=args.audible_library_file,
+        kindle_library_file=args.kindle_library_file,
+        gbooks_volumes_file=args.gbooks_volumes_file,
+        librofm_library_file=args.librofm_library_file,
+        combined_library_file=args.combined_library_file,
+        audible_slugs_file=args.audible_slugs_file,
+        kindle_slugs_file=args.kindle_slugs_file,
+        librofm_slugs_file=args.librofm_slugs_file,
+        isbn2olid_map_file=args.isbn2olid_map_file,
+        search2asin_file=args.search2asin_file,
+        wikipedia_relevant_file=args.wikipedia_relevant_file,
+    )
 
     # Dispatch
     try:

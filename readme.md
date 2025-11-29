@@ -224,7 +224,7 @@ You might set the `bibliographer.toml` config file like:
 
 ```toml
 google_books_key = "your-google-books-key"
-bibliographer_data = "assets/bibliographer"
+bibliographer_data_root = "assets/bibliographer"
 book_slug_root = "content/books"
 individual_bibliographer_json = true
 ```
@@ -366,7 +366,24 @@ librofm_password_cmd = ""
 individual_bibliographer_json = false
 book_slug_root = "bibliographer/books"
 audible_login_file = ".bibliographer-audible-auth.json"
-bibliographer_data = "bibliographer/data"
+bibliographer_data_root = "bibliographer/data"
+
+# Optional: Override directory locations
+# apicache_dir = "bibliographer/data/apicache"
+# usermaps_dir = "bibliographer/data/usermaps"
+
+# Optional: Override individual file locations
+# audible_library_file = "bibliographer/data/apicache/audible_library_metadata.json"
+# kindle_library_file = "bibliographer/data/apicache/kindle_library_metadata.json"
+# gbooks_volumes_file = "bibliographer/data/apicache/gbooks_volumes.json"
+# librofm_library_file = "bibliographer/data/apicache/librofm_library.json"
+# combined_library_file = "bibliographer/data/usermaps/combined_library.json"
+# audible_slugs_file = "bibliographer/data/usermaps/audible_slugs.json"
+# kindle_slugs_file = "bibliographer/data/usermaps/kindle_slugs.json"
+# librofm_slugs_file = "bibliographer/data/usermaps/librofm_slugs.json"
+# isbn2olid_map_file = "bibliographer/data/usermaps/isbn2olid_map.json"
+# search2asin_file = "bibliographer/data/usermaps/search2asin.json"
+# wikipedia_relevant_file = "bibliographer/data/usermaps/wikipedia_relevant.json"
 ```
 <!--[[[end]]]-->
 

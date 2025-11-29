@@ -14,7 +14,7 @@ def test_isbn2olid_success_and_caching():
     """Test successful OLID lookup with real API data, prefix stripping, and cache reuse."""
     with tempfile.TemporaryDirectory() as tmpdir:
         data_root = pathlib.Path(tmpdir)
-        catalog = CardCatalog(data_root)
+        catalog = CardCatalog.from_data_root(data_root)
 
         # Load real OpenLibrary API response
         test_data_path = pathlib.Path(__file__).parent / "data" / "openlibrary" / "valid_isbn_9780316769174.json"
@@ -45,7 +45,7 @@ def test_isbn2olid_not_found_caches_none():
     """
     with tempfile.TemporaryDirectory() as tmpdir:
         data_root = pathlib.Path(tmpdir)
-        catalog = CardCatalog(data_root)
+        catalog = CardCatalog.from_data_root(data_root)
 
         # Load real OpenLibrary API response for not found case (empty object)
         test_data_path = pathlib.Path(__file__).parent / "data" / "openlibrary" / "not_found_isbn.json"
@@ -100,7 +100,7 @@ def test_enrich_normalizes_existing_olids():
     """Test that enrichment normalizes existing OLIDs in combined library."""
     with tempfile.TemporaryDirectory() as tmpdir:
         data_root = pathlib.Path(tmpdir)
-        catalog = CardCatalog(data_root)
+        catalog = CardCatalog.from_data_root(data_root)
 
         # Create a book with a prefixed OLID (simulating manual edit or old data)
         book = CombinedCatalogBook(
@@ -122,7 +122,7 @@ def test_enrich_normalizes_work_ids():
     """Test that enrichment normalizes work IDs from OpenLibrary."""
     with tempfile.TemporaryDirectory() as tmpdir:
         data_root = pathlib.Path(tmpdir)
-        catalog = CardCatalog(data_root)
+        catalog = CardCatalog.from_data_root(data_root)
 
         # Create a book with a work ID (another possible prefix)
         book = CombinedCatalogBook(
