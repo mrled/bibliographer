@@ -133,10 +133,6 @@ def makeparser() -> argparse.ArgumentParser:
     parser.add_argument("-b", "--bibliographer-data-root", help="Root directory for bibliographer data. Defaults to ./bibliographer/data")
     parser.add_argument("-s", "--book-slug-root", help="Defaults to ./bibliographer/books")
 
-    # Directory overrides
-    parser.add_argument("--apicache-dir", help="Directory for API cache files. Defaults to {bibliographer_data_root}/apicache")
-    parser.add_argument("--usermaps-dir", help="Directory for user mapping files. Defaults to {bibliographer_data_root}/usermaps")
-
     # Individual file overrides for apicache
     parser.add_argument("--audible-library-file", help="Path to audible library metadata file")
     parser.add_argument("--kindle-library-file", help="Path to kindle library metadata file")
@@ -306,7 +302,9 @@ def get_example_config() -> str:
             value = str(value).lower()
         result += f"{param.key} = {value}\n"
     for param in ConfigurationParameterSet.paths():
-        result += f'{param.key} = "{param.default}"\n'
+        # Skip parameters with None defaults (these are optional file overrides)
+        if param.default is not None:
+            result += f'{param.key} = "{param.default}"\n'
     return result
 
 
@@ -391,9 +389,6 @@ class ConfigurationParameterSet:
                 "audible_login_file", pathlib.Path, pathlib.Path("./.bibliographer-audible-auth.json")
             ),
             ConfigurationParameter("bibliographer_data_root", pathlib.Path, pathlib.Path("./bibliographer/data")),
-            # Directory overrides
-            ConfigurationParameter("apicache_dir", pathlib.Path, None),
-            ConfigurationParameter("usermaps_dir", pathlib.Path, None),
             # Individual file overrides for apicache
             ConfigurationParameter("audible_library_file", pathlib.Path, None),
             ConfigurationParameter("kindle_library_file", pathlib.Path, None),
@@ -467,39 +462,36 @@ def parseargs(arguments: List[str]):
             path = resolve_path_if_relative(config_data[param.key], parsed.config.parent)
         setattr(parsed, param.key, path)
 
-    # Now compute derived paths for directories and files that weren't explicitly set
+    # Now compute derived paths for files that weren't explicitly set
+    # Individual file overrides take precedence, otherwise derive from bibliographer_data_root
     data_root = parsed.bibliographer_data_root
+    apicache_dir = data_root / "apicache"
+    usermaps_dir = data_root / "usermaps"
 
-    # Set directory defaults based on data_root if not explicitly set
-    if parsed.apicache_dir is None:
-        parsed.apicache_dir = data_root / "apicache"
-    if parsed.usermaps_dir is None:
-        parsed.usermaps_dir = data_root / "usermaps"
-
-    # Set individual file defaults based on directory paths if not explicitly set
+    # Set individual file defaults based on data_root if not explicitly set
     if parsed.audible_library_file is None:
-        parsed.audible_library_file = parsed.apicache_dir / "audible_library_metadata.json"
+        parsed.audible_library_file = apicache_dir / "audible_library_metadata.json"
     if parsed.kindle_library_file is None:
-        parsed.kindle_library_file = parsed.apicache_dir / "kindle_library_metadata.json"
+        parsed.kindle_library_file = apicache_dir / "kindle_library_metadata.json"
     if parsed.gbooks_volumes_file is None:
-        parsed.gbooks_volumes_file = parsed.apicache_dir / "gbooks_volumes.json"
+        parsed.gbooks_volumes_file = apicache_dir / "gbooks_volumes.json"
     if parsed.librofm_library_file is None:
-        parsed.librofm_library_file = parsed.apicache_dir / "librofm_library.json"
+        parsed.librofm_library_file = apicache_dir / "librofm_library.json"
 
     if parsed.combined_library_file is None:
-        parsed.combined_library_file = parsed.usermaps_dir / "combined_library.json"
+        parsed.combined_library_file = usermaps_dir / "combined_library.json"
     if parsed.audible_slugs_file is None:
-        parsed.audible_slugs_file = parsed.usermaps_dir / "audible_slugs.json"
+        parsed.audible_slugs_file = usermaps_dir / "audible_slugs.json"
     if parsed.kindle_slugs_file is None:
-        parsed.kindle_slugs_file = parsed.usermaps_dir / "kindle_slugs.json"
+        parsed.kindle_slugs_file = usermaps_dir / "kindle_slugs.json"
     if parsed.librofm_slugs_file is None:
-        parsed.librofm_slugs_file = parsed.usermaps_dir / "librofm_slugs.json"
+        parsed.librofm_slugs_file = usermaps_dir / "librofm_slugs.json"
     if parsed.isbn2olid_map_file is None:
-        parsed.isbn2olid_map_file = parsed.usermaps_dir / "isbn2olid_map.json"
+        parsed.isbn2olid_map_file = usermaps_dir / "isbn2olid_map.json"
     if parsed.search2asin_file is None:
-        parsed.search2asin_file = parsed.usermaps_dir / "search2asin.json"
+        parsed.search2asin_file = usermaps_dir / "search2asin.json"
     if parsed.wikipedia_relevant_file is None:
-        parsed.wikipedia_relevant_file = parsed.usermaps_dir / "wikipedia_relevant.json"
+        parsed.wikipedia_relevant_file = usermaps_dir / "wikipedia_relevant.json"
 
     return parsed
 
