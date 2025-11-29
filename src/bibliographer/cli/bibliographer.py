@@ -243,6 +243,19 @@ def makeparser() -> argparse.ArgumentParser:
     sp_ma_add.add_argument("--read-date", help="Read date if any (YYYY-MM-DD)")
     sp_ma_add.add_argument("--slug", help="Slug for URL (set to a slugified title by default)")
 
+    # Add subcommand
+    sp_add = subparsers.add_parser("add", help="Add books to the library")
+    sp_add_sub = sp_add.add_subparsers(dest="add_subcommand", required=True)
+
+    # add individualbook
+    sp_add_ib = sp_add_sub.add_parser("individualbook", help="Add a manually-entered book")
+    sp_add_ib.add_argument("--title", help="Book title")
+    sp_add_ib.add_argument("--authors", nargs="+", help="Authors (allows multiple)")
+    sp_add_ib.add_argument("--isbn", help="ISBN if known")
+    sp_add_ib.add_argument("--purchase-date", help="Purchase date if any (YYYY-MM-DD)")
+    sp_add_ib.add_argument("--read-date", help="Read date if any (YYYY-MM-DD)")
+    sp_add_ib.add_argument("--slug", help="Slug for URL (set to a slugified title by default)")
+
     # slug subcommand
     sp_slug = subparsers.add_parser("slug", help="Manage slugs")
     sp_slug_sub = sp_slug.add_subparsers(dest="slug_subcommand", required=True)
@@ -597,6 +610,18 @@ def main(arguments: list[str]) -> int:
 
         elif args.subcommand == "manual":
             if args.manual_subcommand == "add":
+                manual_add(
+                    catalog=catalog,
+                    title=args.title,
+                    authors=args.authors,
+                    isbn=args.isbn,
+                    purchase_date=args.purchase_date,
+                    read_date=args.read_date,
+                    slug=args.slug,
+                )
+
+        elif args.subcommand == "add":
+            if args.add_subcommand == "individualbook":
                 manual_add(
                     catalog=catalog,
                     title=args.title,

@@ -465,12 +465,13 @@ usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-b BIBLIOGRAPHER_DATA_ROOT]
                      [--librofm-username LIBROFM_USERNAME]
                      [--librofm-password LIBROFM_PASSWORD]
                      [--librofm-password-cmd LIBROFM_PASSWORD_CMD]
-                     {populate,audible,kindle,googlebook,amazon,librofm,manual,slug,cover,version} ...
+                     {populate,audible,kindle,googlebook,amazon,librofm,manual,add,slug,cover,version}
+                     ...
 
 Manage Audible/Kindle libraries, enrich them, and populate local book repos.
 
 positional arguments:
-  {populate,audible,kindle,googlebook,amazon,librofm,manual,slug,cover,version}
+  {populate,audible,kindle,googlebook,amazon,librofm,manual,add,slug,cover,version}
     populate            Populate bibliographer.json files
     audible             Audible operations
     kindle              Kindle operations
@@ -478,6 +479,7 @@ positional arguments:
     amazon              Amazon forced re-scrape
     librofm             Libro.fm operations
     manual              Manage manually-entered books
+    add                 Add books to the library
     slug                Manage slugs
     cover               Cover operations
     version             Show version information
@@ -486,13 +488,14 @@ options:
   -h, --help            show this help message and exit
   -D, --debug           Drop into an interactive debugger on unhandled
                         exceptions.
-  -c, --config CONFIG   Path to TOML config file, defaulting to a file called
+  -c CONFIG, --config CONFIG
+                        Path to TOML config file, defaulting to a file called
                         .bibliographer.toml in the repo root
   -v, --verbose         Enable verbose logging of API calls.
-  -b, --bibliographer-data-root BIBLIOGRAPHER_DATA_ROOT
+  -b BIBLIOGRAPHER_DATA_ROOT, --bibliographer-data-root BIBLIOGRAPHER_DATA_ROOT
                         Root directory for bibliographer data. Defaults to
                         ./bibliographer/data
-  -s, --book-slug-root BOOK_SLUG_ROOT
+  -s BOOK_SLUG_ROOT, --book-slug-root BOOK_SLUG_ROOT
                         Defaults to ./bibliographer/books
   --audible-library-file AUDIBLE_LIBRARY_FILE
                         Path to audible library metadata file
@@ -520,7 +523,7 @@ options:
                         Write out each book to its own JSON file (in addition to
                         the combined bibliographer.json), under
                         book_slug_root/SLUG/bibliographer.json
-  -a, --audible-login-file AUDIBLE_LOGIN_FILE
+  -a AUDIBLE_LOGIN_FILE, --audible-login-file AUDIBLE_LOGIN_FILE
                         Defaults to ./.bibliographer-audible-auth.json
   --audible-auth-password AUDIBLE_AUTH_PASSWORD
                         Password to encrypt/decrypt the Audible authentication
@@ -528,9 +531,9 @@ options:
   --audible-auth-password-cmd AUDIBLE_AUTH_PASSWORD_CMD
                         A command to retrieve the password for Audible auth file
                         encryption (e.g. from a password manager)
-  -g, --google-books-key GOOGLE_BOOKS_KEY
+  -g GOOGLE_BOOKS_KEY, --google-books-key GOOGLE_BOOKS_KEY
                         Google Books API key
-  -G, --google-books-key-cmd GOOGLE_BOOKS_KEY_CMD
+  -G GOOGLE_BOOKS_KEY_CMD, --google-books-key-cmd GOOGLE_BOOKS_KEY_CMD
                         A command to retrieve the Google Books API key (e.g.
                         from a password manager)
   --librofm-username LIBROFM_USERNAME
@@ -744,6 +747,43 @@ usage: bibliographer manual add [-h] [--title TITLE]
                                 [--authors AUTHORS [AUTHORS ...]] [--isbn ISBN]
                                 [--purchase-date PURCHASE_DATE]
                                 [--read-date READ_DATE] [--slug SLUG]
+
+Add a manually-entered book
+
+options:
+  -h, --help            show this help message and exit
+  --title TITLE         Book title
+  --authors AUTHORS [AUTHORS ...]
+                        Authors (allows multiple)
+  --isbn ISBN           ISBN if known
+  --purchase-date PURCHASE_DATE
+                        Purchase date if any (YYYY-MM-DD)
+  --read-date READ_DATE
+                        Read date if any (YYYY-MM-DD)
+  --slug SLUG           Slug for URL (set to a slugified title by default)
+
+________________________________________________________________________
+
+> bibliographer add --help
+usage: bibliographer add [-h] {individualbook} ...
+
+Add books to the library
+
+positional arguments:
+  {individualbook}
+    individualbook  Add a manually-entered book
+
+options:
+  -h, --help        show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer add individualbook --help
+usage: bibliographer add individualbook [-h] [--title TITLE]
+                                        [--authors AUTHORS [AUTHORS ...]]
+                                        [--isbn ISBN]
+                                        [--purchase-date PURCHASE_DATE]
+                                        [--read-date READ_DATE] [--slug SLUG]
 
 Add a manually-entered book
 
