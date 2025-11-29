@@ -12,7 +12,7 @@ def test_kindle_library_ingest():
     # Setup: Create a temporary directory for test data
     with tempfile.TemporaryDirectory() as tmpdir:
         data_root = pathlib.Path(tmpdir)
-        catalog = CardCatalog(data_root)
+        catalog = CardCatalog.from_data_root(data_root)
 
         # Get the path to the test data
         test_data_path = pathlib.Path(__file__).parent / "data" / "kindle-library.json"

@@ -224,7 +224,7 @@ You might set the `bibliographer.toml` config file like:
 
 ```toml
 google_books_key = "your-google-books-key"
-bibliographer_data = "assets/bibliographer"
+bibliographer_data_root = "assets/bibliographer"
 book_slug_root = "content/books"
 individual_bibliographer_json = true
 ```
@@ -366,7 +366,7 @@ librofm_password_cmd = ""
 individual_bibliographer_json = false
 book_slug_root = "bibliographer/books"
 audible_login_file = ".bibliographer-audible-auth.json"
-bibliographer_data = "bibliographer/data"
+bibliographer_data_root = "bibliographer/data"
 ```
 <!--[[[end]]]-->
 
@@ -445,15 +445,28 @@ cog.out(f"```text\n{get_help_string()}```\n")
 ]]]-->
 ```text
 > bibliographer --help
-usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-b BIBLIOGRAPHER_DATA]
-                     [-s BOOK_SLUG_ROOT] [-i] [-a AUDIBLE_LOGIN_FILE]
+usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-b BIBLIOGRAPHER_DATA_ROOT]
+                     [-s BOOK_SLUG_ROOT]
+                     [--audible-library-file AUDIBLE_LIBRARY_FILE]
+                     [--kindle-library-file KINDLE_LIBRARY_FILE]
+                     [--gbooks-volumes-file GBOOKS_VOLUMES_FILE]
+                     [--librofm-library-file LIBROFM_LIBRARY_FILE]
+                     [--combined-library-file COMBINED_LIBRARY_FILE]
+                     [--audible-slugs-file AUDIBLE_SLUGS_FILE]
+                     [--kindle-slugs-file KINDLE_SLUGS_FILE]
+                     [--librofm-slugs-file LIBROFM_SLUGS_FILE]
+                     [--isbn2olid-map-file ISBN2OLID_MAP_FILE]
+                     [--search2asin-file SEARCH2ASIN_FILE]
+                     [--wikipedia-relevant-file WIKIPEDIA_RELEVANT_FILE] [-i]
+                     [-a AUDIBLE_LOGIN_FILE]
                      [--audible-auth-password AUDIBLE_AUTH_PASSWORD]
                      [--audible-auth-password-cmd AUDIBLE_AUTH_PASSWORD_CMD]
                      [-g GOOGLE_BOOKS_KEY] [-G GOOGLE_BOOKS_KEY_CMD]
                      [--librofm-username LIBROFM_USERNAME]
                      [--librofm-password LIBROFM_PASSWORD]
                      [--librofm-password-cmd LIBROFM_PASSWORD_CMD]
-                     {populate,audible,kindle,googlebook,amazon,librofm,manual,slug,cover,version} ...
+                     {populate,audible,kindle,googlebook,amazon,librofm,manual,slug,cover,version}
+                     ...
 
 Manage Audible/Kindle libraries, enrich them, and populate local book repos.
 
@@ -474,18 +487,42 @@ options:
   -h, --help            show this help message and exit
   -D, --debug           Drop into an interactive debugger on unhandled
                         exceptions.
-  -c, --config CONFIG   Path to TOML config file, defaulting to a file called
+  -c CONFIG, --config CONFIG
+                        Path to TOML config file, defaulting to a file called
                         .bibliographer.toml in the repo root
   -v, --verbose         Enable verbose logging of API calls.
-  -b, --bibliographer-data BIBLIOGRAPHER_DATA
-                        Defaults to ./bibliographer/data
-  -s, --book-slug-root BOOK_SLUG_ROOT
+  -b BIBLIOGRAPHER_DATA_ROOT, --bibliographer-data-root BIBLIOGRAPHER_DATA_ROOT
+                        Root directory for bibliographer data. Defaults to
+                        ./bibliographer/data
+  -s BOOK_SLUG_ROOT, --book-slug-root BOOK_SLUG_ROOT
                         Defaults to ./bibliographer/books
+  --audible-library-file AUDIBLE_LIBRARY_FILE
+                        Path to audible library metadata file
+  --kindle-library-file KINDLE_LIBRARY_FILE
+                        Path to kindle library metadata file
+  --gbooks-volumes-file GBOOKS_VOLUMES_FILE
+                        Path to Google Books volumes cache file
+  --librofm-library-file LIBROFM_LIBRARY_FILE
+                        Path to Libro.fm library metadata file
+  --combined-library-file COMBINED_LIBRARY_FILE
+                        Path to combined library file
+  --audible-slugs-file AUDIBLE_SLUGS_FILE
+                        Path to Audible slugs mapping file
+  --kindle-slugs-file KINDLE_SLUGS_FILE
+                        Path to Kindle slugs mapping file
+  --librofm-slugs-file LIBROFM_SLUGS_FILE
+                        Path to Libro.fm slugs mapping file
+  --isbn2olid-map-file ISBN2OLID_MAP_FILE
+                        Path to ISBN to OpenLibrary ID mapping file
+  --search2asin-file SEARCH2ASIN_FILE
+                        Path to search term to ASIN mapping file
+  --wikipedia-relevant-file WIKIPEDIA_RELEVANT_FILE
+                        Path to Wikipedia relevant pages file
   -i, --individual-bibliographer-json
                         Write out each book to its own JSON file (in addition to
                         the combined bibliographer.json), under
                         book_slug_root/SLUG/bibliographer.json
-  -a, --audible-login-file AUDIBLE_LOGIN_FILE
+  -a AUDIBLE_LOGIN_FILE, --audible-login-file AUDIBLE_LOGIN_FILE
                         Defaults to ./.bibliographer-audible-auth.json
   --audible-auth-password AUDIBLE_AUTH_PASSWORD
                         Password to encrypt/decrypt the Audible authentication
@@ -493,9 +530,9 @@ options:
   --audible-auth-password-cmd AUDIBLE_AUTH_PASSWORD_CMD
                         A command to retrieve the password for Audible auth file
                         encryption (e.g. from a password manager)
-  -g, --google-books-key GOOGLE_BOOKS_KEY
+  -g GOOGLE_BOOKS_KEY, --google-books-key GOOGLE_BOOKS_KEY
                         Google Books API key
-  -G, --google-books-key-cmd GOOGLE_BOOKS_KEY_CMD
+  -G GOOGLE_BOOKS_KEY_CMD, --google-books-key-cmd GOOGLE_BOOKS_KEY_CMD
                         A command to retrieve the Google Books API key (e.g.
                         from a password manager)
   --librofm-username LIBROFM_USERNAME
