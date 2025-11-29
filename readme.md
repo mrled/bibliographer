@@ -465,8 +465,7 @@ usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-b BIBLIOGRAPHER_DATA_ROOT]
                      [--librofm-username LIBROFM_USERNAME]
                      [--librofm-password LIBROFM_PASSWORD]
                      [--librofm-password-cmd LIBROFM_PASSWORD_CMD]
-                     {populate,audible,kindle,googlebook,amazon,librofm,manual,slug,cover,version}
-                     ...
+                     {populate,audible,kindle,googlebook,amazon,librofm,manual,slug,cover,version} ...
 
 Manage Audible/Kindle libraries, enrich them, and populate local book repos.
 
@@ -487,14 +486,13 @@ options:
   -h, --help            show this help message and exit
   -D, --debug           Drop into an interactive debugger on unhandled
                         exceptions.
-  -c CONFIG, --config CONFIG
-                        Path to TOML config file, defaulting to a file called
+  -c, --config CONFIG   Path to TOML config file, defaulting to a file called
                         .bibliographer.toml in the repo root
   -v, --verbose         Enable verbose logging of API calls.
-  -b BIBLIOGRAPHER_DATA_ROOT, --bibliographer-data-root BIBLIOGRAPHER_DATA_ROOT
+  -b, --bibliographer-data-root BIBLIOGRAPHER_DATA_ROOT
                         Root directory for bibliographer data. Defaults to
                         ./bibliographer/data
-  -s BOOK_SLUG_ROOT, --book-slug-root BOOK_SLUG_ROOT
+  -s, --book-slug-root BOOK_SLUG_ROOT
                         Defaults to ./bibliographer/books
   --audible-library-file AUDIBLE_LIBRARY_FILE
                         Path to audible library metadata file
@@ -522,7 +520,7 @@ options:
                         Write out each book to its own JSON file (in addition to
                         the combined bibliographer.json), under
                         book_slug_root/SLUG/bibliographer.json
-  -a AUDIBLE_LOGIN_FILE, --audible-login-file AUDIBLE_LOGIN_FILE
+  -a, --audible-login-file AUDIBLE_LOGIN_FILE
                         Defaults to ./.bibliographer-audible-auth.json
   --audible-auth-password AUDIBLE_AUTH_PASSWORD
                         Password to encrypt/decrypt the Audible authentication
@@ -530,9 +528,9 @@ options:
   --audible-auth-password-cmd AUDIBLE_AUTH_PASSWORD_CMD
                         A command to retrieve the password for Audible auth file
                         encryption (e.g. from a password manager)
-  -g GOOGLE_BOOKS_KEY, --google-books-key GOOGLE_BOOKS_KEY
+  -g, --google-books-key GOOGLE_BOOKS_KEY
                         Google Books API key
-  -G GOOGLE_BOOKS_KEY_CMD, --google-books-key-cmd GOOGLE_BOOKS_KEY_CMD
+  -G, --google-books-key-cmd GOOGLE_BOOKS_KEY_CMD
                         A command to retrieve the Google Books API key (e.g.
                         from a password manager)
   --librofm-username LIBROFM_USERNAME
