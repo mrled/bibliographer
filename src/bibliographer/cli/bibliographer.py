@@ -160,33 +160,15 @@ def makeparser() -> argparse.ArgumentParser:
         action="store_true",
         help="Write out each book to its own JSON file (in addition to the combined bibliographer.json), under book_slug_root/SLUG/bibliographer.json",
     )
-    parser.add_argument("-a", "--audible-login-file", help="Defaults to ./.bibliographer-audible-auth.json")
-    parser.add_argument(
-        "--audible-auth-password",
-        help="Password to encrypt/decrypt the Audible authentication file",
-    )
-    parser.add_argument(
-        "--audible-auth-password-cmd",
-        help="A command to retrieve the password for Audible auth file encryption (e.g. from a password manager)",
-    )
-    parser.add_argument("-g", "--google-books-key", help="Google Books API key")
-    parser.add_argument(
-        "-G",
-        "--google-books-key-cmd",
-        help="A command to retrieve the Google Books API key (e.g. from a password manager)",
-    )
-    parser.add_argument(
-        "--librofm-username",
-        help="Libro.fm username (email address)",
-    )
-    parser.add_argument(
-        "--librofm-password",
-        help="Libro.fm password",
-    )
-    parser.add_argument(
-        "--librofm-password-cmd",
-        help="A command to retrieve the Libro.fm password (e.g. from a password manager)",
-    )
+    # Service-related options are hidden from --help; use 'help-services' subcommand to see them
+    parser.add_argument("-a", "--audible-login-file", help=argparse.SUPPRESS)
+    parser.add_argument("--audible-auth-password", help=argparse.SUPPRESS)
+    parser.add_argument("--audible-auth-password-cmd", help=argparse.SUPPRESS)
+    parser.add_argument("-g", "--google-books-key", help=argparse.SUPPRESS)
+    parser.add_argument("-G", "--google-books-key-cmd", help=argparse.SUPPRESS)
+    parser.add_argument("--librofm-username", help=argparse.SUPPRESS)
+    parser.add_argument("--librofm-password", help=argparse.SUPPRESS)
+    parser.add_argument("--librofm-password-cmd", help=argparse.SUPPRESS)
 
     # Take care to add help AND description to each subparser.
     # Help is shown by the parent parser
@@ -317,6 +299,9 @@ def makeparser() -> argparse.ArgumentParser:
     # help-file-paths subcommand
     subparsers.add_parser("help-file-paths", help="Show data file path options")
 
+    # help-services subcommand
+    subparsers.add_parser("help-services", help="Show service authentication options")
+
     return parser
 
 
@@ -352,6 +337,36 @@ User Map Files:
   --isbn2olid-map-file      Path to ISBN to OpenLibrary ID mapping file
   --search2asin-file        Path to search term to ASIN mapping file
   --wikipedia-relevant-file Path to Wikipedia relevant pages file
+
+These options can also be set in the config file (.bibliographer.toml).
+""")
+
+
+def print_services_help() -> None:
+    """Print help for service authentication options."""
+    print("""Service Authentication Options
+==============================
+
+These options configure authentication for external services.
+
+Audible:
+  -a, --audible-login-file       Path to Audible credentials file
+                                 (default: ./.bibliographer-audible-auth.json)
+  --audible-auth-password        Password to encrypt/decrypt the Audible
+                                 authentication file
+  --audible-auth-password-cmd    Command to retrieve the Audible auth password
+                                 (e.g. from a password manager)
+
+Google Books:
+  -g, --google-books-key         Google Books API key
+  -G, --google-books-key-cmd     Command to retrieve the Google Books API key
+                                 (e.g. from a password manager)
+
+Libro.fm:
+  --librofm-username             Libro.fm username (email address)
+  --librofm-password             Libro.fm password
+  --librofm-password-cmd         Command to retrieve the Libro.fm password
+                                 (e.g. from a password manager)
 
 These options can also be set in the config file (.bibliographer.toml).
 """)
@@ -769,6 +784,9 @@ def main(arguments: list[str]) -> int:
 
         elif args.subcommand == "help-file-paths":
             print_file_paths_help()
+
+        elif args.subcommand == "help-services":
+            print_services_help()
 
         else:
             print("Unknown subcommand", file=sys.stderr)
