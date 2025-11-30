@@ -4,7 +4,7 @@ import shutil
 from typing import List, Optional
 
 from bibliographer import mlogger
-from bibliographer.cardcatalog import CardCatalog
+from bibliographer.cardcatalog import CardCatalog, CatalogBook
 from bibliographer.hugo import slugify
 from bibliographer.sources.amazon_browser import amazon_browser_search_cached
 from bibliographer.sources.covers import lookup_cover
@@ -18,92 +18,111 @@ def enrich_combined_library(
     google_books_key: str,
     slug_filter: Optional[List[str]] = None,
 ):
-    """Enrich all entries in the combined library, or specific ones if slug_filter is provided."""
+    """Enrich all entries in the combined library, or specific ones if slug_filter is provided.
+
+    Book-specific enrichment (Google Books, ISBN, OpenLibrary, Amazon ASIN) is only
+    performed for CatalogBook entries. Wikipedia enrichment applies to all work types.
+    """
     mlogger.debug("Enriching combined library...")
 
-    for slug, book in catalog.combinedlib.contents.items():
+    for slug, work in catalog.combinedlib.contents.items():
         if slug_filter and slug not in slug_filter:
             continue
-        if book.skip:
+        if work.skip:
             mlogger.debug(f"Skipping {slug}")
             continue
         mlogger.debug(f"Enriching combined library... processing {slug}")
 
-        if not book.gbooks_volid:
-            if book.title and book.authors:
-                gbook = google_books_search(catalog, google_books_key, book.title, book.authors[0])
-                if gbook:
-                    book.gbooks_volid = gbook.get("bookid")
+        # Book-specific enrichment (ISBN, ASIN, Google Books, OpenLibrary)
+        if isinstance(work, CatalogBook):
+            if not work.gbooks_volid:
+                if work.title and work.authors:
+                    gbook = google_books_search(catalog, google_books_key, work.title, work.authors[0])
+                    if gbook:
+                        work.gbooks_volid = gbook.get("bookid")
 
-        if not book.isbn:
-            if book.gbooks_volid:
-                gbook = google_books_retrieve(catalog, google_books_key, book.gbooks_volid)
-                if gbook:
-                    book.isbn = gbook.get("isbn13")
+            if not work.isbn:
+                if work.gbooks_volid:
+                    gbook = google_books_retrieve(catalog, google_books_key, work.gbooks_volid)
+                    if gbook:
+                        work.isbn = gbook.get("isbn13")
 
-        if book.publish_date is None:
-            if book.gbooks_volid:
-                gbook = google_books_retrieve(catalog, google_books_key, book.gbooks_volid)
-                if gbook:
-                    book.publish_date = gbook.get("publishedDate")
+            if work.publish_date is None:
+                if work.gbooks_volid:
+                    gbook = google_books_retrieve(catalog, google_books_key, work.gbooks_volid)
+                    if gbook:
+                        work.publish_date = gbook.get("publishedDate")
 
-        # Normalize any existing OLID and fetch if missing
-        if book.openlibrary_id:
-            book.openlibrary_id = normalize_olid(book.openlibrary_id)
-        elif book.isbn:
-            book.openlibrary_id = isbn2olid(catalog, book.isbn)
+            # Normalize any existing OLID and fetch if missing
+            if work.openlibrary_id:
+                work.openlibrary_id = normalize_olid(work.openlibrary_id)
+            elif work.isbn:
+                work.openlibrary_id = isbn2olid(catalog, work.isbn)
 
-        if not book.book_asin:
-            if book.title and book.authors:
-                searchterm = " ".join([book.title] + book.authors)
-                book.book_asin = amazon_browser_search_cached(catalog, searchterm)
+            if not work.book_asin:
+                if work.title and work.authors:
+                    searchterm = " ".join([work.title] + work.authors)
+                    work.book_asin = amazon_browser_search_cached(catalog, searchterm)
 
-        if book.urls_wikipedia is None:
-            book.urls_wikipedia = wikipedia_relevant_pages(catalog, book.title, book.authors)
+        # Wikipedia enrichment applies to all work types
+        if work.urls_wikipedia is None:
+            work.urls_wikipedia = wikipedia_relevant_pages(catalog, work.title, work.authors)
 
     return
 
 
 def retrieve_covers(catalog: CardCatalog, cover_assets_root: pathlib.Path, slug_filter: Optional[List[str]] = None):
-    """Retrieve cover images for all entries in the combined library, or specific ones if slug_filter is provided."""
-    for book in catalog.combinedlib.contents.values():
-        if slug_filter and book.slug not in slug_filter:
+    """Retrieve cover images for book entries in the combined library, or specific ones if slug_filter is provided.
+
+    Only CatalogBook entries have cover fields (gbooks_volid, book_asin, kindle_asin, audible_asin).
+    Non-book work types are skipped.
+    """
+    for work in catalog.combinedlib.contents.values():
+        if slug_filter and work.slug not in slug_filter:
             continue
-        if book.skip:
-            mlogger.debug(f"Skipping cover retrieval for {book.slug}")
+        if work.skip:
+            mlogger.debug(f"Skipping cover retrieval for {work.slug}")
             continue
-        mlogger.debug(f"Retrieving cover for {book.slug}...")
-        book_dir = cover_assets_root / book.slug
-        fallback_asin = book.book_asin or book.kindle_asin or book.audible_asin
+        # Only books have cover-related fields
+        if not isinstance(work, CatalogBook):
+            mlogger.debug(f"Skipping cover retrieval for non-book {work.slug} (work_type={work.work_type})")
+            continue
+        if not work.slug:
+            mlogger.debug("Skipping cover retrieval for work without slug")
+            continue
+        mlogger.debug(f"Retrieving cover for {work.slug}...")
+        book_dir = cover_assets_root / work.slug
+        fallback_asin = work.book_asin or work.kindle_asin or work.audible_asin
         lookup_cover(
             catalog=catalog,
-            gbooks_volid=book.gbooks_volid,
+            gbooks_volid=work.gbooks_volid,
             fallback_asin=fallback_asin,
             book_dir=book_dir,
         )
 
 
-def write_index_md_files(catalog: CardCatalog, books_root: pathlib.Path, slug_filter: Optional[List[str]] = None):
+def write_index_md_files(catalog: CardCatalog, content_root: pathlib.Path, slug_filter: Optional[List[str]] = None):
     """Create index.md files for all entries in the combined library, or specific ones if slug_filter is provided.
 
-    Never overwrite an existing index.md file.
+    Works for all work types (books, articles, podcasts, videos, etc.).
+    Never overwrites an existing index.md file.
     """
-    for book in catalog.combinedlib.contents.values():
-        if slug_filter and book.slug not in slug_filter:
+    for work in catalog.combinedlib.contents.values():
+        if slug_filter and work.slug not in slug_filter:
             continue
-        if book.skip:
-            mlogger.debug(f"[index.md] skipping for {book.slug}")
+        if work.skip:
+            mlogger.debug(f"[index.md] skipping for {work.slug}")
             continue
-        book_dir = books_root / book.slug
-        index_md_path = book_dir / "index.md"
+        work_dir = content_root / work.slug
+        index_md_path = work_dir / "index.md"
         if index_md_path.exists():
-            mlogger.debug(f"[index.md] already exists for {book.slug}, skipping...")
+            mlogger.debug(f"[index.md] already exists for {work.slug}, skipping...")
             continue
-        mlogger.debug(f"[index.md] writing for {book.slug}...")
-        book_dir.mkdir(exist_ok=True, parents=True)
+        mlogger.debug(f"[index.md] writing for {work.slug}...")
+        work_dir.mkdir(exist_ok=True, parents=True)
         if not index_md_path.exists():
-            date_str = book.purchase_date or ""
-            quoted_title = book.title.replace('"', '\\"')
+            date_str = work.purchase_date or ""
+            quoted_title = work.title.replace('"', '\\"')
             frontmatter_lines = []
             frontmatter_lines.append("---")
             frontmatter_lines.append(f'title: "{quoted_title}"')
@@ -117,35 +136,39 @@ def write_index_md_files(catalog: CardCatalog, books_root: pathlib.Path, slug_fi
             index_md_path.write_text(frontmatter, encoding="utf-8")
 
 
-def write_bibliographer_json_files(catalog: CardCatalog, books_root: pathlib.Path, slug_filter: Optional[List[str]] = None):
+def write_bibliographer_json_files(catalog: CardCatalog, content_root: pathlib.Path, slug_filter: Optional[List[str]] = None):
     """Create bibliographer.json files for all entries in the combined library, or specific ones if slug_filter is provided.
 
-    Always overwrite bibliographer.json files.
+    Works for all work types (books, articles, podcasts, videos, etc.).
+    Always overwrites bibliographer.json files.
     """
-    for book in catalog.combinedlib.contents.values():
-        if slug_filter and book.slug not in slug_filter:
+    for work in catalog.combinedlib.contents.values():
+        if slug_filter and work.slug not in slug_filter:
             continue
-        if book.skip:
-            mlogger.debug(f"[bibliographer.json] skipping for {book.slug}")
+        if work.skip:
+            mlogger.debug(f"[bibliographer.json] skipping for {work.slug}")
             continue
-        mlogger.debug(f"[bibliographer.json] writing for {book.slug}...")
-        book_dir = books_root / book.slug
-        book_dir.mkdir(exist_ok=True, parents=True)
-        bibliographer_json_path = book_dir / "bibliographer.json"
-        bibliographer_json_path.write_text(json.dumps(book.asdict, indent=2, sort_keys=True), encoding="utf-8")
+        mlogger.debug(f"[bibliographer.json] writing for {work.slug}...")
+        work_dir = content_root / work.slug
+        work_dir.mkdir(exist_ok=True, parents=True)
+        bibliographer_json_path = work_dir / "bibliographer.json"
+        bibliographer_json_path.write_text(json.dumps(work.asdict, indent=2, sort_keys=True), encoding="utf-8")
 
 
-def rename_slug(catalog: CardCatalog, books_root: pathlib.Path, old_slug: str, new_slug: str):
-    """Change the slug of a book in the combined library.
+def rename_slug(catalog: CardCatalog, content_root: pathlib.Path, old_slug: str, new_slug: str):
+    """Change the slug of a work in the combined library.
+
+    Works for all work types (books, articles, podcasts, videos, etc.).
 
     This function will:
     - Change the slug in the combined library.
-    - Move the book directory to the new slug.
-    - Update the index.md and bibliographer.json files.
+    - Update slug mappings for book sources (Audible, Kindle, Libro.fm) if applicable.
+    - Move the work directory to the new slug.
     """
 
     mlogger.debug(f"Renaming slug {old_slug} to {new_slug}")
 
+    # Update book-specific slug mappings (only relevant for books, but harmless for other types)
     for asin, slug in catalog.audibleslugs.contents.items():
         if slug == old_slug:
             catalog.audibleslugs.contents[asin] = new_slug
@@ -158,15 +181,15 @@ def rename_slug(catalog: CardCatalog, books_root: pathlib.Path, old_slug: str, n
         if slug == old_slug:
             catalog.librofmslugs.contents[librofm_isbn] = new_slug
 
-    book = catalog.combinedlib.contents[old_slug]
-    book.slug = new_slug
+    work = catalog.combinedlib.contents[old_slug]
+    work.slug = new_slug
 
     if new_slug not in catalog.combinedlib.contents:
         catalog.combinedlib.contents[new_slug] = catalog.combinedlib.contents[old_slug]
     del catalog.combinedlib.contents[old_slug]
 
-    old_slug_path = books_root / old_slug
-    new_slug_path = books_root / new_slug
+    old_slug_path = content_root / old_slug
+    new_slug_path = content_root / new_slug
     if new_slug_path.exists() and old_slug_path.exists():
         shutil.rmtree(old_slug_path)
     elif not new_slug_path.exists() and old_slug_path.exists():
