@@ -1,17 +1,18 @@
 import re
 
 
-def slugify(title: str) -> str:
+def slugify(title: str, remove_subtitle: bool = True) -> str:
     """
     Convert a title into a slug.
-    - Remove subtitle
+    - Optionally remove subtitle (default: True)
     - Lowercase
     - Remove punctuation
     - Replace spaces with hyphens
     - Remove leading 'the' if present
     """
     out = title.lower()
-    out = re.sub(r"\:.*", "", out)  # remove subtitle
+    if remove_subtitle:
+        out = re.sub(r"\:.*", "", out)  # remove subtitle
     out = re.sub(r"[^\w\s-]", "", out)  # remove punctuation
     out = re.sub(r"^the\s+", "", out)  # remove leading 'the '
     out = re.sub(r"^a\s+", "", out)  # remove leading 'a '

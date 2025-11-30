@@ -82,7 +82,7 @@ def process_raindrop_highlights(catalog: CardCatalog):
 
         # Map URL to slug
         if url not in catalog.raindropslugs.contents:
-            catalog.raindropslugs.contents[url] = slugify(highlight.get("title", ""))
+            catalog.raindropslugs.contents[url] = slugify(highlight.get("title", ""), remove_subtitle=False)
         article.slug = catalog.raindropslugs.contents[url]
 
         # Only add if not already in combined library

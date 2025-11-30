@@ -67,9 +67,9 @@ def add_article(
 
     if not slug:
         if title:
-            slug = slugify(title)
+            slug = slugify(title, remove_subtitle=False)
         elif url:
-            slug = slugify(url)
+            slug = slugify(url, remove_subtitle=False)
 
     if slug in catalog.combinedlib.contents:
         raise ValueError(f"Slug {slug} already exists, edit that entry or choose a different slug")
@@ -105,9 +105,9 @@ def add_podcast(
 
     if not slug:
         if title:
-            slug = slugify(title)
+            slug = slugify(title, remove_subtitle=False)
         elif url:
-            slug = slugify(url)
+            slug = slugify(url, remove_subtitle=False)
 
     if slug in catalog.combinedlib.contents:
         raise ValueError(f"Slug {slug} already exists, edit that entry or choose a different slug")
@@ -142,9 +142,9 @@ def add_video(
 
     if not slug:
         if title:
-            slug = slugify(title)
+            slug = slugify(title, remove_subtitle=False)
         elif url:
-            slug = slugify(url)
+            slug = slugify(url, remove_subtitle=False)
 
     if slug in catalog.combinedlib.contents:
         raise ValueError(f"Slug {slug} already exists, edit that entry or choose a different slug")

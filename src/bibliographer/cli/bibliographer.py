@@ -9,7 +9,7 @@ import logging
 import subprocess
 
 from bibliographer import add_console_handler, mlogger
-from bibliographer.cardcatalog import CardCatalog
+from bibliographer.cardcatalog import CardCatalog, CatalogBook
 from bibliographer.cli.util import (
     AutoDescriptionArgumentParser,
     exceptional_exception_handler,
@@ -843,7 +843,9 @@ def main(arguments: list[str]) -> int:
             elif args.slug_subcommand == "rename":
                 rename_slug(catalog, slug_roots, args.old_slug, args.new_slug)
             elif args.slug_subcommand == "regenerate":
-                new_slug = slugify(catalog.combinedlib.contents[args.slug].title)
+                item = catalog.combinedlib.contents[args.slug]
+                remove_subtitle = isinstance(item, CatalogBook)
+                new_slug = slugify(item.title, remove_subtitle=remove_subtitle)
                 if new_slug == args.slug:
                     print(f"Slug for {args.slug} is already {new_slug}")
                     return 0
