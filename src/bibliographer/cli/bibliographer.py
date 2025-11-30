@@ -23,7 +23,7 @@ from bibliographer.enrich import (
     write_bibliographer_json_files,
     write_index_md_files,
 )
-from bibliographer.hugo import slugify
+from bibliographer.util.slugify import slugify
 from bibliographer.sources.amazon_browser import amazon_browser_search_cached
 from bibliographer.sources.audible import (
     audible_login,

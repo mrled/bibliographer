@@ -4,7 +4,7 @@ import requests
 
 from bibliographer import mlogger
 from bibliographer.cardcatalog import CardCatalog, CatalogArticle
-from bibliographer.hugo import slugify
+from bibliographer.util.slugify import slugify
 
 RAINDROP_API_BASE = "https://api.raindrop.io/rest/v1"
 HIGHLIGHTS_ENDPOINT = "/highlights"

@@ -12,7 +12,7 @@ import audible
 
 from bibliographer import mlogger
 from bibliographer.cardcatalog import CardCatalog, CatalogBook
-from bibliographer.hugo import slugify
+from bibliographer.util.slugify import slugify
 
 if TYPE_CHECKING:
     from bibliographer.cli.bibliographer import SecretValueGetter

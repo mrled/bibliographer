@@ -3,7 +3,7 @@ import pathlib
 from bibliographer import mlogger
 from bibliographer.cardcatalog import CardCatalog, CatalogBook
 from bibliographer.util.jsonutil import load_json
-from bibliographer.hugo import slugify
+from bibliographer.util import slugify
 
 
 def ingest_kindle_library(

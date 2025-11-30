@@ -4,7 +4,7 @@ import requests
 
 from bibliographer import mlogger
 from bibliographer.cardcatalog import CardCatalog, CatalogBook
-from bibliographer.hugo import slugify
+from bibliographer.util import slugify
 
 LIBRO_BASE_URL = "https://libro.fm"
 LOGIN_ENDPOINT = "/oauth/token"

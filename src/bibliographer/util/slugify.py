@@ -1,6 +1,3 @@
-"""Hugo-related functions
-"""
-
 import re
 
 
