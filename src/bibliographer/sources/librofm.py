@@ -3,7 +3,7 @@ import re
 import requests
 
 from bibliographer import mlogger
-from bibliographer.cardcatalog import CardCatalog, CombinedCatalogBook
+from bibliographer.cardcatalog import CardCatalog, CatalogBook
 from bibliographer.hugo import slugify
 
 LIBRO_BASE_URL = "https://libro.fm"
@@ -59,7 +59,7 @@ def process_librofm_library(catalog: CardCatalog):
     """Process the librofm library data and save to the combined library."""
     for librofm_isbn, item in catalog.librofmlib.contents.items():
         mlogger.debug(f"Processing librofm library ISBN {librofm_isbn}")
-        book = CombinedCatalogBook()
+        book = CatalogBook()
         book.librofm_isbn = librofm_isbn
         book.title = item["title"]
         book.authors = item["authors"]

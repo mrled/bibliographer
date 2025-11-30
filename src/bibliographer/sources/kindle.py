@@ -1,7 +1,7 @@
 import pathlib
 
 from bibliographer import mlogger
-from bibliographer.cardcatalog import CardCatalog, CombinedCatalogBook
+from bibliographer.cardcatalog import CardCatalog, CatalogBook
 from bibliographer.util.jsonutil import load_json
 from bibliographer.hugo import slugify
 
@@ -34,7 +34,7 @@ def process_kindle_library(
     """
     for asin, item in catalog.kindlelib.contents.items():
         mlogger.debug(f"Processing Kindle library ASIN {asin}")
-        book = CombinedCatalogBook()
+        book = CatalogBook()
         book.kindle_asin = asin
         book.title = item.get("title")
         book.authors = item["authors"][0].rstrip(":").split(":")

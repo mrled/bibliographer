@@ -11,7 +11,7 @@ from typing import Any, Mapping, Optional, TYPE_CHECKING
 import audible
 
 from bibliographer import mlogger
-from bibliographer.cardcatalog import CardCatalog, CombinedCatalogBook
+from bibliographer.cardcatalog import CardCatalog, CatalogBook
 from bibliographer.hugo import slugify
 
 if TYPE_CHECKING:
@@ -189,7 +189,7 @@ def process_audible_library(
     """
     for asin, item in catalog.audiblelib.contents.items():
         mlogger.debug(f"Processing Audible library ASIN {asin}")
-        book = CombinedCatalogBook()
+        book = CatalogBook()
         book.audible_asin = asin
         book.title = item["title"]
         book.authors = [author["name"] for author in item.get("authors", [])]

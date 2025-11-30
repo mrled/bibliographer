@@ -1,6 +1,6 @@
 from typing import Optional
 
-from bibliographer.cardcatalog import CardCatalog, CombinedCatalogBook
+from bibliographer.cardcatalog import CardCatalog, CatalogBook
 from bibliographer.hugo import slugify
 from bibliographer.util.isbnutil import normalize_isbn
 
@@ -32,7 +32,7 @@ def manual_add(
     if slug in catalog.combinedlib.contents:
         raise ValueError(f"Slug {slug} already exists in manual data, edit that entry or choose a different slug")
 
-    book = CombinedCatalogBook(
+    book = CatalogBook(
         title=title,
         authors=authors or [],
         isbn=isbn,
