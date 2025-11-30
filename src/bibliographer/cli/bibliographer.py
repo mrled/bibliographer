@@ -135,23 +135,25 @@ def makeparser() -> argparse.ArgumentParser:
         help="Path to TOML config file, defaulting to a file called .bibliographer.toml in the repo root",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging of API calls.")
-    parser.add_argument("-b", "--bibliographer-data-root", help="Root directory for bibliographer data. Defaults to ./bibliographer/data")
-    parser.add_argument("-s", "--book-slug-root", help="Defaults to ./bibliographer/books")
+    # These options are hidden from --help; use 'help-file-paths' subcommand to see them
+    parser.add_argument("-b", "--bibliographer-data-root", help=argparse.SUPPRESS)
+    parser.add_argument("-s", "--book-slug-root", help=argparse.SUPPRESS)
 
     # Individual file overrides for apicache
-    parser.add_argument("--audible-library-file", help="Path to audible library metadata file")
-    parser.add_argument("--kindle-library-file", help="Path to kindle library metadata file")
-    parser.add_argument("--gbooks-volumes-file", help="Path to Google Books volumes cache file")
-    parser.add_argument("--librofm-library-file", help="Path to Libro.fm library metadata file")
+    # These options are hidden from --help; use 'help-file-paths' subcommand to see them
+    parser.add_argument("--audible-library-file", help=argparse.SUPPRESS)
+    parser.add_argument("--kindle-library-file", help=argparse.SUPPRESS)
+    parser.add_argument("--gbooks-volumes-file", help=argparse.SUPPRESS)
+    parser.add_argument("--librofm-library-file", help=argparse.SUPPRESS)
 
     # Individual file overrides for usermaps
-    parser.add_argument("--combined-library-file", help="Path to combined library file")
-    parser.add_argument("--audible-slugs-file", help="Path to Audible slugs mapping file")
-    parser.add_argument("--kindle-slugs-file", help="Path to Kindle slugs mapping file")
-    parser.add_argument("--librofm-slugs-file", help="Path to Libro.fm slugs mapping file")
-    parser.add_argument("--isbn2olid-map-file", help="Path to ISBN to OpenLibrary ID mapping file")
-    parser.add_argument("--search2asin-file", help="Path to search term to ASIN mapping file")
-    parser.add_argument("--wikipedia-relevant-file", help="Path to Wikipedia relevant pages file")
+    parser.add_argument("--combined-library-file", help=argparse.SUPPRESS)
+    parser.add_argument("--audible-slugs-file", help=argparse.SUPPRESS)
+    parser.add_argument("--kindle-slugs-file", help=argparse.SUPPRESS)
+    parser.add_argument("--librofm-slugs-file", help=argparse.SUPPRESS)
+    parser.add_argument("--isbn2olid-map-file", help=argparse.SUPPRESS)
+    parser.add_argument("--search2asin-file", help=argparse.SUPPRESS)
+    parser.add_argument("--wikipedia-relevant-file", help=argparse.SUPPRESS)
     parser.add_argument(
         "-i",
         "--individual-bibliographer-json",
@@ -312,12 +314,47 @@ def makeparser() -> argparse.ArgumentParser:
     # version subcommand
     subparsers.add_parser("version", help="Show version information")
 
+    # help-file-paths subcommand
+    subparsers.add_parser("help-file-paths", help="Show data file path options")
+
     return parser
 
 
 def get_help_string() -> str:
     """Get a string containing program help"""
     return get_argparse_help_string("bibliographer", makeparser())
+
+
+def print_file_paths_help() -> None:
+    """Print help for data file path options."""
+    print("""Data File Path Options
+======================
+
+These options allow you to override the default paths for data files.
+
+Root Directories:
+  -b, --bibliographer-data-root  Root directory for bibliographer data
+                                 (default: ./bibliographer/data)
+  -s, --book-slug-root           Root directory for book slug folders
+                                 (default: ./bibliographer/books)
+
+API Cache Files:
+  --audible-library-file    Path to Audible library metadata file
+  --kindle-library-file     Path to Kindle library metadata file
+  --gbooks-volumes-file     Path to Google Books volumes cache file
+  --librofm-library-file    Path to Libro.fm library metadata file
+
+User Map Files:
+  --combined-library-file   Path to combined library file
+  --audible-slugs-file      Path to Audible slugs mapping file
+  --kindle-slugs-file       Path to Kindle slugs mapping file
+  --librofm-slugs-file      Path to Libro.fm slugs mapping file
+  --isbn2olid-map-file      Path to ISBN to OpenLibrary ID mapping file
+  --search2asin-file        Path to search term to ASIN mapping file
+  --wikipedia-relevant-file Path to Wikipedia relevant pages file
+
+These options can also be set in the config file (.bibliographer.toml).
+""")
 
 
 def get_example_config() -> str:
@@ -729,6 +766,9 @@ def main(arguments: list[str]) -> int:
 
         elif args.subcommand == "version":
             print(get_version())
+
+        elif args.subcommand == "help-file-paths":
+            print_file_paths_help()
 
         else:
             print("Unknown subcommand", file=sys.stderr)
