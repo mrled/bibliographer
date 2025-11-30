@@ -37,7 +37,7 @@ def manual_add(
         authors=authors or [],
         isbn=isbn,
         purchase_date=purchase_date,
-        read_date=read_date,
+        consumed_date=read_date,
         slug=slug,
     )
     catalog.combinedlib.contents[slug] = book
