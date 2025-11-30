@@ -36,7 +36,12 @@ from bibliographer.sources.covers import cover_path, download_cover_from_url
 from bibliographer.sources.googlebooks import google_books_retrieve
 from bibliographer.sources.kindle import ingest_kindle_library, process_kindle_library
 from bibliographer.sources.librofm import librofm_login, librofm_retrieve_library, process_librofm_library
-from bibliographer.sources.manual import manual_add
+from bibliographer.sources.add import (
+    add_book,
+    add_article,
+    add_podcast,
+    add_video,
+)
 
 
 def find_repo_root() -> Optional[pathlib.Path]:
@@ -230,31 +235,48 @@ def makeparser() -> argparse.ArgumentParser:
     sp_librofm_sub = sp_librofm.add_subparsers(dest="librofm_subcommand", required=True)
     sp_librofm_sub.add_parser("retrieve", help="Retrieve the Libro.fm library")
 
-    # Manual subcommand
-    sp_manual = subparsers.add_parser("manual", help="Manage manually-entered books")
-    sp_manual_sub = sp_manual.add_subparsers(dest="manual_subcommand", required=True)
-
-    # manual add
-    sp_ma_add = sp_manual_sub.add_parser("add", help="Add a manually-entered book")
-    sp_ma_add.add_argument("--title", help="Book title")
-    sp_ma_add.add_argument("--authors", nargs="+", help="Authors (allows multiple)")
-    sp_ma_add.add_argument("--isbn", help="ISBN if known")
-    sp_ma_add.add_argument("--purchase-date", help="Purchase date if any (YYYY-MM-DD)")
-    sp_ma_add.add_argument("--read-date", help="Read date if any (YYYY-MM-DD)")
-    sp_ma_add.add_argument("--slug", help="Slug for URL (set to a slugified title by default)")
-
     # Add subcommand
-    sp_add = subparsers.add_parser("add", help="Add books to the library")
+    sp_add = subparsers.add_parser("add", help="Add works to the library")
     sp_add_sub = sp_add.add_subparsers(dest="add_subcommand", required=True)
 
-    # add individualbook
-    sp_add_ib = sp_add_sub.add_parser("individualbook", help="Add a manually-entered book")
-    sp_add_ib.add_argument("--title", help="Book title")
-    sp_add_ib.add_argument("--authors", nargs="+", help="Authors (allows multiple)")
-    sp_add_ib.add_argument("--isbn", help="ISBN if known")
-    sp_add_ib.add_argument("--purchase-date", help="Purchase date if any (YYYY-MM-DD)")
-    sp_add_ib.add_argument("--read-date", help="Read date if any (YYYY-MM-DD)")
-    sp_add_ib.add_argument("--slug", help="Slug for URL (set to a slugified title by default)")
+    # add book
+    sp_add_book = sp_add_sub.add_parser("book", help="Add a book")
+    sp_add_book.add_argument("--title", help="Book title")
+    sp_add_book.add_argument("--authors", nargs="+", help="Authors (allows multiple)")
+    sp_add_book.add_argument("--isbn", help="ISBN if known")
+    sp_add_book.add_argument("--purchase-date", help="Purchase date if any (YYYY-MM-DD)")
+    sp_add_book.add_argument("--read-date", help="Read/consumed date if any (YYYY-MM-DD)")
+    sp_add_book.add_argument("--slug", help="Slug for URL (set to a slugified title by default)")
+
+    # add article
+    sp_add_article = sp_add_sub.add_parser("article", help="Add an article")
+    sp_add_article.add_argument("--title", help="Article title")
+    sp_add_article.add_argument("--authors", nargs="+", help="Authors (allows multiple)")
+    sp_add_article.add_argument("--url", help="Article URL")
+    sp_add_article.add_argument("--publication", help="Publication name (journal, blog, magazine)")
+    sp_add_article.add_argument("--purchase-date", help="Purchase/acquired date if any (YYYY-MM-DD)")
+    sp_add_article.add_argument("--read-date", help="Read date if any (YYYY-MM-DD)")
+    sp_add_article.add_argument("--slug", help="Slug for URL (set to a slugified title by default)")
+
+    # add podcast
+    sp_add_podcast = sp_add_sub.add_parser("podcast", help="Add a podcast episode")
+    sp_add_podcast.add_argument("--title", help="Episode title")
+    sp_add_podcast.add_argument("--authors", nargs="+", help="Hosts/authors (allows multiple)")
+    sp_add_podcast.add_argument("--url", help="Episode URL")
+    sp_add_podcast.add_argument("--podcast-name", help="Name of the podcast")
+    sp_add_podcast.add_argument("--episode-number", type=int, help="Episode number")
+    sp_add_podcast.add_argument("--purchase-date", help="Purchase/acquired date if any (YYYY-MM-DD)")
+    sp_add_podcast.add_argument("--listened-date", help="Listened date if any (YYYY-MM-DD)")
+    sp_add_podcast.add_argument("--slug", help="Slug for URL (set to a slugified title by default)")
+
+    # add video
+    sp_add_video = sp_add_sub.add_parser("video", help="Add a video")
+    sp_add_video.add_argument("--title", help="Video title")
+    sp_add_video.add_argument("--authors", nargs="+", help="Creators (allows multiple)")
+    sp_add_video.add_argument("--url", help="Video URL")
+    sp_add_video.add_argument("--purchase-date", help="Purchase/acquired date if any (YYYY-MM-DD)")
+    sp_add_video.add_argument("--watched-date", help="Watched date if any (YYYY-MM-DD)")
+    sp_add_video.add_argument("--slug", help="Slug for URL (set to a slugified title by default)")
 
     # slug subcommand
     sp_slug = subparsers.add_parser("slug", help="Manage slugs")
@@ -608,9 +630,9 @@ def main(arguments: list[str]) -> int:
                     google_books_retrieve(catalog=catalog, key=google_books_key.get(), bookid=vid, overwrite=True)
                 print("Requery complete.")
 
-        elif args.subcommand == "manual":
-            if args.manual_subcommand == "add":
-                manual_add(
+        elif args.subcommand == "add":
+            if args.add_subcommand == "book":
+                add_book(
                     catalog=catalog,
                     title=args.title,
                     authors=args.authors,
@@ -619,16 +641,37 @@ def main(arguments: list[str]) -> int:
                     read_date=args.read_date,
                     slug=args.slug,
                 )
-
-        elif args.subcommand == "add":
-            if args.add_subcommand == "individualbook":
-                manual_add(
+            elif args.add_subcommand == "article":
+                add_article(
                     catalog=catalog,
                     title=args.title,
                     authors=args.authors,
-                    isbn=args.isbn,
+                    url=args.url,
+                    publication=args.publication,
                     purchase_date=args.purchase_date,
-                    read_date=args.read_date,
+                    consumed_date=args.read_date,
+                    slug=args.slug,
+                )
+            elif args.add_subcommand == "podcast":
+                add_podcast(
+                    catalog=catalog,
+                    title=args.title,
+                    authors=args.authors,
+                    url=args.url,
+                    podcast_name=args.podcast_name,
+                    episode_number=args.episode_number,
+                    purchase_date=args.purchase_date,
+                    consumed_date=args.listened_date,
+                    slug=args.slug,
+                )
+            elif args.add_subcommand == "video":
+                add_video(
+                    catalog=catalog,
+                    title=args.title,
+                    authors=args.authors,
+                    url=args.url,
+                    purchase_date=args.purchase_date,
+                    consumed_date=args.watched_date,
                     slug=args.slug,
                 )
 

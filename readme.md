@@ -465,20 +465,19 @@ usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-b BIBLIOGRAPHER_DATA_ROOT]
                      [--librofm-username LIBROFM_USERNAME]
                      [--librofm-password LIBROFM_PASSWORD]
                      [--librofm-password-cmd LIBROFM_PASSWORD_CMD]
-                     {populate,audible,kindle,googlebook,amazon,librofm,manual,add,slug,cover,version} ...
+                     {populate,audible,kindle,googlebook,amazon,librofm,add,slug,cover,version} ...
 
 Manage Audible/Kindle libraries, enrich them, and populate local book repos.
 
 positional arguments:
-  {populate,audible,kindle,googlebook,amazon,librofm,manual,add,slug,cover,version}
+  {populate,audible,kindle,googlebook,amazon,librofm,add,slug,cover,version}
     populate            Populate bibliographer.json files
     audible             Audible operations
     kindle              Kindle operations
     googlebook          Operate on Google Books data
     amazon              Amazon forced re-scrape
     librofm             Libro.fm operations
-    manual              Manage manually-entered books
-    add                 Add books to the library
+    add                 Add works to the library
     slug                Manage slugs
     cover               Cover operations
     version             Show version information
@@ -726,27 +725,30 @@ options:
 
 ________________________________________________________________________
 
-> bibliographer manual --help
-usage: bibliographer manual [-h] {add} ...
+> bibliographer add --help
+usage: bibliographer add [-h] {book,article,podcast,video} ...
 
-Manage manually-entered books
+Add works to the library
 
 positional arguments:
-  {add}
-    add       Add a manually-entered book
+  {book,article,podcast,video}
+    book                Add a book
+    article             Add an article
+    podcast             Add a podcast episode
+    video               Add a video
 
 options:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
 
 ________________________________________________________________________
 
-> bibliographer manual add --help
-usage: bibliographer manual add [-h] [--title TITLE]
-                                [--authors AUTHORS [AUTHORS ...]] [--isbn ISBN]
-                                [--purchase-date PURCHASE_DATE]
-                                [--read-date READ_DATE] [--slug SLUG]
+> bibliographer add book --help
+usage: bibliographer add book [-h] [--title TITLE]
+                              [--authors AUTHORS [AUTHORS ...]] [--isbn ISBN]
+                              [--purchase-date PURCHASE_DATE]
+                              [--read-date READ_DATE] [--slug SLUG]
 
-Add a manually-entered book
+Add a book
 
 options:
   -h, --help            show this help message and exit
@@ -756,45 +758,83 @@ options:
   --isbn ISBN           ISBN if known
   --purchase-date PURCHASE_DATE
                         Purchase date if any (YYYY-MM-DD)
+  --read-date READ_DATE
+                        Read/consumed date if any (YYYY-MM-DD)
+  --slug SLUG           Slug for URL (set to a slugified title by default)
+
+________________________________________________________________________
+
+> bibliographer add article --help
+usage: bibliographer add article [-h] [--title TITLE]
+                                 [--authors AUTHORS [AUTHORS ...]] [--url URL]
+                                 [--publication PUBLICATION]
+                                 [--purchase-date PURCHASE_DATE]
+                                 [--read-date READ_DATE] [--slug SLUG]
+
+Add an article
+
+options:
+  -h, --help            show this help message and exit
+  --title TITLE         Article title
+  --authors AUTHORS [AUTHORS ...]
+                        Authors (allows multiple)
+  --url URL             Article URL
+  --publication PUBLICATION
+                        Publication name (journal, blog, magazine)
+  --purchase-date PURCHASE_DATE
+                        Purchase/acquired date if any (YYYY-MM-DD)
   --read-date READ_DATE
                         Read date if any (YYYY-MM-DD)
   --slug SLUG           Slug for URL (set to a slugified title by default)
 
 ________________________________________________________________________
 
-> bibliographer add --help
-usage: bibliographer add [-h] {individualbook} ...
+> bibliographer add podcast --help
+usage: bibliographer add podcast [-h] [--title TITLE]
+                                 [--authors AUTHORS [AUTHORS ...]] [--url URL]
+                                 [--podcast-name PODCAST_NAME]
+                                 [--episode-number EPISODE_NUMBER]
+                                 [--purchase-date PURCHASE_DATE]
+                                 [--listened-date LISTENED_DATE] [--slug SLUG]
 
-Add books to the library
-
-positional arguments:
-  {individualbook}
-    individualbook  Add a manually-entered book
-
-options:
-  -h, --help        show this help message and exit
-
-________________________________________________________________________
-
-> bibliographer add individualbook --help
-usage: bibliographer add individualbook [-h] [--title TITLE]
-                                        [--authors AUTHORS [AUTHORS ...]]
-                                        [--isbn ISBN]
-                                        [--purchase-date PURCHASE_DATE]
-                                        [--read-date READ_DATE] [--slug SLUG]
-
-Add a manually-entered book
+Add a podcast episode
 
 options:
   -h, --help            show this help message and exit
-  --title TITLE         Book title
+  --title TITLE         Episode title
   --authors AUTHORS [AUTHORS ...]
-                        Authors (allows multiple)
-  --isbn ISBN           ISBN if known
+                        Hosts/authors (allows multiple)
+  --url URL             Episode URL
+  --podcast-name PODCAST_NAME
+                        Name of the podcast
+  --episode-number EPISODE_NUMBER
+                        Episode number
   --purchase-date PURCHASE_DATE
-                        Purchase date if any (YYYY-MM-DD)
-  --read-date READ_DATE
-                        Read date if any (YYYY-MM-DD)
+                        Purchase/acquired date if any (YYYY-MM-DD)
+  --listened-date LISTENED_DATE
+                        Listened date if any (YYYY-MM-DD)
+  --slug SLUG           Slug for URL (set to a slugified title by default)
+
+________________________________________________________________________
+
+> bibliographer add video --help
+usage: bibliographer add video [-h] [--title TITLE]
+                               [--authors AUTHORS [AUTHORS ...]] [--url URL]
+                               [--purchase-date PURCHASE_DATE]
+                               [--watched-date WATCHED_DATE] [--slug SLUG]
+
+Add a video
+
+options:
+  -h, --help            show this help message and exit
+  --title TITLE         Video title
+  --authors AUTHORS [AUTHORS ...]
+                        Creators (allows multiple)
+  --url URL             Video URL
+  --purchase-date PURCHASE_DATE
+                        Purchase/acquired date if any (YYYY-MM-DD)
+  --watched-date WATCHED_DATE
+                        Watched date if any (YYYY-MM-DD)
   --slug SLUG           Slug for URL (set to a slugified title by default)
 
 ________________________________________________________________________
