@@ -153,6 +153,7 @@ def makeparser() -> argparse.ArgumentParser:
     parser.add_argument("--audible-slugs-file", help=argparse.SUPPRESS)
     parser.add_argument("--kindle-slugs-file", help=argparse.SUPPRESS)
     parser.add_argument("--librofm-slugs-file", help=argparse.SUPPRESS)
+    parser.add_argument("--raindrop-slugs-file", help=argparse.SUPPRESS)
     parser.add_argument("--isbn2olid-map-file", help=argparse.SUPPRESS)
     parser.add_argument("--search2asin-file", help=argparse.SUPPRESS)
     parser.add_argument("--wikipedia-relevant-file", help=argparse.SUPPRESS)
@@ -348,6 +349,7 @@ User Map Files:
   --audible-slugs-file      Path to Audible slugs mapping file
   --kindle-slugs-file       Path to Kindle slugs mapping file
   --librofm-slugs-file      Path to Libro.fm slugs mapping file
+  --raindrop-slugs-file     Path to Raindrop.io URL to slug mapping file
   --isbn2olid-map-file      Path to ISBN to OpenLibrary ID mapping file
   --search2asin-file        Path to search term to ASIN mapping file
   --wikipedia-relevant-file Path to Wikipedia relevant pages file
@@ -508,6 +510,7 @@ class ConfigurationParameterSet:
             ConfigurationParameter("audible_slugs_file", pathlib.Path, None),
             ConfigurationParameter("kindle_slugs_file", pathlib.Path, None),
             ConfigurationParameter("librofm_slugs_file", pathlib.Path, None),
+            ConfigurationParameter("raindrop_slugs_file", pathlib.Path, None),
             ConfigurationParameter("isbn2olid_map_file", pathlib.Path, None),
             ConfigurationParameter("search2asin_file", pathlib.Path, None),
             ConfigurationParameter("wikipedia_relevant_file", pathlib.Path, None),
@@ -597,6 +600,8 @@ def parseargs(arguments: List[str]):
         parsed.kindle_slugs_file = usermaps_dir / "kindle_slugs.json"
     if parsed.librofm_slugs_file is None:
         parsed.librofm_slugs_file = usermaps_dir / "librofm_slugs.json"
+    if parsed.raindrop_slugs_file is None:
+        parsed.raindrop_slugs_file = usermaps_dir / "raindrop_slugs.json"
     if parsed.isbn2olid_map_file is None:
         parsed.isbn2olid_map_file = usermaps_dir / "isbn2olid_map.json"
     if parsed.search2asin_file is None:
@@ -643,6 +648,7 @@ def main(arguments: list[str]) -> int:
         audible_slugs_file=args.audible_slugs_file,
         kindle_slugs_file=args.kindle_slugs_file,
         librofm_slugs_file=args.librofm_slugs_file,
+        raindrop_slugs_file=args.raindrop_slugs_file,
         isbn2olid_map_file=args.isbn2olid_map_file,
         search2asin_file=args.search2asin_file,
         wikipedia_relevant_file=args.wikipedia_relevant_file,

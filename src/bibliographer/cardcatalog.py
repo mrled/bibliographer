@@ -299,6 +299,7 @@ class CardCatalog:
             audible_slugs_file=usermaps_dir / "audible_slugs.json",
             kindle_slugs_file=usermaps_dir / "kindle_slugs.json",
             librofm_slugs_file=usermaps_dir / "librofm_slugs.json",
+            raindrop_slugs_file=usermaps_dir / "raindrop_slugs.json",
             isbn2olid_map_file=usermaps_dir / "isbn2olid_map.json",
             search2asin_file=usermaps_dir / "search2asin.json",
             wikipedia_relevant_file=usermaps_dir / "wikipedia_relevant.json",
@@ -316,6 +317,7 @@ class CardCatalog:
         audible_slugs_file: pathlib.Path,
         kindle_slugs_file: pathlib.Path,
         librofm_slugs_file: pathlib.Path,
+        raindrop_slugs_file: pathlib.Path,
         isbn2olid_map_file: pathlib.Path,
         search2asin_file: pathlib.Path,
         wikipedia_relevant_file: pathlib.Path,
@@ -331,6 +333,7 @@ class CardCatalog:
             audible_slugs_file,
             kindle_slugs_file,
             librofm_slugs_file,
+            raindrop_slugs_file,
             isbn2olid_map_file,
             search2asin_file,
             wikipedia_relevant_file,
@@ -376,6 +379,10 @@ class CardCatalog:
             path=librofm_slugs_file,
             contents_type=str,
         )
+        self.raindropslugs = TypedCardCatalogEntry[str](
+            path=raindrop_slugs_file,
+            contents_type=str,
+        )
         self.isbn2olid_map = TypedCardCatalogEntry[str](
             path=isbn2olid_map_file,
             contents_type=str,
@@ -399,6 +406,7 @@ class CardCatalog:
             self.audibleslugs,
             self.librofmslugs,
             self.kindleslugs,
+            self.raindropslugs,
             self.isbn2olid_map,
             self.search2asin,
             self.wikipedia_relevant,
