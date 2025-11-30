@@ -294,6 +294,7 @@ class CardCatalog:
             kindle_library_file=apicache_dir / "kindle_library_metadata.json",
             gbooks_volumes_file=apicache_dir / "gbooks_volumes.json",
             librofm_library_file=apicache_dir / "librofm_library.json",
+            raindrop_highlights_file=apicache_dir / "raindrop_highlights.json",
             combined_library_file=usermaps_dir / "combined_library.json",
             audible_slugs_file=usermaps_dir / "audible_slugs.json",
             kindle_slugs_file=usermaps_dir / "kindle_slugs.json",
@@ -310,6 +311,7 @@ class CardCatalog:
         kindle_library_file: pathlib.Path,
         gbooks_volumes_file: pathlib.Path,
         librofm_library_file: pathlib.Path,
+        raindrop_highlights_file: pathlib.Path,
         combined_library_file: pathlib.Path,
         audible_slugs_file: pathlib.Path,
         kindle_slugs_file: pathlib.Path,
@@ -324,6 +326,7 @@ class CardCatalog:
             kindle_library_file,
             gbooks_volumes_file,
             librofm_library_file,
+            raindrop_highlights_file,
             combined_library_file,
             audible_slugs_file,
             kindle_slugs_file,
@@ -349,6 +352,10 @@ class CardCatalog:
         )
         self.librofmlib = TypedCardCatalogEntry[dict](
             path=librofm_library_file,
+            contents_type=dict,
+        )
+        self.raindrop_highlights = TypedCardCatalogEntry[dict](
+            path=raindrop_highlights_file,
             contents_type=dict,
         )
 
@@ -386,6 +393,7 @@ class CardCatalog:
             self.audiblelib,
             self.kindlelib,
             self.librofmlib,
+            self.raindrop_highlights,
             self.gbooks_volumes,
             self.combinedlib,
             self.audibleslugs,

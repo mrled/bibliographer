@@ -36,6 +36,7 @@ from bibliographer.sources.covers import cover_path, download_cover_from_url
 from bibliographer.sources.googlebooks import google_books_retrieve
 from bibliographer.sources.kindle import ingest_kindle_library, process_kindle_library
 from bibliographer.sources.librofm import librofm_login, librofm_retrieve_library, process_librofm_library
+from bibliographer.sources.raindrop import raindrop_retrieve_highlights
 from bibliographer.sources.add import (
     add_book,
     add_article,
@@ -145,6 +146,7 @@ def makeparser() -> argparse.ArgumentParser:
     parser.add_argument("--kindle-library-file", help=argparse.SUPPRESS)
     parser.add_argument("--gbooks-volumes-file", help=argparse.SUPPRESS)
     parser.add_argument("--librofm-library-file", help=argparse.SUPPRESS)
+    parser.add_argument("--raindrop-highlights-file", help=argparse.SUPPRESS)
 
     # Individual file overrides for usermaps
     parser.add_argument("--combined-library-file", help=argparse.SUPPRESS)
@@ -169,6 +171,8 @@ def makeparser() -> argparse.ArgumentParser:
     parser.add_argument("--librofm-username", help=argparse.SUPPRESS)
     parser.add_argument("--librofm-password", help=argparse.SUPPRESS)
     parser.add_argument("--librofm-password-cmd", help=argparse.SUPPRESS)
+    parser.add_argument("--raindrop-token", help=argparse.SUPPRESS)
+    parser.add_argument("--raindrop-token-cmd", help=argparse.SUPPRESS)
 
     # Take care to add help AND description to each subparser.
     # Help is shown by the parent parser
@@ -218,6 +222,15 @@ def makeparser() -> argparse.ArgumentParser:
     sp_librofm = subparsers.add_parser("librofm", help="Libro.fm operations")
     sp_librofm_sub = sp_librofm.add_subparsers(dest="librofm_subcommand", required=True)
     sp_librofm_sub.add_parser("retrieve", help="Retrieve the Libro.fm library")
+
+    # Raindrop.io subcommand
+    sp_raindrop = subparsers.add_parser("raindrop", help="Raindrop.io operations")
+    sp_raindrop_sub = sp_raindrop.add_subparsers(dest="raindrop_subcommand", required=True)
+    sp_raindrop_highlights = sp_raindrop_sub.add_parser("highlights", help="Raindrop.io highlights operations")
+    sp_raindrop_highlights_sub = sp_raindrop_highlights.add_subparsers(
+        dest="raindrop_highlights_subcommand", required=True
+    )
+    sp_raindrop_highlights_sub.add_parser("retrieve", help="Retrieve all highlights from Raindrop.io")
 
     # Add subcommand
     sp_add = subparsers.add_parser("add", help="Add works to the library")
@@ -324,10 +337,11 @@ Root Directories:
                                  (default: ./bibliographer/books)
 
 API Cache Files:
-  --audible-library-file    Path to Audible library metadata file
-  --kindle-library-file     Path to Kindle library metadata file
-  --gbooks-volumes-file     Path to Google Books volumes cache file
-  --librofm-library-file    Path to Libro.fm library metadata file
+  --audible-library-file       Path to Audible library metadata file
+  --kindle-library-file        Path to Kindle library metadata file
+  --gbooks-volumes-file        Path to Google Books volumes cache file
+  --librofm-library-file       Path to Libro.fm library metadata file
+  --raindrop-highlights-file   Path to Raindrop.io highlights cache file
 
 User Map Files:
   --combined-library-file   Path to combined library file
@@ -366,6 +380,11 @@ Libro.fm:
   --librofm-username             Libro.fm username (email address)
   --librofm-password             Libro.fm password
   --librofm-password-cmd         Command to retrieve the Libro.fm password
+                                 (e.g. from a password manager)
+
+Raindrop.io:
+  --raindrop-token               Raindrop.io API access token
+  --raindrop-token-cmd           Command to retrieve the Raindrop.io token
                                  (e.g. from a password manager)
 
 These options can also be set in the config file (.bibliographer.toml).
@@ -460,6 +479,8 @@ class ConfigurationParameterSet:
             ConfigurationParameter("librofm_username", str, ""),
             ConfigurationParameter("librofm_password", str, ""),
             ConfigurationParameter("librofm_password_cmd", str, ""),
+            ConfigurationParameter("raindrop_token", str, ""),
+            ConfigurationParameter("raindrop_token_cmd", str, ""),
             ConfigurationParameter("individual_bibliographer_json", bool, False),
         ]
 
@@ -481,6 +502,7 @@ class ConfigurationParameterSet:
             ConfigurationParameter("kindle_library_file", pathlib.Path, None),
             ConfigurationParameter("gbooks_volumes_file", pathlib.Path, None),
             ConfigurationParameter("librofm_library_file", pathlib.Path, None),
+            ConfigurationParameter("raindrop_highlights_file", pathlib.Path, None),
             # Individual file overrides for usermaps
             ConfigurationParameter("combined_library_file", pathlib.Path, None),
             ConfigurationParameter("audible_slugs_file", pathlib.Path, None),
@@ -564,6 +586,8 @@ def parseargs(arguments: List[str]):
         parsed.gbooks_volumes_file = apicache_dir / "gbooks_volumes.json"
     if parsed.librofm_library_file is None:
         parsed.librofm_library_file = apicache_dir / "librofm_library.json"
+    if parsed.raindrop_highlights_file is None:
+        parsed.raindrop_highlights_file = apicache_dir / "raindrop_highlights.json"
 
     if parsed.combined_library_file is None:
         parsed.combined_library_file = usermaps_dir / "combined_library.json"
@@ -580,7 +604,7 @@ def parseargs(arguments: List[str]):
     if parsed.wikipedia_relevant_file is None:
         parsed.wikipedia_relevant_file = usermaps_dir / "wikipedia_relevant.json"
 
-    return parsed
+    return parser, parsed
 
 
 ###############################################################################
@@ -589,7 +613,7 @@ def parseargs(arguments: List[str]):
 
 
 def main(arguments: list[str]) -> int:
-    args = parseargs(arguments)
+    parser, args = parseargs(arguments)
 
     log_level = logging.INFO
     if args.debug:
@@ -607,12 +631,14 @@ def main(arguments: list[str]) -> int:
         key=args.audible_auth_password,
     )
     librofm_password = SecretValueGetter(getcmd=args.librofm_password_cmd, key=args.librofm_password)
+    raindrop_token = SecretValueGetter(getcmd=args.raindrop_token_cmd, key=args.raindrop_token)
 
     catalog = CardCatalog(
         audible_library_file=args.audible_library_file,
         kindle_library_file=args.kindle_library_file,
         gbooks_volumes_file=args.gbooks_volumes_file,
         librofm_library_file=args.librofm_library_file,
+        raindrop_highlights_file=args.raindrop_highlights_file,
         combined_library_file=args.combined_library_file,
         audible_slugs_file=args.audible_slugs_file,
         kindle_slugs_file=args.kindle_slugs_file,
@@ -670,6 +696,20 @@ def main(arguments: list[str]) -> int:
             if args.librofm_subcommand == "retrieve":
                 token = librofm_login(args.librofm_username, librofm_password.get())
                 result = librofm_retrieve_library(catalog, token)
+
+        elif args.subcommand == "raindrop":
+            if args.raindrop_subcommand == "highlights":
+                if args.raindrop_highlights_subcommand == "retrieve":
+                    token = raindrop_token.get()
+                    if not token:
+                        print("Error: Raindrop token is required. Set --raindrop-token or --raindrop-token-cmd.", file=sys.stderr)
+                        return 1
+                    count = raindrop_retrieve_highlights(catalog, token)
+                    print(f"Retrieved {count} highlights from Raindrop.io")
+                else:
+                    raise parser.error("Unknown raindrop highlights subcommand")
+            else:
+                raise parser.error("Unknown raindrop subcommand")
 
         elif args.subcommand == "googlebook":
             # We have "requery" subcommand
