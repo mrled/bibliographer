@@ -36,7 +36,7 @@ from bibliographer.sources.covers import cover_path, download_cover_from_url
 from bibliographer.sources.googlebooks import google_books_retrieve
 from bibliographer.sources.kindle import ingest_kindle_library, process_kindle_library
 from bibliographer.sources.librofm import librofm_login, librofm_retrieve_library, process_librofm_library
-from bibliographer.sources.raindrop import raindrop_retrieve_highlights
+from bibliographer.sources.raindrop import process_raindrop_highlights, raindrop_retrieve_highlights
 from bibliographer.sources.add import (
     add_book,
     add_article,
@@ -701,6 +701,7 @@ def main(arguments: list[str]) -> int:
                 process_audible_library(catalog)
                 process_kindle_library(catalog)
                 process_librofm_library(catalog)
+                process_raindrop_highlights(catalog)
 
             enrich_combined_library(catalog, google_books_key.get(), slug_filter)
             retrieve_covers(catalog, slug_roots, slug_filter)
