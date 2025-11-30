@@ -138,7 +138,11 @@ def makeparser() -> argparse.ArgumentParser:
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging of API calls.")
     # These options are hidden from --help; use 'help-file-paths' subcommand to see them
     parser.add_argument("-b", "--bibliographer-data-root", help=argparse.SUPPRESS)
-    parser.add_argument("-s", "--book-slug-root", help=argparse.SUPPRESS)
+    parser.add_argument("-s", "--default-slug-root", help=argparse.SUPPRESS)
+    parser.add_argument("--book-slug-root", help=argparse.SUPPRESS)
+    parser.add_argument("--article-slug-root", help=argparse.SUPPRESS)
+    parser.add_argument("--podcast-slug-root", help=argparse.SUPPRESS)
+    parser.add_argument("--video-slug-root", help=argparse.SUPPRESS)
 
     # Individual file overrides for apicache
     # These options are hidden from --help; use 'help-file-paths' subcommand to see them
@@ -161,7 +165,7 @@ def makeparser() -> argparse.ArgumentParser:
         "-i",
         "--individual-bibliographer-json",
         action="store_true",
-        help="Write out each book to its own JSON file (in addition to the combined bibliographer.json), under book_slug_root/SLUG/bibliographer.json",
+        help="Write out each work to its own JSON file (in addition to the combined bibliographer.json), under the appropriate slug root/SLUG/bibliographer.json",
     )
     # Service-related options are hidden from --help; use 'help-services' subcommand to see them
     parser.add_argument("-a", "--audible-login-file", help=argparse.SUPPRESS)
@@ -334,8 +338,16 @@ These options allow you to override the default paths for data files.
 Root Directories:
   -b, --bibliographer-data-root  Root directory for bibliographer data
                                  (default: ./bibliographer/data)
-  -s, --book-slug-root           Root directory for book slug folders
+  -s, --default-slug-root        Default root directory for slug folders
                                  (default: ./bibliographer/books)
+  --book-slug-root               Override slug root for books only
+                                 (defaults to --default-slug-root)
+  --article-slug-root            Override slug root for articles only
+                                 (defaults to --default-slug-root)
+  --podcast-slug-root            Override slug root for podcasts only
+                                 (defaults to --default-slug-root)
+  --video-slug-root              Override slug root for videos only
+                                 (defaults to --default-slug-root)
 
 API Cache Files:
   --audible-library-file       Path to Audible library metadata file
@@ -494,7 +506,11 @@ class ConfigurationParameterSet:
         while relative paths set in the config file are resolved relative to the config file's directory.
         """
         return [
-            ConfigurationParameter("book_slug_root", pathlib.Path, pathlib.Path("./bibliographer/books")),
+            ConfigurationParameter("default_slug_root", pathlib.Path, pathlib.Path("./bibliographer/books")),
+            ConfigurationParameter("book_slug_root", pathlib.Path, None),
+            ConfigurationParameter("article_slug_root", pathlib.Path, None),
+            ConfigurationParameter("podcast_slug_root", pathlib.Path, None),
+            ConfigurationParameter("video_slug_root", pathlib.Path, None),
             ConfigurationParameter(
                 "audible_login_file", pathlib.Path, pathlib.Path("./.bibliographer-audible-auth.json")
             ),
@@ -654,6 +670,16 @@ def main(arguments: list[str]) -> int:
         wikipedia_relevant_file=args.wikipedia_relevant_file,
     )
 
+    # Build slug_roots dict - type-specific roots fall back to default_slug_root
+    slug_roots = {
+        "default": args.default_slug_root,
+        "book": args.book_slug_root or args.default_slug_root,
+        "article": args.article_slug_root or args.default_slug_root,
+        "podcast": args.podcast_slug_root or args.default_slug_root,
+        "video": args.video_slug_root or args.default_slug_root,
+        "other": args.default_slug_root,
+    }
+
     # Dispatch
     try:
         if args.subcommand == "populate":
@@ -677,10 +703,10 @@ def main(arguments: list[str]) -> int:
                 process_librofm_library(catalog)
 
             enrich_combined_library(catalog, google_books_key.get(), slug_filter)
-            retrieve_covers(catalog, args.book_slug_root, slug_filter)
-            write_index_md_files(catalog, args.book_slug_root, slug_filter)
+            retrieve_covers(catalog, slug_roots, slug_filter)
+            write_index_md_files(catalog, slug_roots, slug_filter)
             if args.individual_bibliographer_json:
-                write_bibliographer_json_files(catalog, args.book_slug_root, slug_filter)
+                write_bibliographer_json_files(catalog, slug_roots, slug_filter)
 
         elif args.subcommand == "audible":
             if args.audible_subcommand == "retrieve":
@@ -786,7 +812,7 @@ def main(arguments: list[str]) -> int:
             if args.cover_subcommand == "set":
                 # Set a cover image for a book
                 book_slug = args.slug
-                book_dir = args.book_slug_root / book_slug
+                book_dir = slug_roots["book"] / book_slug
                 cover_data = download_cover_from_url(args.url)
                 cover_dest = book_dir / cover_data.filename
                 with cover_dest.open("wb") as f:
@@ -794,12 +820,12 @@ def main(arguments: list[str]) -> int:
                 print(f"Cover image set for {book_slug}")
             elif args.cover_subcommand == "retrieve":
                 # Retrieve cover images for all books that don't have them
-                retrieve_covers(catalog, args.book_slug_root)
+                retrieve_covers(catalog, slug_roots)
                 print("Cover retrieval complete.")
             elif args.cover_subcommand == "list-missing":
                 # List books missing cover images
                 missing_covers = []
-                for book_dir in args.book_slug_root.iterdir():
+                for book_dir in slug_roots["book"].iterdir():
                     if book_dir.is_dir():
                         if cover_path(book_dir) is None:
                             missing_covers.append(book_dir.name)
@@ -814,7 +840,7 @@ def main(arguments: list[str]) -> int:
             if args.slug_subcommand == "show":
                 print(slugify(args.title))
             elif args.slug_subcommand == "rename":
-                rename_slug(catalog, args.book_slug_root, args.old_slug, args.new_slug)
+                rename_slug(catalog, slug_roots, args.old_slug, args.new_slug)
             elif args.slug_subcommand == "regenerate":
                 new_slug = slugify(catalog.combinedlib.contents[args.slug].title)
                 if new_slug == args.slug:
@@ -823,7 +849,7 @@ def main(arguments: list[str]) -> int:
                 if args.interactive:
                     if input(f"Change slug from {args.slug} to {new_slug}? [y/N] ").strip().lower() != "y":
                         return 1
-                rename_slug(catalog, args.book_slug_root, args.slug, new_slug)
+                rename_slug(catalog, slug_roots, args.slug, new_slug)
 
         elif args.subcommand == "version":
             print(get_version())

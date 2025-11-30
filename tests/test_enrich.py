@@ -3,6 +3,7 @@
 import json
 import pathlib
 import tempfile
+from typing import Dict
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -20,6 +21,18 @@ from bibliographer.enrich import (
     write_bibliographer_json_files,
     write_index_md_files,
 )
+
+
+def make_slug_roots(root_path: pathlib.Path) -> Dict[str, pathlib.Path]:
+    """Create a slug_roots dict with all types pointing to the same root."""
+    return {
+        "default": root_path,
+        "book": root_path,
+        "article": root_path,
+        "podcast": root_path,
+        "video": root_path,
+        "other": root_path,
+    }
 
 
 @pytest.fixture
@@ -140,6 +153,7 @@ class TestRetrieveCovers:
         """Cover retrieval should run for CatalogBook entries."""
         with tempfile.TemporaryDirectory() as cover_root:
             cover_root_path = pathlib.Path(cover_root)
+            slug_roots = make_slug_roots(cover_root_path)
             book = CatalogBook(
                 title="Test Book",
                 slug="test-book",
@@ -148,13 +162,14 @@ class TestRetrieveCovers:
             temp_catalog.combinedlib.contents["test-book"] = book
 
             with patch("bibliographer.enrich.lookup_cover") as mock_cover:
-                retrieve_covers(temp_catalog, cover_root_path)
+                retrieve_covers(temp_catalog, slug_roots)
                 mock_cover.assert_called_once()
 
     def test_covers_skipped_for_articles(self, temp_catalog):
         """Cover retrieval should be skipped for CatalogArticle entries."""
         with tempfile.TemporaryDirectory() as cover_root:
             cover_root_path = pathlib.Path(cover_root)
+            slug_roots = make_slug_roots(cover_root_path)
             article = CatalogArticle(
                 title="Test Article",
                 slug="test-article",
@@ -163,13 +178,14 @@ class TestRetrieveCovers:
             temp_catalog.combinedlib.contents["test-article"] = article
 
             with patch("bibliographer.enrich.lookup_cover") as mock_cover:
-                retrieve_covers(temp_catalog, cover_root_path)
+                retrieve_covers(temp_catalog, slug_roots)
                 mock_cover.assert_not_called()
 
     def test_covers_skipped_for_podcasts(self, temp_catalog):
         """Cover retrieval should be skipped for CatalogPodcastEpisode entries."""
         with tempfile.TemporaryDirectory() as cover_root:
             cover_root_path = pathlib.Path(cover_root)
+            slug_roots = make_slug_roots(cover_root_path)
             podcast = CatalogPodcastEpisode(
                 title="Test Episode",
                 slug="test-episode",
@@ -178,13 +194,14 @@ class TestRetrieveCovers:
             temp_catalog.combinedlib.contents["test-episode"] = podcast
 
             with patch("bibliographer.enrich.lookup_cover") as mock_cover:
-                retrieve_covers(temp_catalog, cover_root_path)
+                retrieve_covers(temp_catalog, slug_roots)
                 mock_cover.assert_not_called()
 
     def test_covers_skipped_for_videos(self, temp_catalog):
         """Cover retrieval should be skipped for CatalogVideo entries."""
         with tempfile.TemporaryDirectory() as cover_root:
             cover_root_path = pathlib.Path(cover_root)
+            slug_roots = make_slug_roots(cover_root_path)
             video = CatalogVideo(
                 title="Test Video",
                 slug="test-video",
@@ -193,7 +210,7 @@ class TestRetrieveCovers:
             temp_catalog.combinedlib.contents["test-video"] = video
 
             with patch("bibliographer.enrich.lookup_cover") as mock_cover:
-                retrieve_covers(temp_catalog, cover_root_path)
+                retrieve_covers(temp_catalog, slug_roots)
                 mock_cover.assert_not_called()
 
 
@@ -204,10 +221,11 @@ class TestWriteIndexMdFiles:
         """index.md should be created for CatalogBook entries."""
         with tempfile.TemporaryDirectory() as content_root:
             content_root_path = pathlib.Path(content_root)
+            slug_roots = make_slug_roots(content_root_path)
             book = CatalogBook(title="Test Book", slug="test-book")
             temp_catalog.combinedlib.contents["test-book"] = book
 
-            write_index_md_files(temp_catalog, content_root_path)
+            write_index_md_files(temp_catalog, slug_roots)
 
             index_path = content_root_path / "test-book" / "index.md"
             assert index_path.exists()
@@ -218,10 +236,11 @@ class TestWriteIndexMdFiles:
         """index.md should be created for CatalogArticle entries."""
         with tempfile.TemporaryDirectory() as content_root:
             content_root_path = pathlib.Path(content_root)
+            slug_roots = make_slug_roots(content_root_path)
             article = CatalogArticle(title="Test Article", slug="test-article")
             temp_catalog.combinedlib.contents["test-article"] = article
 
-            write_index_md_files(temp_catalog, content_root_path)
+            write_index_md_files(temp_catalog, slug_roots)
 
             index_path = content_root_path / "test-article" / "index.md"
             assert index_path.exists()
@@ -232,6 +251,7 @@ class TestWriteIndexMdFiles:
         """index.md should be created for CatalogPodcastEpisode entries."""
         with tempfile.TemporaryDirectory() as content_root:
             content_root_path = pathlib.Path(content_root)
+            slug_roots = make_slug_roots(content_root_path)
             podcast = CatalogPodcastEpisode(
                 title="Test Episode",
                 slug="test-episode",
@@ -239,7 +259,7 @@ class TestWriteIndexMdFiles:
             )
             temp_catalog.combinedlib.contents["test-episode"] = podcast
 
-            write_index_md_files(temp_catalog, content_root_path)
+            write_index_md_files(temp_catalog, slug_roots)
 
             index_path = content_root_path / "test-episode" / "index.md"
             assert index_path.exists()
@@ -250,10 +270,11 @@ class TestWriteIndexMdFiles:
         """index.md should be created for CatalogVideo entries."""
         with tempfile.TemporaryDirectory() as content_root:
             content_root_path = pathlib.Path(content_root)
+            slug_roots = make_slug_roots(content_root_path)
             video = CatalogVideo(title="Test Video", slug="test-video")
             temp_catalog.combinedlib.contents["test-video"] = video
 
-            write_index_md_files(temp_catalog, content_root_path)
+            write_index_md_files(temp_catalog, slug_roots)
 
             index_path = content_root_path / "test-video" / "index.md"
             assert index_path.exists()
@@ -268,10 +289,11 @@ class TestWriteBibliographerJsonFiles:
         """bibliographer.json should include work_type for books."""
         with tempfile.TemporaryDirectory() as content_root:
             content_root_path = pathlib.Path(content_root)
+            slug_roots = make_slug_roots(content_root_path)
             book = CatalogBook(title="Test Book", slug="test-book", isbn="1234567890")
             temp_catalog.combinedlib.contents["test-book"] = book
 
-            write_bibliographer_json_files(temp_catalog, content_root_path)
+            write_bibliographer_json_files(temp_catalog, slug_roots)
 
             json_path = content_root_path / "test-book" / "bibliographer.json"
             assert json_path.exists()
@@ -283,6 +305,7 @@ class TestWriteBibliographerJsonFiles:
         """bibliographer.json should include work_type for articles."""
         with tempfile.TemporaryDirectory() as content_root:
             content_root_path = pathlib.Path(content_root)
+            slug_roots = make_slug_roots(content_root_path)
             article = CatalogArticle(
                 title="Test Article",
                 slug="test-article",
@@ -291,7 +314,7 @@ class TestWriteBibliographerJsonFiles:
             )
             temp_catalog.combinedlib.contents["test-article"] = article
 
-            write_bibliographer_json_files(temp_catalog, content_root_path)
+            write_bibliographer_json_files(temp_catalog, slug_roots)
 
             json_path = content_root_path / "test-article" / "bibliographer.json"
             assert json_path.exists()
@@ -304,6 +327,7 @@ class TestWriteBibliographerJsonFiles:
         """bibliographer.json should include work_type for podcasts."""
         with tempfile.TemporaryDirectory() as content_root:
             content_root_path = pathlib.Path(content_root)
+            slug_roots = make_slug_roots(content_root_path)
             podcast = CatalogPodcastEpisode(
                 title="Test Episode",
                 slug="test-episode",
@@ -312,7 +336,7 @@ class TestWriteBibliographerJsonFiles:
             )
             temp_catalog.combinedlib.contents["test-episode"] = podcast
 
-            write_bibliographer_json_files(temp_catalog, content_root_path)
+            write_bibliographer_json_files(temp_catalog, slug_roots)
 
             json_path = content_root_path / "test-episode" / "bibliographer.json"
             assert json_path.exists()
@@ -325,6 +349,7 @@ class TestWriteBibliographerJsonFiles:
         """bibliographer.json should include work_type for videos."""
         with tempfile.TemporaryDirectory() as content_root:
             content_root_path = pathlib.Path(content_root)
+            slug_roots = make_slug_roots(content_root_path)
             video = CatalogVideo(
                 title="Test Video",
                 slug="test-video",
@@ -332,10 +357,60 @@ class TestWriteBibliographerJsonFiles:
             )
             temp_catalog.combinedlib.contents["test-video"] = video
 
-            write_bibliographer_json_files(temp_catalog, content_root_path)
+            write_bibliographer_json_files(temp_catalog, slug_roots)
 
             json_path = content_root_path / "test-video" / "bibliographer.json"
             assert json_path.exists()
             data = json.loads(json_path.read_text())
             assert data["work_type"] == "video"
             assert data["url"] == "https://youtube.com/watch?v=123"
+
+
+class TestTypeSpecificSlugRoots:
+    """Tests for type-specific slug root functionality."""
+
+    def test_different_slug_roots_for_different_types(self, temp_catalog):
+        """Each work type should be written to its type-specific slug root."""
+        with tempfile.TemporaryDirectory() as base_root:
+            base_path = pathlib.Path(base_root)
+            book_root = base_path / "books"
+            article_root = base_path / "articles"
+            podcast_root = base_path / "podcasts"
+            video_root = base_path / "videos"
+
+            # Create directories
+            for root in [book_root, article_root, podcast_root, video_root]:
+                root.mkdir(parents=True, exist_ok=True)
+
+            slug_roots = {
+                "default": base_path,
+                "book": book_root,
+                "article": article_root,
+                "podcast": podcast_root,
+                "video": video_root,
+                "other": base_path,
+            }
+
+            # Add different work types
+            book = CatalogBook(title="Test Book", slug="test-book")
+            article = CatalogArticle(title="Test Article", slug="test-article")
+            podcast = CatalogPodcastEpisode(title="Test Episode", slug="test-episode")
+            video = CatalogVideo(title="Test Video", slug="test-video")
+
+            temp_catalog.combinedlib.contents["test-book"] = book
+            temp_catalog.combinedlib.contents["test-article"] = article
+            temp_catalog.combinedlib.contents["test-episode"] = podcast
+            temp_catalog.combinedlib.contents["test-video"] = video
+
+            # Write index.md files
+            write_index_md_files(temp_catalog, slug_roots)
+
+            # Verify each work type went to its correct slug root
+            assert (book_root / "test-book" / "index.md").exists()
+            assert (article_root / "test-article" / "index.md").exists()
+            assert (podcast_root / "test-episode" / "index.md").exists()
+            assert (video_root / "test-video" / "index.md").exists()
+
+            # Verify files were NOT created in other directories
+            assert not (base_path / "test-book" / "index.md").exists()
+            assert not (base_path / "test-article" / "index.md").exists()

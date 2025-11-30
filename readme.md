@@ -225,7 +225,7 @@ You might set the `bibliographer.toml` config file like:
 ```toml
 google_books_key = "your-google-books-key"
 bibliographer_data_root = "assets/bibliographer"
-book_slug_root = "content/books"
+default_slug_root = "content/books"
 individual_bibliographer_json = true
 ```
 
@@ -245,7 +245,7 @@ ready to be picked up by your Hugo site.
 ### Example Hugo templates
 
 If you have a Hugo site as described above,
-with `content/books/` as your `book_slug_root`,
+with `content/books/` as your `default_slug_root`,
 you can make a Hugo layout file in e.g. `layouts/books/single.html`
 that will generate book pages.
 Here's a simple example:
@@ -363,8 +363,10 @@ audible_auth_password_cmd = ""
 librofm_username = ""
 librofm_password = ""
 librofm_password_cmd = ""
+raindrop_token = ""
+raindrop_token_cmd = ""
 individual_bibliographer_json = false
-book_slug_root = "bibliographer/books"
+default_slug_root = "bibliographer/books"
 audible_login_file = ".bibliographer-audible-auth.json"
 bibliographer_data_root = "bibliographer/data"
 ```
@@ -445,42 +447,26 @@ cog.out(f"```text\n{get_help_string()}```\n")
 ]]]-->
 ```text
 > bibliographer --help
-usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-b BIBLIOGRAPHER_DATA_ROOT]
-                     [-s BOOK_SLUG_ROOT]
-                     [--audible-library-file AUDIBLE_LIBRARY_FILE]
-                     [--kindle-library-file KINDLE_LIBRARY_FILE]
-                     [--gbooks-volumes-file GBOOKS_VOLUMES_FILE]
-                     [--librofm-library-file LIBROFM_LIBRARY_FILE]
-                     [--combined-library-file COMBINED_LIBRARY_FILE]
-                     [--audible-slugs-file AUDIBLE_SLUGS_FILE]
-                     [--kindle-slugs-file KINDLE_SLUGS_FILE]
-                     [--librofm-slugs-file LIBROFM_SLUGS_FILE]
-                     [--isbn2olid-map-file ISBN2OLID_MAP_FILE]
-                     [--search2asin-file SEARCH2ASIN_FILE]
-                     [--wikipedia-relevant-file WIKIPEDIA_RELEVANT_FILE] [-i]
-                     [-a AUDIBLE_LOGIN_FILE]
-                     [--audible-auth-password AUDIBLE_AUTH_PASSWORD]
-                     [--audible-auth-password-cmd AUDIBLE_AUTH_PASSWORD_CMD]
-                     [-g GOOGLE_BOOKS_KEY] [-G GOOGLE_BOOKS_KEY_CMD]
-                     [--librofm-username LIBROFM_USERNAME]
-                     [--librofm-password LIBROFM_PASSWORD]
-                     [--librofm-password-cmd LIBROFM_PASSWORD_CMD]
-                     {populate,audible,kindle,googlebook,amazon,librofm,add,slug,cover,version} ...
+usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-i]
+                     {populate,audible,kindle,googlebook,amazon,librofm,raindrop,add,slug,cover,version,help-file-paths,help-services} ...
 
 Manage Audible/Kindle libraries, enrich them, and populate local book repos.
 
 positional arguments:
-  {populate,audible,kindle,googlebook,amazon,librofm,add,slug,cover,version}
+  {populate,audible,kindle,googlebook,amazon,librofm,raindrop,add,slug,cover,version,help-file-paths,help-services}
     populate            Populate bibliographer.json files
     audible             Audible operations
     kindle              Kindle operations
     googlebook          Operate on Google Books data
     amazon              Amazon forced re-scrape
     librofm             Libro.fm operations
+    raindrop            Raindrop.io operations
     add                 Add works to the library
     slug                Manage slugs
     cover               Cover operations
     version             Show version information
+    help-file-paths     Show data file path options
+    help-services       Show service authentication options
 
 options:
   -h, --help            show this help message and exit
@@ -489,57 +475,10 @@ options:
   -c, --config CONFIG   Path to TOML config file, defaulting to a file called
                         .bibliographer.toml in the repo root
   -v, --verbose         Enable verbose logging of API calls.
-  -b, --bibliographer-data-root BIBLIOGRAPHER_DATA_ROOT
-                        Root directory for bibliographer data. Defaults to
-                        ./bibliographer/data
-  -s, --book-slug-root BOOK_SLUG_ROOT
-                        Defaults to ./bibliographer/books
-  --audible-library-file AUDIBLE_LIBRARY_FILE
-                        Path to audible library metadata file
-  --kindle-library-file KINDLE_LIBRARY_FILE
-                        Path to kindle library metadata file
-  --gbooks-volumes-file GBOOKS_VOLUMES_FILE
-                        Path to Google Books volumes cache file
-  --librofm-library-file LIBROFM_LIBRARY_FILE
-                        Path to Libro.fm library metadata file
-  --combined-library-file COMBINED_LIBRARY_FILE
-                        Path to combined library file
-  --audible-slugs-file AUDIBLE_SLUGS_FILE
-                        Path to Audible slugs mapping file
-  --kindle-slugs-file KINDLE_SLUGS_FILE
-                        Path to Kindle slugs mapping file
-  --librofm-slugs-file LIBROFM_SLUGS_FILE
-                        Path to Libro.fm slugs mapping file
-  --isbn2olid-map-file ISBN2OLID_MAP_FILE
-                        Path to ISBN to OpenLibrary ID mapping file
-  --search2asin-file SEARCH2ASIN_FILE
-                        Path to search term to ASIN mapping file
-  --wikipedia-relevant-file WIKIPEDIA_RELEVANT_FILE
-                        Path to Wikipedia relevant pages file
   -i, --individual-bibliographer-json
-                        Write out each book to its own JSON file (in addition to
-                        the combined bibliographer.json), under
-                        book_slug_root/SLUG/bibliographer.json
-  -a, --audible-login-file AUDIBLE_LOGIN_FILE
-                        Defaults to ./.bibliographer-audible-auth.json
-  --audible-auth-password AUDIBLE_AUTH_PASSWORD
-                        Password to encrypt/decrypt the Audible authentication
-                        file
-  --audible-auth-password-cmd AUDIBLE_AUTH_PASSWORD_CMD
-                        A command to retrieve the password for Audible auth file
-                        encryption (e.g. from a password manager)
-  -g, --google-books-key GOOGLE_BOOKS_KEY
-                        Google Books API key
-  -G, --google-books-key-cmd GOOGLE_BOOKS_KEY_CMD
-                        A command to retrieve the Google Books API key (e.g.
-                        from a password manager)
-  --librofm-username LIBROFM_USERNAME
-                        Libro.fm username (email address)
-  --librofm-password LIBROFM_PASSWORD
-                        Libro.fm password
-  --librofm-password-cmd LIBROFM_PASSWORD_CMD
-                        A command to retrieve the Libro.fm password (e.g. from a
-                        password manager)
+                        Write out each work to its own JSON file (in addition to
+                        the combined bibliographer.json), under the appropriate
+                        slug root/SLUG/bibliographer.json
 
 ________________________________________________________________________
 
@@ -719,6 +658,44 @@ ________________________________________________________________________
 usage: bibliographer librofm retrieve [-h]
 
 Retrieve the Libro.fm library
+
+options:
+  -h, --help  show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer raindrop --help
+usage: bibliographer raindrop [-h] {highlights} ...
+
+Raindrop.io operations
+
+positional arguments:
+  {highlights}
+    highlights  Raindrop.io highlights operations
+
+options:
+  -h, --help    show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer raindrop highlights --help
+usage: bibliographer raindrop highlights [-h] {retrieve} ...
+
+Raindrop.io highlights operations
+
+positional arguments:
+  {retrieve}
+    retrieve  Retrieve all highlights from Raindrop.io
+
+options:
+  -h, --help  show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer raindrop highlights retrieve --help
+usage: bibliographer raindrop highlights retrieve [-h]
+
+Retrieve all highlights from Raindrop.io
 
 options:
   -h, --help  show this help message and exit
@@ -950,6 +927,26 @@ ________________________________________________________________________
 usage: bibliographer version [-h]
 
 Show version information
+
+options:
+  -h, --help  show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer help-file-paths --help
+usage: bibliographer help-file-paths [-h]
+
+Show data file path options
+
+options:
+  -h, --help  show this help message and exit
+
+________________________________________________________________________
+
+> bibliographer help-services --help
+usage: bibliographer help-services [-h]
+
+Show service authentication options
 
 options:
   -h, --help  show this help message and exit

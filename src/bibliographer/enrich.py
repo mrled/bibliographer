@@ -1,16 +1,30 @@
 import json
 import pathlib
 import shutil
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from bibliographer import mlogger
-from bibliographer.cardcatalog import CardCatalog, CatalogBook
+from bibliographer.cardcatalog import CardCatalog, CatalogBook, WorkType
 from bibliographer.hugo import slugify
 from bibliographer.sources.amazon_browser import amazon_browser_search_cached
 from bibliographer.sources.covers import lookup_cover
 from bibliographer.sources.googlebooks import google_books_retrieve, google_books_search
 from bibliographer.sources.openlibrary import isbn2olid, normalize_olid
 from bibliographer.sources.wikipedia import wikipedia_relevant_pages
+
+
+def get_slug_root_for_work(work_type: WorkType, slug_roots: Dict[str, pathlib.Path]) -> pathlib.Path:
+    """Get the appropriate slug root for a work type.
+
+    Args:
+        work_type: The type of work (book, article, podcast, video, other)
+        slug_roots: A dictionary mapping work types to their slug roots.
+            Must contain at least a 'default' key.
+
+    Returns:
+        The slug root path for the given work type.
+    """
+    return slug_roots.get(work_type, slug_roots["default"])
 
 
 def enrich_combined_library(
@@ -71,11 +85,17 @@ def enrich_combined_library(
     return
 
 
-def retrieve_covers(catalog: CardCatalog, cover_assets_root: pathlib.Path, slug_filter: Optional[List[str]] = None):
+def retrieve_covers(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Path], slug_filter: Optional[List[str]] = None):
     """Retrieve cover images for book entries in the combined library, or specific ones if slug_filter is provided.
 
     Only CatalogBook entries have cover fields (gbooks_volid, book_asin, kindle_asin, audible_asin).
     Non-book work types are skipped.
+
+    Args:
+        catalog: The CardCatalog containing library data.
+        slug_roots: A dictionary mapping work types to their slug roots.
+            Must contain at least a 'default' key.
+        slug_filter: Optional list of slugs to filter to.
     """
     for work in catalog.combinedlib.contents.values():
         if slug_filter and work.slug not in slug_filter:
@@ -91,7 +111,8 @@ def retrieve_covers(catalog: CardCatalog, cover_assets_root: pathlib.Path, slug_
             mlogger.debug("Skipping cover retrieval for work without slug")
             continue
         mlogger.debug(f"Retrieving cover for {work.slug}...")
-        book_dir = cover_assets_root / work.slug
+        content_root = get_slug_root_for_work(work.work_type, slug_roots)
+        book_dir = content_root / work.slug
         fallback_asin = work.book_asin or work.kindle_asin or work.audible_asin
         lookup_cover(
             catalog=catalog,
@@ -101,11 +122,17 @@ def retrieve_covers(catalog: CardCatalog, cover_assets_root: pathlib.Path, slug_
         )
 
 
-def write_index_md_files(catalog: CardCatalog, content_root: pathlib.Path, slug_filter: Optional[List[str]] = None):
+def write_index_md_files(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Path], slug_filter: Optional[List[str]] = None):
     """Create index.md files for all entries in the combined library, or specific ones if slug_filter is provided.
 
     Works for all work types (books, articles, podcasts, videos, etc.).
     Never overwrites an existing index.md file.
+
+    Args:
+        catalog: The CardCatalog containing library data.
+        slug_roots: A dictionary mapping work types to their slug roots.
+            Must contain at least a 'default' key.
+        slug_filter: Optional list of slugs to filter to.
     """
     for work in catalog.combinedlib.contents.values():
         if slug_filter and work.slug not in slug_filter:
@@ -113,6 +140,7 @@ def write_index_md_files(catalog: CardCatalog, content_root: pathlib.Path, slug_
         if work.skip:
             mlogger.debug(f"[index.md] skipping for {work.slug}")
             continue
+        content_root = get_slug_root_for_work(work.work_type, slug_roots)
         work_dir = content_root / work.slug
         index_md_path = work_dir / "index.md"
         if index_md_path.exists():
@@ -136,11 +164,17 @@ def write_index_md_files(catalog: CardCatalog, content_root: pathlib.Path, slug_
             index_md_path.write_text(frontmatter, encoding="utf-8")
 
 
-def write_bibliographer_json_files(catalog: CardCatalog, content_root: pathlib.Path, slug_filter: Optional[List[str]] = None):
+def write_bibliographer_json_files(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Path], slug_filter: Optional[List[str]] = None):
     """Create bibliographer.json files for all entries in the combined library, or specific ones if slug_filter is provided.
 
     Works for all work types (books, articles, podcasts, videos, etc.).
     Always overwrites bibliographer.json files.
+
+    Args:
+        catalog: The CardCatalog containing library data.
+        slug_roots: A dictionary mapping work types to their slug roots.
+            Must contain at least a 'default' key.
+        slug_filter: Optional list of slugs to filter to.
     """
     for work in catalog.combinedlib.contents.values():
         if slug_filter and work.slug not in slug_filter:
@@ -149,13 +183,14 @@ def write_bibliographer_json_files(catalog: CardCatalog, content_root: pathlib.P
             mlogger.debug(f"[bibliographer.json] skipping for {work.slug}")
             continue
         mlogger.debug(f"[bibliographer.json] writing for {work.slug}...")
+        content_root = get_slug_root_for_work(work.work_type, slug_roots)
         work_dir = content_root / work.slug
         work_dir.mkdir(exist_ok=True, parents=True)
         bibliographer_json_path = work_dir / "bibliographer.json"
         bibliographer_json_path.write_text(json.dumps(work.asdict, indent=2, sort_keys=True), encoding="utf-8")
 
 
-def rename_slug(catalog: CardCatalog, content_root: pathlib.Path, old_slug: str, new_slug: str):
+def rename_slug(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Path], old_slug: str, new_slug: str):
     """Change the slug of a work in the combined library.
 
     Works for all work types (books, articles, podcasts, videos, etc.).
@@ -164,6 +199,13 @@ def rename_slug(catalog: CardCatalog, content_root: pathlib.Path, old_slug: str,
     - Change the slug in the combined library.
     - Update slug mappings for book sources (Audible, Kindle, Libro.fm) if applicable.
     - Move the work directory to the new slug.
+
+    Args:
+        catalog: The CardCatalog containing library data.
+        slug_roots: A dictionary mapping work types to their slug roots.
+            Must contain at least a 'default' key.
+        old_slug: The current slug to rename.
+        new_slug: The new slug name.
     """
 
     mlogger.debug(f"Renaming slug {old_slug} to {new_slug}")
@@ -188,6 +230,7 @@ def rename_slug(catalog: CardCatalog, content_root: pathlib.Path, old_slug: str,
         catalog.combinedlib.contents[new_slug] = catalog.combinedlib.contents[old_slug]
     del catalog.combinedlib.contents[old_slug]
 
+    content_root = get_slug_root_for_work(work.work_type, slug_roots)
     old_slug_path = content_root / old_slug
     new_slug_path = content_root / new_slug
     if new_slug_path.exists() and old_slug_path.exists():
