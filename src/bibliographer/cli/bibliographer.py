@@ -141,7 +141,7 @@ def makeparser() -> ParserSet:
         "-c",
         "--config",
         type=pathlib.Path,
-        help="Path to TOML config file, defaulting to a file called .bibliographer.toml in the repo root",
+        help="Path to TOML config file, defaulting to a file called bibliographer.toml or .bibliographer.toml in the repo root",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging of API calls.")
     # These options are hidden from --help; use 'help-file-paths' subcommand to see them
@@ -388,7 +388,7 @@ User Map Files:
   --search2asin-file        Path to search term to ASIN mapping file
   --wikipedia-relevant-file Path to Wikipedia relevant pages file
 
-These options can also be set in the config file (.bibliographer.toml)."""
+These options can also be set in the config file."""
 
 
 def get_services_help() -> str:
@@ -422,7 +422,7 @@ Raindrop.io:
   --raindrop-token-cmd           Command to retrieve the Raindrop.io token
                                  (e.g. from a password manager)
 
-These options can also be set in the config file (.bibliographer.toml)."""
+These options can also be set in the config file."""
 
 
 def get_example_config() -> str:

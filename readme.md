@@ -473,7 +473,8 @@ options:
   -D, --debug           Drop into an interactive debugger on unhandled
                         exceptions.
   -c, --config CONFIG   Path to TOML config file, defaulting to a file called
-                        .bibliographer.toml in the repo root
+                        bibliographer.toml or .bibliographer.toml in the repo
+                        root
   -v, --verbose         Enable verbose logging of API calls.
   -i, --individual-bibliographer-json
                         Write out each work to its own JSON file (in addition to
@@ -972,7 +973,7 @@ User Map Files:
   --search2asin-file        Path to search term to ASIN mapping file
   --wikipedia-relevant-file Path to Wikipedia relevant pages file
 
-These options can also be set in the config file (.bibliographer.toml).
+These options can also be set in the config file.
 
 options:
   -h, --help  show this help message and exit
@@ -1011,7 +1012,7 @@ Raindrop.io:
   --raindrop-token-cmd           Command to retrieve the Raindrop.io token
                                  (e.g. from a password manager)
 
-These options can also be set in the config file (.bibliographer.toml).
+These options can also be set in the config file.
 
 options:
   -h, --help  show this help message and exit
