@@ -350,7 +350,7 @@ or relative _to the directory containing the config file_.
 
 <!--[[[cog
 import cog
-from bibliographer.cli.bibliographer import get_example_config
+from bibliographer.config import get_example_config
 cog.out(f"```toml\n{get_example_config()}```\n")
 ]]]-->
 ```toml
