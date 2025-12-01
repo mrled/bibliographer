@@ -3,6 +3,7 @@
 import dataclasses
 import pathlib
 import subprocess
+import textwrap
 from typing import Any, Callable, Dict, Generic, List, Optional, Type, TypeVar
 
 
@@ -14,6 +15,29 @@ CONFIG_FILENAMES = ["bibliographer.conf", ".bibliographer.conf"]
 
 # Config file names that default to version 2.1 if no version key is present
 _LEGACY_21_CONFIG_FILENAMES = ["bibliographer.toml", ".bibliographer.toml"]
+
+# Migration notes for upgrading from one version to another
+# Key is the version being upgraded FROM
+MIGRATION_NOTES: Dict[str, str] = {
+    "2.1": textwrap.dedent(f"""\
+        This is the first versioned config file format and requires some changes:
+        - Rename the config file to one of {CONFIG_FILENAMES}
+        - Check and update any path settings: bibliographer_data_root, default_slug_root, book_slug_root, article_slug_root, podcast_slug_root, video_slug_root
+    """),
+    "2.2": """Explicitly set the 'version' key to "2.3" in the config file.""",
+}
+
+
+def get_migration_note(from_version: str) -> Optional[str]:
+    """Get migration notes for upgrading from a specific version.
+
+    Args:
+        from_version: The version to upgrade from
+
+    Returns:
+        Migration notes string, or None if no notes available
+    """
+    return MIGRATION_NOTES.get(from_version)
 
 
 def detect_config_version(config_path: Optional[pathlib.Path], config_data: Dict[str, Any]) -> Optional[str]:

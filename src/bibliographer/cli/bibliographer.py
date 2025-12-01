@@ -23,6 +23,7 @@ from bibliographer.config import (
     SecretValueGetter,
     detect_config_version,
     find_config_file,
+    get_migration_note,
     resolve_path_if_relative,
 )
 from bibliographer.enrich import (
@@ -548,6 +549,9 @@ def main(arguments: list[str]) -> int:
         mlogger.error(
             f"Config file version {args.config_version} is older than supported version {CURRENT_VERSION}."
         )
+        migration_note = get_migration_note(args.config_version)
+        if migration_note:
+            mlogger.error(f"Migration notes:\n{migration_note}")
         return 1
 
     google_books_key = SecretValueGetter(
