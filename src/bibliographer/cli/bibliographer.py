@@ -17,9 +17,12 @@ from bibliographer.cli.util import (
     idb_excepthook,
 )
 from bibliographer.config import (
+    CONFIG_FILENAMES,
+    CURRENT_VERSION,
     ConfigurationParameterSet,
     SecretValueGetter,
-    find_file_in_parents,
+    detect_config_version,
+    find_config_file,
     resolve_path_if_relative,
 )
 from bibliographer.enrich import (
@@ -147,7 +150,7 @@ def makeparser() -> ParserSet:
         "-c",
         "--config",
         type=pathlib.Path,
-        help="Path to TOML config file, defaulting to a file called bibliographer.toml or .bibliographer.toml in the repo root",
+        help=f"Path to TOML config file, defaulting to a file in any parent directory called one of {CONFIG_FILENAMES}.",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging of API calls.")
     # These options are hidden from --help; use 'help-file-paths' subcommand to see them
@@ -441,13 +444,17 @@ def parseargs(arguments: List[str]):
     parsed = parsers.parser.parse_args(arguments)
 
     if not parsed.config:
-        parsed.config = find_file_in_parents(["bibliographer.toml", ".bibliographer.toml"])
+        parsed.config = find_config_file()
 
     if parsed.config and parsed.config.exists():
         with open(parsed.config, "rb") as f:
             config_data = tomllib.load(f)
     else:
         config_data = {}
+
+    # Detect config file version
+    parsed.config_version = detect_config_version(parsed.config, config_data)
+    print(f"Detected config file version: {parsed.config_version}")
 
     # Handle scalars directly
     for param in ConfigurationParameterSet.scalars():
@@ -528,6 +535,20 @@ def main(arguments: list[str]) -> int:
     if args.verbose:
         log_level = logging.DEBUG
     add_console_handler(log_level)
+
+    if args.config_version is None:
+        mlogger.error("Could not detect config file version.")
+        return 1
+    elif args.config_version > CURRENT_VERSION:
+        mlogger.error(
+            f"Config file version {args.config_version} is newer than supported version {CURRENT_VERSION}."
+        )
+        return 1
+    elif args.config_version < CURRENT_VERSION:
+        mlogger.error(
+            f"Config file version {args.config_version} is older than supported version {CURRENT_VERSION}."
+        )
+        return 1
 
     google_books_key = SecretValueGetter(
         getcmd=args.google_books_key_cmd,

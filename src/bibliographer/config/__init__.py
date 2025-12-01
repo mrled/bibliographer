@@ -3,7 +3,48 @@
 import dataclasses
 import pathlib
 import subprocess
-from typing import Callable, Generic, List, Optional, Type, TypeVar
+from typing import Any, Callable, Dict, Generic, List, Optional, Type, TypeVar
+
+
+# The current config file version
+CURRENT_VERSION = "2.3"
+
+# Config file names for the current version
+CONFIG_FILENAMES = ["bibliographer.conf", ".bibliographer.conf"]
+
+# Config file names that default to version 2.1 if no version key is present
+_LEGACY_21_CONFIG_FILENAMES = ["bibliographer.toml", ".bibliographer.toml"]
+
+
+def detect_config_version(config_path: Optional[pathlib.Path], config_data: Dict[str, Any]) -> Optional[str]:
+    """Detect the version of a config file.
+
+    Version detection logic:
+    1. If config_data contains a 'version' key, use that value
+    2. If no 'version' key but filename is 'bibliographer.toml' or '.bibliographer.toml',
+       default to version "2.1" (legacy unversioned config)
+    3. If no config file exists, return None
+
+    Args:
+        config_path: Path to the config file, or None if no config file
+        config_data: Parsed config data dictionary
+
+    Returns:
+        The detected version string, or None if no config file
+    """
+    if config_path is None:
+        return None
+
+    # Check if this is a legacy config file, all of which were unversioned
+    if config_path.name in _LEGACY_21_CONFIG_FILENAMES:
+        return "2.1"
+
+    # Check for explicit version key in config data
+    if "version" in config_data:
+        return str(config_data["version"])
+
+    # The 2.2 config file format did not require a version key
+    return "2.2"
 
 
 def find_file_in_parents(filenames: list[str]) -> Optional[pathlib.Path]:
@@ -16,6 +57,18 @@ def find_file_in_parents(filenames: list[str]) -> Optional[pathlib.Path]:
                 return filepath
         current = current.parent
     return None
+
+
+def find_config_file() -> Optional[pathlib.Path]:
+    """Find the config file for the current version.
+
+    Searches for config files in the current directory and parent directories,
+    using the filenames defined in CONFIG_FILENAMES for the current version.
+
+    Returns:
+        Path to the config file if found, None otherwise
+    """
+    return find_file_in_parents(CONFIG_FILENAMES + _LEGACY_21_CONFIG_FILENAMES)
 
 
 T = TypeVar("T")
@@ -130,7 +183,7 @@ def get_example_config() -> str:
     and a better solution might be to use the configparser module for the config file
     because unlike TOML Python can write it natively.
     """
-    result = ""
+    result = f'version = "{CURRENT_VERSION}"\n\n'
     for param in ConfigurationParameterSet.scalars():
         value = param.default
         if isinstance(value, str):
