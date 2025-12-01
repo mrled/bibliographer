@@ -7,7 +7,7 @@ from bibliographer.cardcatalog import (
     CatalogPodcastEpisode,
     CatalogVideo,
 )
-from bibliographer.util import slugify
+from bibliographer.util.slugify import slugify
 from bibliographer.util.isbnutil import normalize_isbn
 
 
