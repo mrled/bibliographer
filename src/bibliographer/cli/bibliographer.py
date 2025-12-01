@@ -118,7 +118,15 @@ def get_version() -> str:
     return "unknown"
 
 
-def makeparser() -> argparse.ArgumentParser:
+@dataclasses.dataclass
+class ParserSet:
+    """Container for the argument parser and help subparsers."""
+    parser: argparse.ArgumentParser
+    help_file_paths: argparse.ArgumentParser
+    help_services: argparse.ArgumentParser
+
+
+def makeparser() -> ParserSet:
     """Return the argument parser"""
     parser = AutoDescriptionArgumentParser(
         description="Manage Audible/Kindle libraries, enrich them, and populate local book repos."
@@ -315,22 +323,36 @@ def makeparser() -> argparse.ArgumentParser:
     subparsers.add_parser("version", help="Show version information")
 
     # help-file-paths subcommand
-    subparsers.add_parser("help-file-paths", help="Show data file path options")
+    sp_help_file_paths = subparsers.add_parser(
+        "help-file-paths",
+        help="Show data file path options",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    sp_help_file_paths.description = get_file_paths_help()
 
     # help-services subcommand
-    subparsers.add_parser("help-services", help="Show service authentication options")
+    sp_help_services = subparsers.add_parser(
+        "help-services",
+        help="Show service authentication options",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    sp_help_services.description = get_services_help()
 
-    return parser
+    return ParserSet(
+        parser=parser,
+        help_file_paths=sp_help_file_paths,
+        help_services=sp_help_services,
+    )
 
 
 def get_help_string() -> str:
     """Get a string containing program help"""
-    return get_argparse_help_string("bibliographer", makeparser())
+    return get_argparse_help_string("bibliographer", makeparser().parser)
 
 
-def print_file_paths_help() -> None:
-    """Print help for data file path options."""
-    print("""Data File Path Options
+def get_file_paths_help() -> str:
+    """Get help text for data file path options."""
+    return """Data File Path Options
 ======================
 
 These options allow you to override the default paths for data files.
@@ -366,13 +388,12 @@ User Map Files:
   --search2asin-file        Path to search term to ASIN mapping file
   --wikipedia-relevant-file Path to Wikipedia relevant pages file
 
-These options can also be set in the config file (.bibliographer.toml).
-""")
+These options can also be set in the config file (.bibliographer.toml)."""
 
 
-def print_services_help() -> None:
-    """Print help for service authentication options."""
-    print("""Service Authentication Options
+def get_services_help() -> str:
+    """Get help text for service authentication options."""
+    return """Service Authentication Options
 ==============================
 
 These options configure authentication for external services.
@@ -401,8 +422,7 @@ Raindrop.io:
   --raindrop-token-cmd           Command to retrieve the Raindrop.io token
                                  (e.g. from a password manager)
 
-These options can also be set in the config file (.bibliographer.toml).
-""")
+These options can also be set in the config file (.bibliographer.toml)."""
 
 
 def get_example_config() -> str:
@@ -550,9 +570,9 @@ def parseargs(arguments: List[str]):
 
     NOTE: Defaults in this function will override defaults in the TOML config file.
     """
-    parser = makeparser()
+    parsers = makeparser()
 
-    parsed = parser.parse_args(arguments)
+    parsed = parsers.parser.parse_args(arguments)
 
     if not parsed.config:
         parsed.config = find_file_in_parents(["bibliographer.toml", ".bibliographer.toml"])
@@ -625,7 +645,7 @@ def parseargs(arguments: List[str]):
     if parsed.wikipedia_relevant_file is None:
         parsed.wikipedia_relevant_file = usermaps_dir / "wikipedia_relevant.json"
 
-    return parser, parsed
+    return parsers, parsed
 
 
 ###############################################################################
@@ -634,7 +654,7 @@ def parseargs(arguments: List[str]):
 
 
 def main(arguments: list[str]) -> int:
-    parser, args = parseargs(arguments)
+    parsers, args = parseargs(arguments)
 
     log_level = logging.INFO
     if args.debug:
@@ -740,9 +760,9 @@ def main(arguments: list[str]) -> int:
                     count = raindrop_retrieve_highlights(catalog, token)
                     print(f"Retrieved {count} highlights from Raindrop.io")
                 else:
-                    raise parser.error("Unknown raindrop highlights subcommand")
+                    raise parsers.parser.error("Unknown raindrop highlights subcommand")
             else:
-                raise parser.error("Unknown raindrop subcommand")
+                raise parsers.parser.error("Unknown raindrop subcommand")
 
         elif args.subcommand == "googlebook":
             # We have "requery" subcommand
@@ -858,10 +878,10 @@ def main(arguments: list[str]) -> int:
             print(get_version())
 
         elif args.subcommand == "help-file-paths":
-            print_file_paths_help()
+            parsers.help_file_paths.print_help()
 
         elif args.subcommand == "help-services":
-            print_services_help()
+            parsers.help_services.print_help()
 
         else:
             print("Unknown subcommand", file=sys.stderr)

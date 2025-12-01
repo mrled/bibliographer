@@ -936,7 +936,43 @@ ________________________________________________________________________
 > bibliographer help-file-paths --help
 usage: bibliographer help-file-paths [-h]
 
-Show data file path options
+Data File Path Options
+======================
+
+These options allow you to override the default paths for data files.
+
+Root Directories:
+  -b, --bibliographer-data-root  Root directory for bibliographer data
+                                 (default: ./bibliographer/data)
+  -s, --default-slug-root        Default root directory for slug folders
+                                 (default: ./bibliographer/books)
+  --book-slug-root               Override slug root for books only
+                                 (defaults to --default-slug-root)
+  --article-slug-root            Override slug root for articles only
+                                 (defaults to --default-slug-root)
+  --podcast-slug-root            Override slug root for podcasts only
+                                 (defaults to --default-slug-root)
+  --video-slug-root              Override slug root for videos only
+                                 (defaults to --default-slug-root)
+
+API Cache Files:
+  --audible-library-file       Path to Audible library metadata file
+  --kindle-library-file        Path to Kindle library metadata file
+  --gbooks-volumes-file        Path to Google Books volumes cache file
+  --librofm-library-file       Path to Libro.fm library metadata file
+  --raindrop-highlights-file   Path to Raindrop.io highlights cache file
+
+User Map Files:
+  --combined-library-file   Path to combined library file
+  --audible-slugs-file      Path to Audible slugs mapping file
+  --kindle-slugs-file       Path to Kindle slugs mapping file
+  --librofm-slugs-file      Path to Libro.fm slugs mapping file
+  --raindrop-slugs-file     Path to Raindrop.io URL to slug mapping file
+  --isbn2olid-map-file      Path to ISBN to OpenLibrary ID mapping file
+  --search2asin-file        Path to search term to ASIN mapping file
+  --wikipedia-relevant-file Path to Wikipedia relevant pages file
+
+These options can also be set in the config file (.bibliographer.toml).
 
 options:
   -h, --help  show this help message and exit
@@ -946,7 +982,36 @@ ________________________________________________________________________
 > bibliographer help-services --help
 usage: bibliographer help-services [-h]
 
-Show service authentication options
+Service Authentication Options
+==============================
+
+These options configure authentication for external services.
+
+Audible:
+  -a, --audible-login-file       Path to Audible credentials file
+                                 (default: ./.bibliographer-audible-auth.json)
+  --audible-auth-password        Password to encrypt/decrypt the Audible
+                                 authentication file
+  --audible-auth-password-cmd    Command to retrieve the Audible auth password
+                                 (e.g. from a password manager)
+
+Google Books:
+  -g, --google-books-key         Google Books API key
+  -G, --google-books-key-cmd     Command to retrieve the Google Books API key
+                                 (e.g. from a password manager)
+
+Libro.fm:
+  --librofm-username             Libro.fm username (email address)
+  --librofm-password             Libro.fm password
+  --librofm-password-cmd         Command to retrieve the Libro.fm password
+                                 (e.g. from a password manager)
+
+Raindrop.io:
+  --raindrop-token               Raindrop.io API access token
+  --raindrop-token-cmd           Command to retrieve the Raindrop.io token
+                                 (e.g. from a password manager)
+
+These options can also be set in the config file (.bibliographer.toml).
 
 options:
   -h, --help  show this help message and exit

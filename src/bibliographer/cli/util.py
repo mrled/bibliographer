@@ -67,7 +67,7 @@ def get_argparse_help_string(
         if not root:
             docstring += "\n" + "_" * 72 + "\n\n"
         docstring += f"> {cmd} --help\n"
-        parser.formatter_class = lambda prog: argparse.HelpFormatter(cmd, width=wrap)
+        parser.formatter_class = lambda prog: argparse.RawDescriptionHelpFormatter(cmd, width=wrap)
         docstring += parser.format_help()
 
         for action in parser._actions:
