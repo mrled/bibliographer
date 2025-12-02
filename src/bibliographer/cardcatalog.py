@@ -46,6 +46,13 @@ class CombinedCatalogWork:
     urls_wikipedia: Optional[Dict[str, str]] = None
     """URLs to Wikipedia pages for the work and its authors, if any."""
 
+    highlights: Optional[Dict[str, list]] = None
+    """Highlights from various sources.
+
+    Structure: {"raindrop": [{"_id": ..., "text": ..., "note": ..., "skip": False, ...}, ...]}
+    Each source has its own subkey with a list of highlight objects.
+    """
+
     work_type: WorkType = "other"
     """The type of work (book, article, podcast, video, other)."""
 

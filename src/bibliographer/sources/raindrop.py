@@ -63,28 +63,57 @@ def process_raindrop_highlights(catalog: CardCatalog):
     """Process raindrop highlights and add unique articles to the combined library.
 
     Multiple highlights may reference the same article (URL). This function
-    creates one CatalogArticle per unique URL and adds it to the combined library.
+    creates one CatalogArticle per unique URL, collects all highlights for that URL,
+    and adds them to the article's highlights.raindrop list.
     """
-    # Group highlights by URL to get unique articles
-    seen_urls = set()
+    # Group highlights by URL
+    highlights_by_url: dict[str, list[dict]] = {}
 
     for highlight_id, highlight in catalog.raindrop_highlights.contents.items():
         url = highlight.get("link")
-        if not url or url in seen_urls:
+        if not url:
             continue
-        seen_urls.add(url)
 
-        mlogger.debug(f"Processing raindrop highlight for URL {url}")
+        if url not in highlights_by_url:
+            highlights_by_url[url] = []
 
-        article = CatalogArticle()
-        article.title = highlight.get("title")
-        article.url = url
+        # Build highlight entry: _id, text, note, skip (default False), plus other raindrop fields
+        highlight_entry = {
+            "_id": highlight.get("_id"),
+            "text": highlight.get("text"),
+            "note": highlight.get("note", ""),
+            "skip": False,
+        }
+        # Add other raindrop fields (excluding link/title which are article-level)
+        for key in ["color", "created", "tags", "raindropRef"]:
+            if key in highlight:
+                highlight_entry[key] = highlight[key]
+
+        highlights_by_url[url].append(highlight_entry)
+
+    # Process each unique URL
+    for url, url_highlights in highlights_by_url.items():
+        # Get title from the first highlight (they all have the same title for a URL)
+        first_highlight = catalog.raindrop_highlights.contents.get(url_highlights[0]["_id"], {})
+        title = first_highlight.get("title", "")
+
+        mlogger.debug(f"Processing {len(url_highlights)} raindrop highlights for URL {url}")
 
         # Map URL to slug
         if url not in catalog.raindropslugs.contents:
-            catalog.raindropslugs.contents[url] = slugify(highlight.get("title", ""), remove_subtitle=False)
-        article.slug = catalog.raindropslugs.contents[url]
+            catalog.raindropslugs.contents[url] = slugify(title, remove_subtitle=False)
+        slug = catalog.raindropslugs.contents[url]
 
-        # Only add if not already in combined library
-        if article.slug not in catalog.combinedlib.contents:
-            catalog.combinedlib.contents[article.slug] = article
+        # Get or create article in combined library
+        if slug not in catalog.combinedlib.contents:
+            article = CatalogArticle()
+            article.title = title
+            article.url = url
+            article.slug = slug
+            catalog.combinedlib.contents[slug] = article
+
+        # Add highlights to the article
+        work = catalog.combinedlib.contents[slug]
+        if work.highlights is None:
+            work.highlights = {}
+        work.highlights["raindrop"] = url_highlights
