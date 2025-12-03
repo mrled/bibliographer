@@ -122,7 +122,7 @@ def retrieve_covers(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Path], s
         )
 
 
-def write_index_md_files(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Path], slug_filter: Optional[List[str]] = None):
+def write_index_md_files(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Path], slug_filter: Optional[List[str]] = None, draft: bool = False):
     """Create index.md files for all entries in the combined library, or specific ones if slug_filter is provided.
 
     Works for all work types (books, articles, podcasts, videos, etc.).
@@ -133,6 +133,7 @@ def write_index_md_files(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Pat
         slug_roots: A dictionary mapping work types to their slug roots.
             Must contain at least a 'default' key.
         slug_filter: Optional list of slugs to filter to.
+        draft: If True, include 'draft: true' in the frontmatter.
     """
     for work in catalog.combinedlib.contents.values():
         if slug_filter and work.slug not in slug_filter:
@@ -154,7 +155,8 @@ def write_index_md_files(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Pat
             frontmatter_lines = []
             frontmatter_lines.append("---")
             frontmatter_lines.append(f'title: "{quoted_title}"')
-            frontmatter_lines.append("draft: true")
+            if draft:
+                frontmatter_lines.append("draft: true")
             if date_str:
                 frontmatter_lines.append(f"date: {date_str}")
             else:

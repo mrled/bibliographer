@@ -208,6 +208,7 @@ def makeparser() -> ParserSet:
     # Populate
     sp_pop = subparsers.add_parser("populate", help="Populate bibliographer.json files")
     sp_pop.add_argument("--slug", nargs="*", help="Populate only specific books by slug (can specify multiple)")
+    sp_pop.add_argument("--draft", action="store_true", help="Set draft: true in generated index.md files")
 
     # Audible
     sp_audible = subparsers.add_parser("audible", help="Audible operations")
@@ -616,7 +617,7 @@ def main(arguments: list[str]) -> int:
 
             enrich_combined_library(catalog, google_books_key.get(), slug_filter)
             retrieve_covers(catalog, slug_roots, slug_filter)
-            write_index_md_files(catalog, slug_roots, slug_filter)
+            write_index_md_files(catalog, slug_roots, slug_filter, draft=args.draft)
             if args.individual_bibliographer_json:
                 write_bibliographer_json_files(catalog, slug_roots, slug_filter)
 

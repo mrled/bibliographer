@@ -232,6 +232,36 @@ class TestWriteIndexMdFiles:
             content = index_path.read_text()
             assert 'title: "Test Book"' in content
 
+    def test_index_md_without_draft_flag(self, temp_catalog):
+        """index.md should not include draft: true when draft=False (default)."""
+        with tempfile.TemporaryDirectory() as content_root:
+            content_root_path = pathlib.Path(content_root)
+            slug_roots = make_slug_roots(content_root_path)
+            book = CatalogBook(title="Test Book", slug="test-book")
+            temp_catalog.combinedlib.contents["test-book"] = book
+
+            write_index_md_files(temp_catalog, slug_roots)
+
+            index_path = content_root_path / "test-book" / "index.md"
+            assert index_path.exists()
+            content = index_path.read_text()
+            assert "draft: true" not in content
+
+    def test_index_md_with_draft_flag(self, temp_catalog):
+        """index.md should include draft: true when draft=True."""
+        with tempfile.TemporaryDirectory() as content_root:
+            content_root_path = pathlib.Path(content_root)
+            slug_roots = make_slug_roots(content_root_path)
+            book = CatalogBook(title="Test Book", slug="test-book")
+            temp_catalog.combinedlib.contents["test-book"] = book
+
+            write_index_md_files(temp_catalog, slug_roots, draft=True)
+
+            index_path = content_root_path / "test-book" / "index.md"
+            assert index_path.exists()
+            content = index_path.read_text()
+            assert "draft: true" in content
+
     def test_index_md_created_for_article(self, temp_catalog):
         """index.md should be created for CatalogArticle entries."""
         with tempfile.TemporaryDirectory() as content_root:
