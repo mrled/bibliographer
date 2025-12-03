@@ -104,12 +104,18 @@ def process_raindrop_highlights(catalog: CardCatalog):
             catalog.raindropslugs.contents[url] = slugify(title, remove_subtitle=False)
         slug = catalog.raindropslugs.contents[url]
 
+        # Find the earliest created date among all highlights for this URL
+        created_dates = [h.get("created") for h in url_highlights if h.get("created")]
+        earliest_created = min(created_dates) if created_dates else None
+
         # Get or create article in combined library
         if slug not in catalog.combinedlib.contents:
             article = CatalogArticle()
             article.title = title
             article.url = url
             article.slug = slug
+            if earliest_created:
+                article.consumed_date = earliest_created
             catalog.combinedlib.contents[slug] = article
 
         # Add highlights to the article
@@ -117,3 +123,7 @@ def process_raindrop_highlights(catalog: CardCatalog):
         if work.highlights is None:
             work.highlights = {}
         work.highlights["raindrop"] = url_highlights
+
+        # Set consumed_date if not already set
+        if earliest_created and not work.consumed_date:
+            work.consumed_date = earliest_created

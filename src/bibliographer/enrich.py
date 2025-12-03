@@ -149,7 +149,7 @@ def write_index_md_files(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Pat
         mlogger.debug(f"[index.md] writing for {work.slug}...")
         work_dir.mkdir(exist_ok=True, parents=True)
         if not index_md_path.exists():
-            date_str = work.purchase_date or ""
+            date_str = work.purchase_date or work.consumed_date or ""
             quoted_title = work.title.replace('"', '\\"')
             frontmatter_lines = []
             frontmatter_lines.append("---")
