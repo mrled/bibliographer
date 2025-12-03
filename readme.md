@@ -450,8 +450,7 @@ cog.out(f"```text\n{get_help_string()}```\n")
 ```text
 > bibliographer --help
 usage: bibliographer [-h] [-D] [-c CONFIG] [-v] [-i]
-                     {populate,audible,kindle,googlebook,amazon,librofm,raindrop,add,slug,cover,version,help-file-paths,help-services}
-                     ...
+                     {populate,audible,kindle,googlebook,amazon,librofm,raindrop,add,slug,cover,version,help-file-paths,help-services} ...
 
 Manage Audible/Kindle libraries, enrich them, and populate local book repos.
 
@@ -475,8 +474,7 @@ options:
   -h, --help            show this help message and exit
   -D, --debug           Drop into an interactive debugger on unhandled
                         exceptions.
-  -c CONFIG, --config CONFIG
-                        Path to TOML config file, defaulting to a file in any
+  -c, --config CONFIG   Path to TOML config file, defaulting to a file in any
                         parent directory called one of ['bibliographer.conf',
                         '.bibliographer.conf'].
   -v, --verbose         Enable verbose logging of API calls.
