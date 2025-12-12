@@ -106,7 +106,7 @@ def process_raindrop_highlights(catalog: CardCatalog):
         slug = catalog.raindropslugs.contents[url]
 
         # Find the earliest created date among all highlights for this URL
-        created_dates = [h.get("created") for h in url_highlights if h.get("created")]
+        created_dates = [h["created"] for h in url_highlights if h.get("created") is not None]
         earliest_created = min(created_dates) if created_dates else None
 
         # Get or create article in combined library
