@@ -68,5 +68,6 @@ def test_process_raindrop_highlights_sets_article_fields():
         assert go_article is not None, "Go Proverbs article not found"
         assert go_article.title == "Go Proverbs"
         assert go_article.url == go_proverbs_url
-        assert go_article.slug is not None
+        # Slug format: domain/title-slug-highlight_id
+        assert go_article.slug.startswith("go-proverbs.github.io/go-proverbs-")
         assert go_article.consumed_date == "2025-11-30T12:29:17.765Z"
