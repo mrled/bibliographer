@@ -677,7 +677,7 @@ def main(arguments: list[str]) -> int:
         elif args.subcommand == "librofm":
             if args.librofm_subcommand == "retrieve":
                 token = librofm_login(args.librofm_username, librofm_password.get())
-                result = librofm_retrieve_library(catalog, token)
+                librofm_retrieve_library(catalog, token)
 
         elif args.subcommand == "raindrop":
             if args.raindrop_subcommand == "highlights":

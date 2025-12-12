@@ -49,7 +49,7 @@ def wikipedia_relevant_pages(catalog: CardCatalog, title: str, authors: List[str
             normalized_title, url = query_wikipedia(cand)
             result[normalized_title] = url
             break
-        except:
+        except Exception:
             pass
 
     # Look for all valid pages for the authors
@@ -57,7 +57,7 @@ def wikipedia_relevant_pages(catalog: CardCatalog, title: str, authors: List[str
         try:
             normalized_title, url = query_wikipedia(author)
             result[normalized_title] = url
-        except:
+        except Exception:
             pass
 
     catalog.wikipedia_relevant.contents[cache_key] = result
