@@ -164,6 +164,7 @@ def write_index_md_files(
             frontmatter_lines = []
             frontmatter_lines.append("---")
             frontmatter_lines.append(f'title: "{quoted_title}"')
+            frontmatter_lines.append(f'BibliographerKey: "{work.slug}"')
             if draft:
                 frontmatter_lines.append("draft: true")
             if date_str:
