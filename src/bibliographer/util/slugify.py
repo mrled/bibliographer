@@ -55,8 +55,8 @@ def generate_slug_for_work(
 ) -> str:
     """Generate a slug for a catalog item.
 
-    Automatically detects raindrop items by checking if the current slug
-    contains a raindrop highlight ID pattern.
+    Automatically detects raindrop items by checking the current slug for a
+    highlight ID pattern, or by looking in the item's highlights data.
 
     Args:
         item: The catalog item to generate a slug for.
@@ -69,7 +69,14 @@ def generate_slug_for_work(
     highlight_id = extract_raindrop_highlight_id(current_slug)
     url = getattr(item, "url", None)
 
-    # If slug has a highlight ID and item has a URL, treat as raindrop item
+    # If no highlight ID in slug, check item's highlights data
+    if not highlight_id:
+        highlights = getattr(item, "highlights", None)
+        if highlights and "raindrop" in highlights and highlights["raindrop"]:
+            first_highlight = highlights["raindrop"][0]
+            highlight_id = first_highlight.get("_id")
+
+    # If we have a highlight ID and URL, generate raindrop-style slug
     if highlight_id and url:
         if item.title is None:
             raise ValueError("Cannot generate raindrop slug: item has no title")

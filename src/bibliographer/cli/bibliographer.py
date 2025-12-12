@@ -801,17 +801,31 @@ def main(arguments: list[str]) -> int:
                 rename_slug(catalog, slug_roots, args.old_slug, args.new_slug)
             elif args.slug_subcommand == "regenerate":
                 item = catalog.combinedlib.contents[args.slug]
+                # Get item identifiers
+                audible_asin = getattr(item, "audible_asin", None)
+                kindle_asin = getattr(item, "kindle_asin", None)
+                librofm_isbn = getattr(item, "librofm_isbn", None)
+                item_url = getattr(item, "url", None)
+                # Regenerate slug from item data (ignoring any stored mappings)
                 new_slug = generate_slug_for_work(item, args.slug)
                 if new_slug == args.slug:
-                    print(f"Slug for {args.slug} is already {new_slug}")
-                    return 0
-                if args.interactive:
-                    if input(f"Change slug from {args.slug} to {new_slug}? [y/N] ").strip().lower() != "y":
-                        return 1
-                rename_slug(catalog, slug_roots, args.slug, new_slug)
-                # Update raindropslugs mapping if this item has a URL tracked there
-                item_url = getattr(item, "url", None)
-                if item_url and item_url in catalog.raindropslugs.contents:
+                    print(f"Regenerated slug is unchanged: {new_slug}")
+                    # Ensure item's slug field is set correctly
+                    item.slug = new_slug
+                else:
+                    if args.interactive:
+                        if input(f"Change slug from {args.slug} to {new_slug}? [y/N] ").strip().lower() != "y":
+                            return 1
+                    rename_slug(catalog, slug_roots, args.slug, new_slug)
+                    print(f"Renamed {args.slug} -> {new_slug}")
+                # Update slug mappings with the (possibly new) slug
+                if audible_asin:
+                    catalog.audibleslugs.contents[audible_asin] = new_slug
+                if kindle_asin:
+                    catalog.kindleslugs.contents[kindle_asin] = new_slug
+                if librofm_isbn:
+                    catalog.librofmslugs.contents[librofm_isbn] = new_slug
+                if item_url:
                     catalog.raindropslugs.contents[item_url] = new_slug
 
         elif args.subcommand == "version":
