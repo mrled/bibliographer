@@ -1,3 +1,4 @@
+import datetime
 import json
 import pathlib
 import shutil
@@ -255,4 +256,21 @@ def rename_slug(
     if new_slug_path.exists() and old_slug_path.exists():
         shutil.rmtree(old_slug_path)
     elif not new_slug_path.exists() and old_slug_path.exists():
+        # Create parent directories if needed (for slugs with / like gwern.net/foo)
+        parent_dir = new_slug_path.parent
+        if parent_dir != content_root and not parent_dir.exists():
+            parent_dir.mkdir(parents=True, exist_ok=True)
+            # Create _index.md for domain directories
+            domain_name = parent_dir.name
+            index_path = parent_dir / "_index.md"
+            local_now = datetime.datetime.now().astimezone()
+            tz_offset = local_now.strftime("%z")
+            tz_formatted = tz_offset[:3] + ":" + tz_offset[3:]
+            now = local_now.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + tz_formatted
+            index_content = f"""---
+title: "{domain_name} annotations"
+date: {now}
+---
+"""
+            index_path.write_text(index_content)
         old_slug_path.rename(new_slug_path)
