@@ -18,6 +18,7 @@ class TestSlugifyBasic:
         """Slugify should collapse multiple spaces into single hyphens."""
         assert slugify("hello   world") == "hello-world"
 
+
 class TestSlugifySubtitle:
     """Tests for subtitle removal behavior."""
 
@@ -58,7 +59,7 @@ class TestGenerateRaindropSlug:
         result = generate_raindrop_slug(
             url="https://example.com/article",
             title="My Article Title",
-            highlight_id="670b2d1c37e0980e9a123456"
+            highlight_id="670b2d1c37e0980e9a123456",
         )
         assert result == "example.com/my-article-title-670b2d1c37e0980e9a123456"
 
@@ -67,7 +68,7 @@ class TestGenerateRaindropSlug:
         result = generate_raindrop_slug(
             url="https://blog.example.org/post",
             title="Main Title: The Subtitle",
-            highlight_id="abcdef1234567890abcdef12"
+            highlight_id="abcdef1234567890abcdef12",
         )
         assert result == "blog.example.org/main-title-the-subtitle-abcdef1234567890abcdef12"
 
@@ -76,7 +77,7 @@ class TestGenerateRaindropSlug:
         result = generate_raindrop_slug(
             url="https://www.example.com/deep/nested/path/article",
             title="Test",
-            highlight_id="123456789012345678901234"
+            highlight_id="123456789012345678901234",
         )
         assert result == "www.example.com/test-123456789012345678901234"
 
@@ -124,20 +125,14 @@ class TestGenerateSlugForWork:
 
     def test_raindrop_article(self):
         """Raindrop article slugs should use domain/title-id format when slug has highlight ID."""
-        article = CatalogArticle(
-            title="My Article",
-            url="https://example.com/post"
-        )
+        article = CatalogArticle(title="My Article", url="https://example.com/post")
         current_slug = "example.com/old-title-670b2d1c37e0980e9a123456"
         result = generate_slug_for_work(article, current_slug)
         assert result == "example.com/my-article-670b2d1c37e0980e9a123456"
 
     def test_raindrop_preserves_highlight_id(self):
         """Raindrop regeneration should preserve the original highlight ID."""
-        article = CatalogArticle(
-            title="Updated Title: With Subtitle",
-            url="https://blog.example.org/article"
-        )
+        article = CatalogArticle(title="Updated Title: With Subtitle", url="https://blog.example.org/article")
         current_slug = "blog.example.org/old-title-abcdef1234567890abcdef12"
         result = generate_slug_for_work(article, current_slug)
         assert result == "blog.example.org/updated-title-with-subtitle-abcdef1234567890abcdef12"

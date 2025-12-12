@@ -1,9 +1,8 @@
-"""Google Books API info retrieval
-"""
+"""Google Books API info retrieval"""
 
-from typing import Optional
 import urllib
 import urllib.parse
+from typing import Optional
 
 import requests
 
@@ -45,7 +44,14 @@ def google_books_retrieve(catalog: CardCatalog, key: str, bookid: str, overwrite
 
     links = vi.get("imageLinks", {})
     # Try largest-first
-    largest_keys = ["extraLarge", "large", "medium", "small", "thumbnail", "smallThumbnail"]
+    largest_keys = [
+        "extraLarge",
+        "large",
+        "medium",
+        "small",
+        "thumbnail",
+        "smallThumbnail",
+    ]
     largest_url = None
     for k in largest_keys:
         if k in links:
@@ -87,5 +93,3 @@ def google_books_search(catalog: CardCatalog, key: str, title: str, author: str)
     first_item = items[0]
     first_id = first_item["id"]
     return google_books_retrieve(catalog, key, first_id)
-
-

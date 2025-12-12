@@ -1,5 +1,4 @@
-"""ISBN utilities
-"""
+"""ISBN utilities"""
 
 
 def normalize_isbn(isbn: str) -> str:

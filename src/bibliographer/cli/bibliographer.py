@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 import argparse
 import dataclasses
+import logging
 import pathlib
+import subprocess
 import sys
 import tomllib
 from typing import List, Optional
-import logging
-import subprocess
 
 from bibliographer import add_console_handler, mlogger
-from bibliographer.cardcatalog import CardCatalog, CatalogBook
+from bibliographer.cardcatalog import CardCatalog
 from bibliographer.cli.util import (
     AutoDescriptionArgumentParser,
     exceptional_exception_handler,
@@ -27,13 +27,18 @@ from bibliographer.config import (
     resolve_path_if_relative,
 )
 from bibliographer.enrich import (
-    rename_slug,
     enrich_combined_library,
+    rename_slug,
     retrieve_covers,
     write_bibliographer_json_files,
     write_index_md_files,
 )
-from bibliographer.util.slugify import generate_slug_for_work, slugify
+from bibliographer.sources.add import (
+    add_article,
+    add_book,
+    add_podcast,
+    add_video,
+)
 from bibliographer.sources.amazon_browser import amazon_browser_search_cached
 from bibliographer.sources.audible import (
     audible_login,
@@ -45,14 +50,16 @@ from bibliographer.sources.audible import (
 from bibliographer.sources.covers import cover_path, download_cover_from_url
 from bibliographer.sources.googlebooks import google_books_retrieve
 from bibliographer.sources.kindle import ingest_kindle_library, process_kindle_library
-from bibliographer.sources.librofm import librofm_login, librofm_retrieve_library, process_librofm_library
-from bibliographer.sources.raindrop import process_raindrop_highlights, raindrop_retrieve_highlights
-from bibliographer.sources.add import (
-    add_book,
-    add_article,
-    add_podcast,
-    add_video,
+from bibliographer.sources.librofm import (
+    librofm_login,
+    librofm_retrieve_library,
+    process_librofm_library,
 )
+from bibliographer.sources.raindrop import (
+    process_raindrop_highlights,
+    raindrop_retrieve_highlights,
+)
+from bibliographer.util.slugify import generate_slug_for_work, slugify
 
 
 def find_repo_root() -> Optional[pathlib.Path]:
@@ -93,13 +100,21 @@ def get_version() -> str:
             # We found a git repository, so this is likely an editable install
             # Get the git revision
             result = subprocess.run(
-                ["git", "rev-parse", "--short", "HEAD"], cwd=git_dir, capture_output=True, text=True, check=True
+                ["git", "rev-parse", "--short", "HEAD"],
+                cwd=git_dir,
+                capture_output=True,
+                text=True,
+                check=True,
             )
             revision = result.stdout.strip()
 
             # Check if the working tree is dirty
             result = subprocess.run(
-                ["git", "status", "--porcelain"], cwd=git_dir, capture_output=True, text=True, check=True
+                ["git", "status", "--porcelain"],
+                cwd=git_dir,
+                capture_output=True,
+                text=True,
+                check=True,
             )
             is_dirty = bool(result.stdout.strip())
 
@@ -131,6 +146,7 @@ def get_version() -> str:
 @dataclasses.dataclass
 class ParserSet:
     """Container for the argument parser and help subparsers."""
+
     parser: argparse.ArgumentParser
     help_file_paths: argparse.ArgumentParser
     help_services: argparse.ArgumentParser
@@ -153,7 +169,12 @@ def makeparser() -> ParserSet:
         type=pathlib.Path,
         help=f"Path to TOML config file, defaulting to a file in any parent directory called one of {CONFIG_FILENAMES}.",
     )
-    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging of API calls.")
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Enable verbose logging of API calls.",
+    )
     # These options are hidden from --help; use 'help-file-paths' subcommand to see them
     parser.add_argument("-b", "--bibliographer-data-root", help=argparse.SUPPRESS)
     parser.add_argument("-s", "--default-slug-root", help=argparse.SUPPRESS)
@@ -207,8 +228,16 @@ def makeparser() -> ParserSet:
 
     # Populate
     sp_pop = subparsers.add_parser("populate", help="Populate bibliographer.json files")
-    sp_pop.add_argument("--slug", nargs="*", help="Populate only specific books by slug (can specify multiple)")
-    sp_pop.add_argument("--draft", action="store_true", help="Set draft: true in generated index.md files")
+    sp_pop.add_argument(
+        "--slug",
+        nargs="*",
+        help="Populate only specific books by slug (can specify multiple)",
+    )
+    sp_pop.add_argument(
+        "--draft",
+        action="store_true",
+        help="Set draft: true in generated index.md files",
+    )
 
     # Audible
     sp_audible = subparsers.add_parser("audible", help="Audible operations")
@@ -218,9 +247,13 @@ def makeparser() -> ParserSet:
     # Audible credentials subcommand
     sp_audible_cred = sp_audible_sub.add_parser("credentials", help="Manage Audible credentials")
     sp_audible_cred_sub = sp_audible_cred.add_subparsers(dest="credentials_subcommand", required=True)
-    sp_audible_cred_enc = sp_audible_cred_sub.add_parser("encrypt", help="Load unencrypted credentials and output to terminal")
+    sp_audible_cred_enc = sp_audible_cred_sub.add_parser(
+        "encrypt", help="Load unencrypted credentials and output to terminal"
+    )
     sp_audible_cred_enc.add_argument("source", type=pathlib.Path, help="Path to unencrypted credentials file")
-    sp_audible_cred_dec = sp_audible_cred_sub.add_parser("decrypt", help="Load encrypted credentials and output to terminal")
+    sp_audible_cred_dec = sp_audible_cred_sub.add_parser(
+        "decrypt", help="Load encrypted credentials and output to terminal"
+    )
     sp_audible_cred_dec.add_argument("source", type=pathlib.Path, help="Path to encrypted credentials file")
 
     # Kindle
@@ -315,7 +348,12 @@ def makeparser() -> ParserSet:
     # slug regenerate
     sp_slug_regen = sp_slug_sub.add_parser("regenerate", help="Regenerate a slug")
     sp_slug_regen.add_argument("slug", help="Slug to regenerate")
-    sp_slug_regen.add_argument("--interactive", "-i", action="store_true", help="Prompt before taking any action")
+    sp_slug_regen.add_argument(
+        "--interactive",
+        "-i",
+        action="store_true",
+        help="Prompt before taking any action",
+    )
 
     # cover subcommand
     sp_cover = subparsers.add_parser("cover", help="Cover operations")
@@ -542,14 +580,10 @@ def main(arguments: list[str]) -> int:
         mlogger.error("Could not detect config file version.")
         return 1
     elif args.config_version > CURRENT_VERSION:
-        mlogger.error(
-            f"Config file version {args.config_version} is newer than supported version {CURRENT_VERSION}."
-        )
+        mlogger.error(f"Config file version {args.config_version} is newer than supported version {CURRENT_VERSION}.")
         return 1
     elif args.config_version < CURRENT_VERSION:
-        mlogger.error(
-            f"Config file version {args.config_version} is older than supported version {CURRENT_VERSION}."
-        )
+        mlogger.error(f"Config file version {args.config_version} is older than supported version {CURRENT_VERSION}.")
         migration_note = get_migration_note(args.config_version)
         if migration_note:
             mlogger.error(f"Migration notes:\n{migration_note}")
@@ -595,7 +629,7 @@ def main(arguments: list[str]) -> int:
     # Dispatch
     try:
         if args.subcommand == "populate":
-            slug_filter = getattr(args, 'slug', None)
+            slug_filter = getattr(args, "slug", None)
             # Convert empty list to None for consistency
             if slug_filter is not None and len(slug_filter) == 0:
                 slug_filter = None
@@ -604,7 +638,10 @@ def main(arguments: list[str]) -> int:
             if slug_filter:
                 invalid_slugs = [slug for slug in slug_filter if slug not in catalog.combinedlib.contents]
                 if invalid_slugs:
-                    print(f"Error: the following slugs were not found in combined library: {', '.join(invalid_slugs)}", file=sys.stderr)
+                    print(
+                        f"Error: the following slugs were not found in combined library: {', '.join(invalid_slugs)}",
+                        file=sys.stderr,
+                    )
                     return 1
                 mlogger.info(f"Populating only slugs: {', '.join(slug_filter)}")
 
@@ -647,7 +684,10 @@ def main(arguments: list[str]) -> int:
                 if args.raindrop_highlights_subcommand == "retrieve":
                     token = raindrop_token.get()
                     if not token:
-                        print("Error: Raindrop token is required. Set --raindrop-token or --raindrop-token-cmd.", file=sys.stderr)
+                        print(
+                            "Error: Raindrop token is required. Set --raindrop-token or --raindrop-token-cmd.",
+                            file=sys.stderr,
+                        )
                         return 1
                     count = raindrop_retrieve_highlights(catalog, token)
                     print(f"Retrieved {count} highlights from Raindrop.io")
@@ -664,7 +704,12 @@ def main(arguments: list[str]) -> int:
                 for vid in volume_ids:
                     mlogger.info(f"Forcing re-query of volume ID {vid}")
                     # forcibly re-download
-                    google_books_retrieve(catalog=catalog, key=google_books_key.get(), bookid=vid, overwrite=True)
+                    google_books_retrieve(
+                        catalog=catalog,
+                        key=google_books_key.get(),
+                        bookid=vid,
+                        overwrite=True,
+                    )
                 print("Requery complete.")
 
         elif args.subcommand == "add":

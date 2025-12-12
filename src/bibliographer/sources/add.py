@@ -7,8 +7,8 @@ from bibliographer.cardcatalog import (
     CatalogPodcastEpisode,
     CatalogVideo,
 )
-from bibliographer.util.slugify import generate_slug_for_work
 from bibliographer.util.isbnutil import normalize_isbn
+from bibliographer.util.slugify import generate_slug_for_work
 
 
 def add_book(

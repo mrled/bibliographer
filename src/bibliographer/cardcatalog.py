@@ -2,11 +2,16 @@
 
 import dataclasses
 import pathlib
-import warnings
-from typing import Any, Dict, Generic, Literal, Optional, Type, TypedDict, TypeVar, Union
+from typing import (
+    Dict,
+    Generic,
+    Literal,
+    Optional,
+    Type,
+    TypeVar,
+)
 
 from bibliographer.util.jsonutil import load_json, save_json
-
 
 # Work type discriminator
 WorkType = Literal["book", "article", "podcast", "video", "other"]

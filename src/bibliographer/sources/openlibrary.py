@@ -23,11 +23,11 @@ def normalize_olid(olid: Optional[str]) -> Optional[str]:
 
     # Strip common OpenLibrary path prefixes
     if olid.startswith("/books/"):
-        return olid[len("/books/"):]
+        return olid[len("/books/") :]
     if olid.startswith("/works/"):
-        return olid[len("/works/"):]
+        return olid[len("/works/") :]
     if olid.startswith("/authors/"):
-        return olid[len("/authors/"):]
+        return olid[len("/authors/") :]
 
     # Return as-is if no prefix found
     return olid

@@ -1,8 +1,6 @@
-"""bibliographer package
-"""
+"""bibliographer package"""
 
 import logging
-
 
 mlogger = logging.getLogger(__name__)
 

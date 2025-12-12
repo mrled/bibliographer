@@ -1,2 +1,1 @@
-"""Command-line programs
-"""
+"""Command-line programs"""

@@ -71,7 +71,11 @@ class TestFromDictFactory:
 
     def test_from_dict_returns_article_for_article_type(self):
         """from_dict should return CatalogArticle for work_type='article'."""
-        data = {"title": "Test Article", "work_type": "article", "url": "https://example.com"}
+        data = {
+            "title": "Test Article",
+            "work_type": "article",
+            "url": "https://example.com",
+        }
         result = CombinedCatalogWork.from_dict(data)
         assert isinstance(result, CatalogArticle)
         assert result.title == "Test Article"
@@ -79,7 +83,11 @@ class TestFromDictFactory:
 
     def test_from_dict_returns_podcast_for_podcast_type(self):
         """from_dict should return CatalogPodcastEpisode for work_type='podcast'."""
-        data = {"title": "Episode 1", "work_type": "podcast", "podcast_name": "My Podcast"}
+        data = {
+            "title": "Episode 1",
+            "work_type": "podcast",
+            "podcast_name": "My Podcast",
+        }
         result = CombinedCatalogWork.from_dict(data)
         assert isinstance(result, CatalogPodcastEpisode)
         assert result.title == "Episode 1"
@@ -87,7 +95,11 @@ class TestFromDictFactory:
 
     def test_from_dict_returns_video_for_video_type(self):
         """from_dict should return CatalogVideo for work_type='video'."""
-        data = {"title": "My Video", "work_type": "video", "url": "https://youtube.com/watch?v=123"}
+        data = {
+            "title": "My Video",
+            "work_type": "video",
+            "url": "https://youtube.com/watch?v=123",
+        }
         result = CombinedCatalogWork.from_dict(data)
         assert isinstance(result, CatalogVideo)
         assert result.title == "My Video"
@@ -102,7 +114,12 @@ class TestFromDictFactory:
 
     def test_from_dict_filters_unknown_fields(self):
         """from_dict should filter out fields that don't exist on the target class."""
-        data = {"title": "Test", "work_type": "article", "unknown_field": "value", "isbn": "123"}
+        data = {
+            "title": "Test",
+            "work_type": "article",
+            "unknown_field": "value",
+            "isbn": "123",
+        }
         result = CombinedCatalogWork.from_dict(data)
         assert isinstance(result, CatalogArticle)
         assert not hasattr(result, "unknown_field")
@@ -144,7 +161,11 @@ class TestBackwardCompatibility:
 
     def test_from_dict_prefers_consumed_date_over_read_date(self):
         """If both read_date and consumed_date present, prefer consumed_date."""
-        data = {"title": "Book", "read_date": "2024-01-01", "consumed_date": "2024-06-15"}
+        data = {
+            "title": "Book",
+            "read_date": "2024-01-01",
+            "consumed_date": "2024-06-15",
+        }
         result = CatalogBook.from_dict(data)
         assert result.consumed_date == "2024-06-15"
 
@@ -208,9 +229,7 @@ class TestSerialization:
 
     def test_catalog_podcast_asdict(self):
         """asdict should include podcast-specific fields."""
-        podcast = CatalogPodcastEpisode(
-            title="Episode", podcast_name="Show", episode_number=42
-        )
+        podcast = CatalogPodcastEpisode(title="Episode", podcast_name="Show", episode_number=42)
         d = podcast.asdict
         assert d["title"] == "Episode"
         assert d["podcast_name"] == "Show"

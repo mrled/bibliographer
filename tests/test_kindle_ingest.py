@@ -45,5 +45,7 @@ def test_kindle_library_ingest():
         assert book.title == expected_title, f"Expected title '{expected_title}', got '{book.title}'"
         assert book.authors == expected_authors, f"Expected authors {expected_authors}, got {book.authors}"
         assert book.kindle_asin == expected_asin, f"Expected ASIN {expected_asin}, got {book.kindle_asin}"
-        assert book.kindle_cover_url == expected_cover_url, f"Expected cover URL {expected_cover_url}, got {book.kindle_cover_url}"
+        assert book.kindle_cover_url == expected_cover_url, (
+            f"Expected cover URL {expected_cover_url}, got {book.kindle_cover_url}"
+        )
         assert book.slug is not None, "Book should have a slug"

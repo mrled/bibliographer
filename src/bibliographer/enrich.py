@@ -84,7 +84,11 @@ def enrich_combined_library(
     return
 
 
-def retrieve_covers(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Path], slug_filter: Optional[List[str]] = None):
+def retrieve_covers(
+    catalog: CardCatalog,
+    slug_roots: Dict[str, pathlib.Path],
+    slug_filter: Optional[List[str]] = None,
+):
     """Retrieve cover images for book entries in the combined library, or specific ones if slug_filter is provided.
 
     Only CatalogBook entries have cover fields (gbooks_volid, book_asin, kindle_asin, audible_asin).
@@ -171,7 +175,9 @@ def write_index_md_files(
 
 
 def write_bibliographer_json_files(
-    catalog: CardCatalog, slug_roots: Dict[str, pathlib.Path], slug_filter: Optional[List[str]] = None
+    catalog: CardCatalog,
+    slug_roots: Dict[str, pathlib.Path],
+    slug_filter: Optional[List[str]] = None,
 ):
     """Create bibliographer.json files for all entries in the combined library, or specific ones if slug_filter is provided.
 
@@ -198,7 +204,12 @@ def write_bibliographer_json_files(
         bibliographer_json_path.write_text(json.dumps(work.asdict, indent=2, sort_keys=True), encoding="utf-8")
 
 
-def rename_slug(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Path], old_slug: str, new_slug: str):
+def rename_slug(
+    catalog: CardCatalog,
+    slug_roots: Dict[str, pathlib.Path],
+    old_slug: str,
+    new_slug: str,
+):
     """Change the slug of a work in the combined library.
 
     Works for all work types (books, articles, podcasts, videos, etc.).

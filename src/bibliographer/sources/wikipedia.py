@@ -22,7 +22,12 @@ def wikipedia_relevant_pages(catalog: CardCatalog, title: str, authors: List[str
     def query_wikipedia(article: str):
         baseurl = "https://en.wikipedia.org/w/api.php"
         mlogger.debug(f"[WIKIPEDIA] Checking {article}")
-        params = {"action": "query", "titles": article, "format": "json", "prop": "info"}
+        params = {
+            "action": "query",
+            "titles": article,
+            "format": "json",
+            "prop": "info",
+        }
         r = requests.get(baseurl, params=params, timeout=10)
         mlogger.debug(f"[WIKIPEDIA] => status {r.status_code}")
         if r.status_code == 200:

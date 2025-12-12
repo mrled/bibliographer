@@ -3,14 +3,15 @@
 ###############################################################################
 
 
-from dataclasses import dataclass
 import pathlib
+from dataclasses import dataclass
 from typing import Optional
+
+import requests
 
 from bibliographer import mlogger
 from bibliographer.cardcatalog import CardCatalog
 from bibliographer.ratelimiter import RateLimiter
-import requests
 
 
 @dataclass
@@ -28,7 +29,7 @@ def download_cover_from_url(url: str) -> CoverData:
 
     r = requests.get(url, timeout=10, allow_redirects=True)
     r.raise_for_status()
-    mlogger.debug(f"[COVER] => status {r.status_code}, content-type={r.headers.get('Content-Type','')}")
+    mlogger.debug(f"[COVER] => status {r.status_code}, content-type={r.headers.get('Content-Type', '')}")
     if r.headers.get("Content-Type", "").startswith("image/"):
         image_data = r.content
         content_type = r.headers.get("Content-Type", "")
@@ -67,7 +68,7 @@ def amazon_cover_retreive(asin: str):
     headers = {"User-Agent": "Mozilla/5.0"}
     mlogger.debug(f"[AMAZON COVER] GET {url}")
     r = requests.get(url, headers=headers, timeout=10)
-    mlogger.debug(f"[AMAZON COVER] => status {r.status_code}, content-type={r.headers.get('Content-Type','')}")
+    mlogger.debug(f"[AMAZON COVER] => status {r.status_code}, content-type={r.headers.get('Content-Type', '')}")
     if r.status_code == 200 and r.headers.get("Content-Type", "").startswith("image/"):
         return r.content
     return None
@@ -87,7 +88,9 @@ def google_books_cover_retreive(catalog: CardCatalog, gbooks_volid: str) -> Opti
         and "image_urls" in catalog.gbooks_volumes.contents[gbooks_volid]
         and catalog.gbooks_volumes.contents[gbooks_volid]["image_urls"]
     ):
-        img_url = catalog.gbooks_volumes.contents[gbooks_volid]["image_urls"][0]  # only 1 stored if we followed the "largest" logic
+        img_url = catalog.gbooks_volumes.contents[gbooks_volid]["image_urls"][
+            0
+        ]  # only 1 stored if we followed the "largest" logic
         mlogger.debug(f"[COVER] Attempting GoogleBooks largest image {img_url}")
         return download_cover_from_url(img_url)
     mlogger.debug(f"[COVER] No image found for {gbooks_volid}")
@@ -147,6 +150,12 @@ def cover_path(book_dir: pathlib.Path) -> Optional[pathlib.Path]:
     if not book_dir.is_dir():
         return None
     for child in book_dir.iterdir():
-        if child.is_file() and child.suffix.lower() in [".jpg", ".jpeg", ".png", ".gif", ".webp"]:
+        if child.is_file() and child.suffix.lower() in [
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".gif",
+            ".webp",
+        ]:
             return child
     return None

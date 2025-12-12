@@ -6,8 +6,8 @@ import tempfile
 from unittest.mock import patch
 
 from bibliographer.cardcatalog import CardCatalog, CombinedCatalogBook
-from bibliographer.sources.openlibrary import isbn2olid, normalize_olid
 from bibliographer.enrich import enrich_combined_library
+from bibliographer.sources.openlibrary import isbn2olid, normalize_olid
 
 
 def test_isbn2olid_success_and_caching():
@@ -107,7 +107,7 @@ def test_enrich_normalizes_existing_olids():
             title="Test Book",
             authors=["Test Author"],
             slug="test-book",
-            openlibrary_id="/books/OL12345M"  # Prefixed OLID
+            openlibrary_id="/books/OL12345M",  # Prefixed OLID
         )
         catalog.combinedlib.contents["test-book"] = book
 
@@ -129,7 +129,7 @@ def test_enrich_normalizes_work_ids():
             title="Test Book",
             authors=["Test Author"],
             slug="test-work",
-            openlibrary_id="/works/OL67890W"  # Work ID with prefix
+            openlibrary_id="/works/OL67890W",  # Work ID with prefix
         )
         catalog.combinedlib.contents["test-work"] = book
 

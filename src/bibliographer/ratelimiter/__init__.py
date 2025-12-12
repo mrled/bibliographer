@@ -1,8 +1,7 @@
-"""A rate limiter decorator for Python functions.
-"""
+"""A rate limiter decorator for Python functions."""
 
-from functools import wraps
 import time
+from functools import wraps
 from typing import Dict
 
 

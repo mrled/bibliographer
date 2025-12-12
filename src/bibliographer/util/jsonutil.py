@@ -1,5 +1,4 @@
-"""JSON utilities
-"""
+"""JSON utilities"""
 
 import json
 import pathlib

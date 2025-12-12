@@ -6,7 +6,6 @@ import subprocess
 import textwrap
 from typing import Any, Callable, Dict, Generic, List, Optional, Type, TypeVar
 
-
 # The current config file version
 CURRENT_VERSION = "2.3"
 
@@ -167,9 +166,15 @@ class ConfigurationParameterSet:
             ConfigurationParameter("podcast_slug_root", pathlib.Path, None),
             ConfigurationParameter("video_slug_root", pathlib.Path, None),
             ConfigurationParameter(
-                "audible_login_file", pathlib.Path, pathlib.Path("./.bibliographer-audible-auth.json")
+                "audible_login_file",
+                pathlib.Path,
+                pathlib.Path("./.bibliographer-audible-auth.json"),
             ),
-            ConfigurationParameter("bibliographer_data_root", pathlib.Path, pathlib.Path("./bibliographer/data")),
+            ConfigurationParameter(
+                "bibliographer_data_root",
+                pathlib.Path,
+                pathlib.Path("./bibliographer/data"),
+            ),
             # Individual file overrides for apicache
             ConfigurationParameter("audible_library_file", pathlib.Path, None),
             ConfigurationParameter("kindle_library_file", pathlib.Path, None),

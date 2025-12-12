@@ -1,12 +1,11 @@
-"""Audible library retrieval and metadata management.
-"""
+"""Audible library retrieval and metadata management."""
 
-from getpass import getpass
 import json
 import pathlib
 import re
 import tempfile
-from typing import Any, Mapping, Optional, TYPE_CHECKING
+from getpass import getpass
+from typing import TYPE_CHECKING, Any, Mapping, Optional
 
 import audible
 
@@ -119,7 +118,7 @@ def encrypt_credentials(authfile: pathlib.Path, password_getter: "SecretValueGet
     authenticator = audible.Authenticator.from_file(authfile)
 
     # Save to temporary file with encryption (to_dict() doesn't encrypt)
-    with tempfile.NamedTemporaryFile(mode='r', delete=False, suffix='.json') as tmp:
+    with tempfile.NamedTemporaryFile(mode="r", delete=False, suffix=".json") as tmp:
         tmp_path = pathlib.Path(tmp.name)
 
     try:
@@ -153,7 +152,9 @@ def retrieve_audible_library(
     while True:
         mlogger.debug(f"[AUDIBLE] GET library page={page} size={page_size}")
         params: Mapping[str, Any] = dict(
-            num_results=page_size, page=page, response_groups="product_desc, media, product_attrs"
+            num_results=page_size,
+            page=page,
+            response_groups="product_desc, media, product_attrs",
         )
         resp = client.get("1.0/library", **params)
         items = resp["items"]
@@ -168,7 +169,7 @@ def retrieve_audible_library(
         if len(items) < page_size:
             break
 
-    print(f"Retrieved library pages up to page {page-1}")
+    print(f"Retrieved library pages up to page {page - 1}")
 
 
 def process_audible_library(
@@ -196,7 +197,11 @@ def process_audible_library(
 
         product_images = item.get("product_images", {})
         if product_images:
-            sorted_img_keys = sorted(product_images.keys(), key=lambda x: int(x) if x.isdigit() else 0, reverse=True)
+            sorted_img_keys = sorted(
+                product_images.keys(),
+                key=lambda x: int(x) if x.isdigit() else 0,
+                reverse=True,
+            )
             book.audible_cover_url = product_images[sorted_img_keys[0]]
 
         purchase_date = item.get("purchase_date")

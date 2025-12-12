@@ -1,14 +1,11 @@
-"""Utilities for command-line programs
-"""
+"""Utilities for command-line programs"""
 
+import argparse
 import os
 import pdb
 import sys
 import traceback
 from typing import Callable
-import argparse
-
-
 
 
 class AutoDescriptionArgumentParser(argparse.ArgumentParser):
@@ -38,18 +35,16 @@ class AutoDescriptionArgumentParser(argparse.ArgumentParser):
         # Create a custom subparser action class
         class AutoDescriptionSubParserAction(argparse._SubParsersAction):
             def add_parser(self, name, help=None, **kwargs):
-                if help and 'description' not in kwargs:
-                    kwargs['description'] = help
+                if help and "description" not in kwargs:
+                    kwargs["description"] = help
                 return super().add_parser(name, help=help, **kwargs)
 
         # Use the custom action class when creating subparsers
-        kwargs['action'] = AutoDescriptionSubParserAction
+        kwargs["action"] = AutoDescriptionSubParserAction
         return super().add_subparsers(**kwargs)
 
 
-def get_argparse_help_string(
-    name: str, parser: argparse.ArgumentParser, wrap: int = 80
-) -> str:
+def get_argparse_help_string(name: str, parser: argparse.ArgumentParser, wrap: int = 80) -> str:
     """Generate a docstring for an argparse parser that shows the help for the parser and all subparsers, recursively.
 
     Based on an idea from <https://github.com/pdoc3/pdoc/issues/89>
@@ -60,9 +55,7 @@ def get_argparse_help_string(
     * `wrap`: The number of characters to wrap the help text to (0 to disable)
     """
 
-    def get_parser_help_recursive(
-        parser: argparse.ArgumentParser, cmd: str = "", root: bool = True
-    ):
+    def get_parser_help_recursive(parser: argparse.ArgumentParser, cmd: str = "", root: bool = True):
         docstring = ""
         if not root:
             docstring += "\n" + "_" * 72 + "\n\n"
@@ -73,9 +66,7 @@ def get_argparse_help_string(
         for action in parser._actions:
             if isinstance(action, argparse._SubParsersAction):
                 for subcmd, subparser in action.choices.items():
-                    docstring += get_parser_help_recursive(
-                        subparser, f"{cmd} {subcmd}", root=False
-                    )
+                    docstring += get_parser_help_recursive(subparser, f"{cmd} {subcmd}", root=False)
         return docstring
 
     docstring = get_parser_help_recursive(parser, name)

@@ -4,7 +4,7 @@ import json
 import pathlib
 import tempfile
 from typing import Dict
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
