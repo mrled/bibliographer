@@ -1,0 +1,268 @@
+{
+  "690f5f6bc729572cec44a633": {
+    "_id": "690f5f6bc729572cec44a633",
+    "color": "yellow",
+    "created": "2025-11-08T15:19:07.840Z",
+    "link": "https://xeiaso.net/blog/2025/rolling-ladder-behind-us/",
+    "note": "",
+    "raindropRef": 1426181278,
+    "tags": [],
+    "text": "Vibe coding is payday loans for technical debt",
+    "title": "Rolling the ladder up behind us - Xe Iaso"
+  },
+  "690f61409440d5a2681b6c23": {
+    "_id": "690f61409440d5a2681b6c23",
+    "color": "yellow",
+    "created": "2025-11-08T15:26:56.960Z",
+    "link": "https://spiess.dev/note/engineering/effective-writing",
+    "note": "",
+    "raindropRef": 1426184290,
+    "tags": [],
+    "text": "Whenever I write something, I take a few minutes afterwards to think about the immediate next question that a reader might have and then incorporate the answer into the writing. This works great for any documents but is especially helpful when I need to ask for help as it will sometimes even answer the question that I had in the beginning.\n\nI started to call this \"doing homework\" and my intention is to save time for the reader and thus improve clarity. I need to work hard to only do this for one level, though, since it can be easy to get distracted this way.",
+    "title": "Effective Writing | Engineering | Philipp Spiess"
+  },
+  "690f614dbca379cbee4b42e6": {
+    "_id": "690f614dbca379cbee4b42e6",
+    "color": "yellow",
+    "created": "2025-11-08T15:27:09.223Z",
+    "link": "https://spiess.dev/note/engineering/effective-writing",
+    "note": "",
+    "raindropRef": 1426184290,
+    "tags": [],
+    "text": "The idea is simple: define the kind of person that your writing is for in advance. And then write only for them.",
+    "title": "Effective Writing | Engineering | Philipp Spiess"
+  },
+  "691776adc158147f30cde887": {
+    "_id": "691776adc158147f30cde887",
+    "color": "yellow",
+    "created": "2025-11-14T18:36:29.537Z",
+    "link": "https://archive.boston.com/bostonglobe/ideas/articles/2010/02/28/warning_your_reality_is_out_of_date/",
+    "note": "",
+    "raindropRef": 1433462249,
+    "tags": [],
+    "text": "These slow-changing facts are what I term “mesofacts.” Mesofacts are the facts that change neither too quickly nor too slowly, that lie in this difficult-to-comprehend middle, or meso-, scale. Often, we learn these in school when young and hold onto them, even after they change. For example, if, as a baby boomer, you learned high school chemistry in 1970, and then, as we all are apt to do, did not take care to brush up on your chemistry periodically, you would not realize that there are 12 new elements in the Periodic Table. Over a tenth of the elements have been discovered since you graduated high school! While this might not affect your daily life, it is astonishing and a bit humbling.",
+    "title": "Warning: Your reality is out of date - The Boston Globe"
+  },
+  "692a67d6866e0e48eb6f328e": {
+    "_id": "692a67d6866e0e48eb6f328e",
+    "color": "yellow",
+    "created": "2025-11-29T03:26:14.366Z",
+    "link": "https://freddiedeboer.substack.com/p/constituent-parts-of-a-theory-of?publication_id=295937&post_id=173449943&isFreemail=true&r=xzcz&triedRedirect=true",
+    "note": "",
+    "raindropRef": 1457461060,
+    "tags": [],
+    "text": "Spectacular acts of public violence, therefore, maybe be better understood less as a direct product of the lack of meaning but more precisely as products of the system’s violent oscillation between two extremes. As the rigid structure of the 1950s (for example) is consumed and broken down by this new, unanchored population in the 1960s (for example), the predator of purposelessness thrives. This consumption, in turn, eventually leads to a collapse of the rigid meaning structures, which starves the violence of its prey and forces a temporary quiet. But this is not a final state. The system, once devoured, then begins the slow, painful process of rebuilding a new, singular form of meaning, restarting the inevitable cycle. The mass shooter, the mad bomber, the bored assassin is a product of this oscillation, a biological mechanism of a chaotic system, an embodiment of the violent transition from one ideological state to another. The violence is the inevitable result of a system that cannot tolerate either a lack of purpose or its oppressive abundance and so perpetually oscillates between them.",
+    "title": "Constituent Parts of a Theory of Spectacular Acts of Public Violence"
+  },
+  "692ba30bba151c434e9b746e": {
+    "_id": "692ba30bba151c434e9b746e",
+    "color": "yellow",
+    "created": "2025-11-30T01:51:07.945Z",
+    "link": "https://kk.org/thetechnium/the-periodic-table-of-cognition/",
+    "note": "",
+    "raindropRef": 1461613229,
+    "tags": [],
+    "text": "Almost no thinker, researcher, experimenter, or scientist at that time could see the true nature of electricity, electromagnetism, radiation and subatomic particles, because the whole picture was hugely unintuitive. Waves, force fields, particles of atoms did not make sense (and still does not make common sense). It required sophisticated mathematics to truly comprehend it, and even after Maxwell described it mathematically, he found it hard to visualize.\n\nI expect the same from intelligence. Even after we identify its ingredients, the emergent properties they generate are likely to be obscure and hard to believe, hard to visualize. Intelligence is unlikely to make common sense.",
+    "title": "The Technium: The Periodic Table of Cognition"
+  },
+  "692c389df4eb8f8063b431c6": {
+    "_id": "692c389df4eb8f8063b431c6",
+    "created": "2025-11-30T12:29:17.765Z",
+    "link": "https://go-proverbs.github.io/",
+    "note": "",
+    "raindropRef": 1463710014,
+    "tags": [
+      "editablesoftware",
+      "staticincludes"
+    ],
+    "text": "A little copying is better than a little dependency.",
+    "title": "Go Proverbs"
+  },
+  "6930b006cd20afc054d06695": {
+    "_id": "6930b006cd20afc054d06695",
+    "color": "yellow",
+    "created": "2025-12-03T21:47:50.875Z",
+    "link": "https://cfenollosa.com/blog/ai-favors-texts-written-by-other-ais-even-when-theyre-worse-than-human-ones.html",
+    "note": "",
+    "raindropRef": 1427282818,
+    "tags": [],
+    "text": "And I found a fascinating pattern: the AI gives artificially high scores to reports written with AI.\n\nThe models perceive LLM-written reports as more professional and of higher quality. They prioritize form over substance.\n\nAnd I'm not saying that style isn't important, because it is, in the real world. But it was giving very high marks to poorly reasoned, error-filled work simply because it was elegantly written.",
+    "title": "AI favors texts written by other AIs, even when they're worse than human ones"
+  },
+  "6930b00fb5edf5239d8ccb8c": {
+    "_id": "6930b00fb5edf5239d8ccb8c",
+    "color": "yellow",
+    "created": "2025-12-03T21:47:59.331Z",
+    "link": "https://cfenollosa.com/blog/ai-favors-texts-written-by-other-ais-even-when-theyre-worse-than-human-ones.html",
+    "note": "",
+    "raindropRef": 1427282818,
+    "tags": [],
+    "text": "When I asked the model what it based its evaluation on, it said things like: \"Well, the students didn't literally write [something]... I inferred it from their abstract, which was very well written.\"\n\nIn other words, good writing produced by one LLM leads to a good evaluation by another LLM, even if the content is wrong.\n\nMeanwhile, good writing by a student doesn't necessarily lead to a good evaluation by an LLM.",
+    "title": "AI favors texts written by other AIs, even when they're worse than human ones"
+  },
+  "6930b0172c2cfdf0999e2552": {
+    "_id": "6930b0172c2cfdf0999e2552",
+    "color": "yellow",
+    "created": "2025-12-03T21:48:07.633Z",
+    "link": "https://cfenollosa.com/blog/ai-favors-texts-written-by-other-ais-even-when-theyre-worse-than-human-ones.html",
+    "note": "",
+    "raindropRef": 1427282818,
+    "tags": [],
+    "text": "At that point, I couldn't help but think of Anthropic's paper on subliminal learning between language models. The mechanism isn't the same, but it made me wonder if we're looking at a similar phenomenon.",
+    "title": "AI favors texts written by other AIs, even when they're worse than human ones"
+  },
+  "69337c0d57ba772dcf374fe2": {
+    "_id": "69337c0d57ba772dcf374fe2",
+    "color": "yellow",
+    "created": "2025-12-06T00:42:53.317Z",
+    "link": "https://sinclairtarget.com/blog/2025/08/thoughts-on-go-vs.-rust-vs.-zig/",
+    "note": "",
+    "raindropRef": 1475973298,
+    "tags": [],
+    "text": "Go isn’t like C, because it is garbage-collected and has a real run-time, but it is like C in that you can fit the whole language in your head.",
+    "title": "Thoughts on Go vs. Rust vs. Zig | Sinclair Target"
+  },
+  "69337c946f0bd53a4f5e39f0": {
+    "_id": "69337c946f0bd53a4f5e39f0",
+    "color": "yellow",
+    "created": "2025-12-06T00:45:08.219Z",
+    "link": "https://taoofmac.com/space/links/2025/12/05/1330",
+    "note": "",
+    "raindropRef": 1475979954,
+    "tags": [],
+    "text": "A sizable chunk of this is a direct consequence of the uncertainty created by tariff policies and geopolitical tensions affecting supply chains. Everyone",
+    "title": "The RAMpocalypse is Nigh - Tao of Mac"
+  },
+  "69337cb03cae342b2e574753": {
+    "_id": "69337cb03cae342b2e574753",
+    "color": "yellow",
+    "created": "2025-12-06T00:45:36.962Z",
+    "link": "https://taoofmac.com/space/links/2025/12/05/1330",
+    "note": "",
+    "raindropRef": 1475979954,
+    "tags": [],
+    "text": "I do find it highly amusing that people find that Apple’s M-series Macs are now in line with the market, especially since this dynamic doesn’t really apply to Apple–remember they fab the RAM directly into their CPUs, so they’re largely immune to discrete component pricing fluctuations.",
+    "title": "The RAMpocalypse is Nigh - Tao of Mac"
+  },
+  "69340fb1bf2a25fd60c2da6c": {
+    "_id": "69340fb1bf2a25fd60c2da6c",
+    "color": "yellow",
+    "created": "2025-12-06T11:12:49.789Z",
+    "link": "https://sinclairtarget.com/blog/2025/08/thoughts-on-go-vs.-rust-vs.-zig/",
+    "note": "",
+    "raindropRef": 1475973298,
+    "tags": [],
+    "text": "It’s not just that Zig is trying to be simpler. I think this difference is the more important one. Zig wants you to excise even more object-oriented thinking from your code.",
+    "title": "Thoughts on Go vs. Rust vs. Zig | Sinclair Target"
+  },
+  "6934801dda79137c2768bf09": {
+    "_id": "6934801dda79137c2768bf09",
+    "color": "yellow",
+    "created": "2025-12-06T19:12:29.471Z",
+    "link": "https://www.thediff.co/archive/longreads-open-thread-159/?ref=the-diff-newsletter",
+    "note": "",
+    "raindropRef": 1477000641,
+    "tags": [],
+    "text": "Excel is sticky partly because users seamlessly transition from using it as a calculator to using it as a programming language. And it's an interesting language paradigm—basically an IDE whose default interface is a debugger showing you the inputs to your functions and their outputs, while hiding the functions themselves. That might be the gentlest way to introduce someone to programming: by having a coding interface that's focused on showing you potentially buggy outputs rather than the logic that produced them.",
+    "title": "Longreads + Open Thread"
+  },
+  "6935a883c2e565bd6d279551": {
+    "_id": "6935a883c2e565bd6d279551",
+    "color": "yellow",
+    "created": "2025-12-07T16:17:07.413Z",
+    "link": "https://gwern.net/archiving",
+    "note": "",
+    "raindropRef": 1478203430,
+    "tags": [],
+    "text": "it’s al­ways the apoc­a­lypse some­where for some­one",
+    "title": "Archiving URLs · Gwern.net"
+  },
+  "69370c92d492dd37732fb6c2": {
+    "_id": "69370c92d492dd37732fb6c2",
+    "color": "green",
+    "created": "2025-12-08T17:36:18.234Z",
+    "link": "https://www.beatworm.co.uk/blog/computers/perls-decline-was-cultural-not-technical",
+    "note": "",
+    "raindropRef": 1479972497,
+    "tags": [],
+    "text": "An unfortunate feedback loop in this kind of \"perilous\" environment is that it easily turns prideful. It's difficult to thrive here, if you survive and do well you are skilled; you've performed feats; you should mark your rites of passage. This can become a dangerous culture trap. If you're not careful about it, you may start to think of the hazards and difficulties, the \"foot guns\", as necessary features - they teach you those essential survival skills that mark you out. More unkindly, they keep the stupid folk out, and help preserve the high status of those who survived long enough to be assimilated. Uh-oh, now you've invented class politics.",
+    "title": "Perl's decline was cultural"
+  },
+  "693716e6a5c33abd80fe7c0e": {
+    "_id": "693716e6a5c33abd80fe7c0e",
+    "color": "green",
+    "created": "2025-12-08T18:20:22.605Z",
+    "link": "https://www.beatworm.co.uk/blog/AI/ai-shibboleths-4gl-llms-sql-interfaces",
+    "note": "",
+    "raindropRef": 1480042883,
+    "tags": [],
+    "text": "Chat bots are unquestionably a very ergonomic interface.\n\nIncreasingly, I am starting to think that a key part of unlocking the value of LLMs, may be through thinking about them more as solutions for interface design problems.",
+    "title": "Shibboleths"
+  },
+  "693716f4b5459d9e9b1aee05": {
+    "_id": "693716f4b5459d9e9b1aee05",
+    "color": "green",
+    "created": "2025-12-08T18:20:36.972Z",
+    "link": "https://www.beatworm.co.uk/blog/AI/ai-shibboleths-4gl-llms-sql-interfaces",
+    "note": "",
+    "raindropRef": 1480042883,
+    "tags": [],
+    "text": "I have definitely enjoyed being the knuckle-cracking \"stand back everyone and stop panicking, I know how to fix this\" guy on a number of occasions, but that is a sideshow. You can do circus tricks with power tools, and some people do, but it's not the reason the tools were made.",
+    "title": "Shibboleths"
+  },
+  "6937172d1a1e5a3521bc98e7": {
+    "_id": "6937172d1a1e5a3521bc98e7",
+    "color": "yellow",
+    "created": "2025-12-08T18:21:33.909Z",
+    "link": "https://www.beatworm.co.uk/blog/AI/ai-shibboleths-4gl-llms-sql-interfaces",
+    "note": "",
+    "raindropRef": 1480042883,
+    "tags": [],
+    "text": "Git's foul ergonomics",
+    "title": "Shibboleths"
+  },
+  "6938a91ab36e09aff47e49f4": {
+    "_id": "6938a91ab36e09aff47e49f4",
+    "color": "yellow",
+    "created": "2025-12-09T22:56:26.400Z",
+    "link": "https://www.harvardmagazine.com/2009/09/james-watson-edward-o-wilson-intellectual-entente",
+    "note": "",
+    "raindropRef": 1481820269,
+    "tags": [],
+    "text": "The real problem of humanity is the following: we have paleolithic emotions; medieval institutions; and god-like technology",
+    "title": "James Watson and Edward O. Wilson: An Intellectual Entente | Harvard Magazine"
+  },
+  "69398779ab7b9777549bb4c5": {
+    "_id": "69398779ab7b9777549bb4c5",
+    "color": "yellow",
+    "created": "2025-12-10T14:45:13.794Z",
+    "link": "https://borretti.me/article/i-wish-people-were-more-public",
+    "note": "",
+    "raindropRef": 1482648144,
+    "tags": [],
+    "text": "I try to apply a rule that if I do something, and don’t write about it—or otherwise generate external-facing evidence of it—it didn’t happen. I have built so many things in the dark, little experiments or software projects or essays that never saw the light of day. I want to put more things out. If it doesn’t merit an entire blog post, then at least a tweet.",
+    "title": "I Wish People Were More Public"
+  },
+  "693987a64d7d1108595840bf": {
+    "_id": "693987a64d7d1108595840bf",
+    "color": "yellow",
+    "created": "2025-12-10T14:45:58.600Z",
+    "link": "https://borretti.me/article/i-wish-people-were-more-public",
+    "note": "",
+    "raindropRef": 1482648144,
+    "tags": [],
+    "text": "My default mode is solipsism. I read in private, build in private, learn in private. And the problem with that is self-doubt and arbitrariness. I’m halfway through a textbook and think: why? Why am I learning geology? Why this topic, and not another? There is never an a priori reason. I take notes, but why tweak the LaTeX if no-one, probably not even future me, will read them? If I stop reading this book, what changes? And doing things in public makes them both more real and (potentially) useful.",
+    "title": "I Wish People Were More Public"
+  },
+  "693987c251d0e72b9a71641f": {
+    "_id": "693987c251d0e72b9a71641f",
+    "color": "yellow",
+    "created": "2025-12-10T14:46:26.679Z",
+    "link": "https://borretti.me/article/i-wish-people-were-more-public",
+    "note": "",
+    "raindropRef": 1482648144,
+    "tags": [],
+    "text": "I’m interested in people who customize their experience of computing. This is often derided as “ricing”. But agency is interesting. People who remake their environment to suit them are interesting. And I am endlessly curious about how people do this.",
+    "title": "I Wish People Were More Public"
+  }
+}
