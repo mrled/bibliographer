@@ -33,7 +33,7 @@ from bibliographer.enrich import (
     write_bibliographer_json_files,
     write_index_md_files,
 )
-from bibliographer.util.slugify import slugify
+from bibliographer.util.slugify import regenerate_slug_for_item, slugify
 from bibliographer.sources.amazon_browser import amazon_browser_search_cached
 from bibliographer.sources.audible import (
     audible_login,
@@ -756,8 +756,7 @@ def main(arguments: list[str]) -> int:
                 rename_slug(catalog, slug_roots, args.old_slug, args.new_slug)
             elif args.slug_subcommand == "regenerate":
                 item = catalog.combinedlib.contents[args.slug]
-                remove_subtitle = isinstance(item, CatalogBook)
-                new_slug = slugify(item.title, remove_subtitle=remove_subtitle)
+                new_slug = regenerate_slug_for_item(item, args.slug)
                 if new_slug == args.slug:
                     print(f"Slug for {args.slug} is already {new_slug}")
                     return 0
@@ -765,6 +764,10 @@ def main(arguments: list[str]) -> int:
                     if input(f"Change slug from {args.slug} to {new_slug}? [y/N] ").strip().lower() != "y":
                         return 1
                 rename_slug(catalog, slug_roots, args.slug, new_slug)
+                # Update raindropslugs mapping if this item has a URL tracked there
+                item_url = getattr(item, "url", None)
+                if item_url and item_url in catalog.raindropslugs.contents:
+                    catalog.raindropslugs.contents[item_url] = new_slug
 
         elif args.subcommand == "version":
             print(get_version())

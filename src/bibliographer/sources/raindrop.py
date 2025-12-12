@@ -1,12 +1,10 @@
 """Raindrop.io API integration for retrieving highlights."""
 
-from urllib.parse import urlparse
-
 import requests
 
 from bibliographer import mlogger
 from bibliographer.cardcatalog import CardCatalog, CatalogArticle
-from bibliographer.util.slugify import slugify
+from bibliographer.util.slugify import generate_raindrop_slug
 
 RAINDROP_API_BASE = "https://api.raindrop.io/rest/v1"
 HIGHLIGHTS_ENDPOINT = "/highlights"
@@ -103,10 +101,8 @@ def process_raindrop_highlights(catalog: CardCatalog):
 
         # Map URL to slug: domain/slugified-title-id
         if url not in catalog.raindropslugs.contents:
-            domain = urlparse(url).netloc
             highlight_id = url_highlights[0]["_id"]
-            title_slug = slugify(title, remove_subtitle=False)
-            catalog.raindropslugs.contents[url] = f"{domain}/{title_slug}-{highlight_id}"
+            catalog.raindropslugs.contents[url] = generate_raindrop_slug(url, title, highlight_id)
         slug = catalog.raindropslugs.contents[url]
 
         # Find the earliest created date among all highlights for this URL
