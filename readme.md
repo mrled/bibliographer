@@ -486,13 +486,14 @@ options:
 ________________________________________________________________________
 
 > bibliographer populate --help
-usage: bibliographer populate [-h] [--slug [SLUG ...]]
+usage: bibliographer populate [-h] [--slug [SLUG ...]] [--draft]
 
 Populate bibliographer.json files
 
 options:
   -h, --help         show this help message and exit
   --slug [SLUG ...]  Populate only specific books by slug (can specify multiple)
+  --draft            Set draft: true in generated index.md files
 
 ________________________________________________________________________
 
