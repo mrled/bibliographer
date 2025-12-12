@@ -4,7 +4,7 @@ import requests
 
 from bibliographer import mlogger
 from bibliographer.cardcatalog import CardCatalog, CatalogBook
-from bibliographer.util.slugify import slugify
+from bibliographer.util.slugify import generate_slug_for_work
 
 LIBRO_BASE_URL = "https://libro.fm"
 LOGIN_ENDPOINT = "/oauth/token"
@@ -69,7 +69,7 @@ def process_librofm_library(catalog: CardCatalog):
         book.librofm_cover_url = re.sub(r"^//", "https://", item.get("cover_url", ""))
 
         if book.librofm_isbn not in catalog.librofmslugs.contents:
-            catalog.librofmslugs.contents[book.librofm_isbn] = slugify(item["title"])
+            catalog.librofmslugs.contents[book.librofm_isbn] = generate_slug_for_work(book)
         book.slug = catalog.librofmslugs.contents[book.librofm_isbn]
 
         if book.slug in catalog.combinedlib.contents:

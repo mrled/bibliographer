@@ -6,7 +6,7 @@ from bibliographer.cardcatalog import CatalogArticle, CatalogBook
 from bibliographer.util.slugify import (
     extract_raindrop_highlight_id,
     generate_raindrop_slug,
-    regenerate_slug_for_item,
+    generate_slug_for_work,
     slugify,
 )
 
@@ -107,56 +107,68 @@ class TestExtractRaindropHighlightId:
         assert extract_raindrop_highlight_id("example.com/title-zzzzzzzzzzzzzzzzzzzzzzzz") is None
 
 
-class TestRegenerateSlugForItem:
-    """Tests for regenerate_slug_for_item function."""
+class TestGenerateSlugForWork:
+    """Tests for generate_slug_for_work function."""
 
-    def test_regenerate_book_removes_subtitle(self):
+    def test_book_removes_subtitle(self):
         """Book slugs should remove subtitles."""
         book = CatalogBook(title="Main Title: The Subtitle")
-        result = regenerate_slug_for_item(book, "old-slug")
+        result = generate_slug_for_work(book)
         assert result == "main-title"
 
-    def test_regenerate_article_keeps_subtitle(self):
+    def test_article_keeps_subtitle(self):
         """Article slugs should keep subtitles."""
         article = CatalogArticle(title="Main Title: The Subtitle")
-        result = regenerate_slug_for_item(article, "old-slug")
+        result = generate_slug_for_work(article)
         assert result == "main-title-the-subtitle"
 
-    def test_regenerate_raindrop_article(self):
+    def test_raindrop_article(self):
         """Raindrop article slugs should use domain/title-id format when slug has highlight ID."""
         article = CatalogArticle(
             title="My Article",
             url="https://example.com/post"
         )
         current_slug = "example.com/old-title-670b2d1c37e0980e9a123456"
-        result = regenerate_slug_for_item(article, current_slug)
+        result = generate_slug_for_work(article, current_slug)
         assert result == "example.com/my-article-670b2d1c37e0980e9a123456"
 
-    def test_regenerate_raindrop_preserves_highlight_id(self):
+    def test_raindrop_preserves_highlight_id(self):
         """Raindrop regeneration should preserve the original highlight ID."""
         article = CatalogArticle(
             title="Updated Title: With Subtitle",
             url="https://blog.example.org/article"
         )
         current_slug = "blog.example.org/old-title-abcdef1234567890abcdef12"
-        result = regenerate_slug_for_item(article, current_slug)
+        result = generate_slug_for_work(article, current_slug)
         assert result == "blog.example.org/updated-title-with-subtitle-abcdef1234567890abcdef12"
 
     def test_article_without_raindrop_id_uses_simple_slug(self):
         """Articles with non-raindrop slugs should use simple slug format."""
         article = CatalogArticle(title="Test Article", url="https://example.com")
-        result = regenerate_slug_for_item(article, "old-simple-slug")
+        result = generate_slug_for_work(article, "old-simple-slug")
         assert result == "test-article"
 
     def test_article_with_url_but_no_highlight_id_uses_simple_slug(self):
         """Articles with URL but no highlight ID in slug use simple format."""
         article = CatalogArticle(title="My Post", url="https://example.com/post")
-        result = regenerate_slug_for_item(article, "my-post")
+        result = generate_slug_for_work(article, "my-post")
         assert result == "my-post"
 
     def test_slug_with_highlight_id_but_no_url_uses_simple_slug(self):
         """If slug has highlight ID pattern but item has no URL, use simple slug."""
         article = CatalogArticle(title="Test")
         current_slug = "example.com/test-670b2d1c37e0980e9a123456"
-        result = regenerate_slug_for_item(article, current_slug)
+        result = generate_slug_for_work(article, current_slug)
         assert result == "test"
+
+    def test_article_without_title_uses_url(self):
+        """Articles without title should fall back to URL for slug."""
+        article = CatalogArticle(url="https://example.com/my-article-path")
+        result = generate_slug_for_work(article)
+        assert result == "httpsexamplecommy-article-path"
+
+    def test_item_without_title_or_url_raises_error(self):
+        """Items without title or URL should raise ValueError."""
+        article = CatalogArticle()
+        with pytest.raises(ValueError, match="Cannot generate slug"):
+            generate_slug_for_work(article)

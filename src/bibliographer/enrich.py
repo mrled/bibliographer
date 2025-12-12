@@ -5,7 +5,6 @@ from typing import Dict, List, Optional
 
 from bibliographer import mlogger
 from bibliographer.cardcatalog import CardCatalog, CatalogBook, WorkType
-from bibliographer.util.slugify import slugify
 from bibliographer.sources.amazon_browser import amazon_browser_search_cached
 from bibliographer.sources.covers import lookup_cover
 from bibliographer.sources.googlebooks import google_books_retrieve, google_books_search
@@ -122,7 +121,12 @@ def retrieve_covers(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Path], s
         )
 
 
-def write_index_md_files(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Path], slug_filter: Optional[List[str]] = None, draft: bool = False):
+def write_index_md_files(
+    catalog: CardCatalog,
+    slug_roots: Dict[str, pathlib.Path],
+    slug_filter: Optional[List[str]] = None,
+    draft: bool = False,
+):
     """Create index.md files for all entries in the combined library, or specific ones if slug_filter is provided.
 
     Works for all work types (books, articles, podcasts, videos, etc.).
@@ -166,7 +170,9 @@ def write_index_md_files(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Pat
             index_md_path.write_text(frontmatter, encoding="utf-8")
 
 
-def write_bibliographer_json_files(catalog: CardCatalog, slug_roots: Dict[str, pathlib.Path], slug_filter: Optional[List[str]] = None):
+def write_bibliographer_json_files(
+    catalog: CardCatalog, slug_roots: Dict[str, pathlib.Path], slug_filter: Optional[List[str]] = None
+):
     """Create bibliographer.json files for all entries in the combined library, or specific ones if slug_filter is provided.
 
     Works for all work types (books, articles, podcasts, videos, etc.).

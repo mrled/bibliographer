@@ -49,11 +49,11 @@ def extract_raindrop_highlight_id(slug: str) -> str | None:
     return match.group(1) if match else None
 
 
-def regenerate_slug_for_item(
+def generate_slug_for_work(
     item: CombinedCatalogWork,
-    current_slug: str,
+    current_slug: str = "",
 ) -> str:
-    """Regenerate a slug for a catalog item.
+    """Generate a slug for a catalog item.
 
     Automatically detects raindrop items by checking if the current slug
     contains a raindrop highlight ID pattern.
@@ -61,17 +61,27 @@ def regenerate_slug_for_item(
     Args:
         item: The catalog item to generate a slug for.
         current_slug: The current slug (used to detect and extract highlight ID for raindrop items).
+            Optional for non-raindrop items.
 
     Returns:
-        The newly generated slug.
+        The generated slug.
     """
     highlight_id = extract_raindrop_highlight_id(current_slug)
     url = getattr(item, "url", None)
 
     # If slug has a highlight ID and item has a URL, treat as raindrop item
     if highlight_id and url:
+        if item.title is None:
+            raise ValueError("Cannot generate raindrop slug: item has no title")
         return generate_raindrop_slug(url, item.title, highlight_id)
-    else:
-        # Books remove subtitles, other types keep them
-        remove_subtitle = item.work_type == "book"
+
+    # Books remove subtitles, other types keep them
+    remove_subtitle = item.work_type == "book"
+
+    # Use title if available, otherwise fall back to URL for non-book types
+    if item.title:
         return slugify(item.title, remove_subtitle=remove_subtitle)
+    elif url:
+        return slugify(url, remove_subtitle=False)
+    else:
+        raise ValueError("Cannot generate slug: item has no title or URL")

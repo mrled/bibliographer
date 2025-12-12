@@ -12,7 +12,7 @@ import audible
 
 from bibliographer import mlogger
 from bibliographer.cardcatalog import CardCatalog, CatalogBook
-from bibliographer.util.slugify import slugify
+from bibliographer.util.slugify import generate_slug_for_work
 
 if TYPE_CHECKING:
     from bibliographer.cli.bibliographer import SecretValueGetter
@@ -211,7 +211,7 @@ def process_audible_library(
             book.purchase_date = None
 
         if asin not in catalog.audibleslugs.contents:
-            catalog.audibleslugs.contents[asin] = slugify(item["title"])
+            catalog.audibleslugs.contents[asin] = generate_slug_for_work(book)
         book.slug = catalog.audibleslugs.contents[asin]
 
         if book.slug in catalog.combinedlib.contents:

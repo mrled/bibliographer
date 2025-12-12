@@ -3,7 +3,7 @@ import pathlib
 from bibliographer import mlogger
 from bibliographer.cardcatalog import CardCatalog, CatalogBook
 from bibliographer.util.jsonutil import load_json
-from bibliographer.util.slugify import slugify
+from bibliographer.util.slugify import generate_slug_for_work
 
 
 def ingest_kindle_library(
@@ -41,7 +41,7 @@ def process_kindle_library(
         book.kindle_cover_url = item.get("productUrl")
 
         if asin not in catalog.kindleslugs.contents:
-            catalog.kindleslugs.contents[asin] = slugify(item["title"])
+            catalog.kindleslugs.contents[asin] = generate_slug_for_work(book)
         book.slug = catalog.kindleslugs.contents[asin]
 
         if book.slug in catalog.combinedlib.contents:

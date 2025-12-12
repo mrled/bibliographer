@@ -7,7 +7,7 @@ from bibliographer.cardcatalog import (
     CatalogPodcastEpisode,
     CatalogVideo,
 )
-from bibliographer.util.slugify import slugify
+from bibliographer.util.slugify import generate_slug_for_work
 from bibliographer.util.isbnutil import normalize_isbn
 
 
@@ -28,24 +28,25 @@ def add_book(
     if isbn:
         isbn = normalize_isbn(isbn)
 
-    # We'll create a slug from either the title or the ISBN
-    if not slug:
-        if title:
-            slug = slugify(title)
-        else:
-            slug = f"book-{isbn}"
-
-    if slug in catalog.combinedlib.contents:
-        raise ValueError(f"Slug {slug} already exists, edit that entry or choose a different slug")
-
     book = CatalogBook(
         title=title,
         authors=authors or [],
         isbn=isbn,
         purchase_date=purchase_date,
         consumed_date=read_date,
-        slug=slug,
     )
+
+    # Use provided slug, or generate from title, or fall back to ISBN-based slug
+    if not slug:
+        if title:
+            slug = generate_slug_for_work(book)
+        else:
+            slug = f"book-{isbn}"
+
+    if slug in catalog.combinedlib.contents:
+        raise ValueError(f"Slug {slug} already exists, edit that entry or choose a different slug")
+
+    book.slug = slug
     catalog.combinedlib.contents[slug] = book
     print(f"Added book {slug}")
 
@@ -65,15 +66,6 @@ def add_article(
     if not title and not url:
         raise Exception("Must specify at least --title or --url")
 
-    if not slug:
-        if title:
-            slug = slugify(title, remove_subtitle=False)
-        elif url:
-            slug = slugify(url, remove_subtitle=False)
-
-    if slug in catalog.combinedlib.contents:
-        raise ValueError(f"Slug {slug} already exists, edit that entry or choose a different slug")
-
     article = CatalogArticle(
         title=title,
         authors=authors or [],
@@ -81,8 +73,15 @@ def add_article(
         publication=publication,
         purchase_date=purchase_date,
         consumed_date=consumed_date,
-        slug=slug,
     )
+
+    if not slug:
+        slug = generate_slug_for_work(article)
+
+    if slug in catalog.combinedlib.contents:
+        raise ValueError(f"Slug {slug} already exists, edit that entry or choose a different slug")
+
+    article.slug = slug
     catalog.combinedlib.contents[slug] = article
     print(f"Added article {slug}")
 
@@ -103,15 +102,6 @@ def add_podcast(
     if not title and not url:
         raise Exception("Must specify at least --title or --url")
 
-    if not slug:
-        if title:
-            slug = slugify(title, remove_subtitle=False)
-        elif url:
-            slug = slugify(url, remove_subtitle=False)
-
-    if slug in catalog.combinedlib.contents:
-        raise ValueError(f"Slug {slug} already exists, edit that entry or choose a different slug")
-
     podcast = CatalogPodcastEpisode(
         title=title,
         authors=authors or [],
@@ -120,8 +110,15 @@ def add_podcast(
         episode_number=episode_number,
         purchase_date=purchase_date,
         consumed_date=consumed_date,
-        slug=slug,
     )
+
+    if not slug:
+        slug = generate_slug_for_work(podcast)
+
+    if slug in catalog.combinedlib.contents:
+        raise ValueError(f"Slug {slug} already exists, edit that entry or choose a different slug")
+
+    podcast.slug = slug
     catalog.combinedlib.contents[slug] = podcast
     print(f"Added podcast episode {slug}")
 
@@ -140,22 +137,20 @@ def add_video(
     if not title and not url:
         raise Exception("Must specify at least --title or --url")
 
-    if not slug:
-        if title:
-            slug = slugify(title, remove_subtitle=False)
-        elif url:
-            slug = slugify(url, remove_subtitle=False)
-
-    if slug in catalog.combinedlib.contents:
-        raise ValueError(f"Slug {slug} already exists, edit that entry or choose a different slug")
-
     video = CatalogVideo(
         title=title,
         authors=authors or [],
         url=url,
         purchase_date=purchase_date,
         consumed_date=consumed_date,
-        slug=slug,
     )
+
+    if not slug:
+        slug = generate_slug_for_work(video)
+
+    if slug in catalog.combinedlib.contents:
+        raise ValueError(f"Slug {slug} already exists, edit that entry or choose a different slug")
+
+    video.slug = slug
     catalog.combinedlib.contents[slug] = video
     print(f"Added video {slug}")
