@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from bibliographer.cardcatalog import CombinedCatalogWork
 
 
-def slugify(title: str, remove_subtitle: bool = True) -> str:
+def slugify_title(title: str, remove_subtitle: bool = True) -> str:
     """
     Convert a title into a slug.
     - Optionally remove subtitle (default: True)
@@ -34,7 +34,7 @@ def generate_raindrop_slug(url: str, title: str, highlight_id: str) -> str:
     Format: {domain}/{title_slug}-{highlight_id}
     """
     domain = urlparse(url).netloc
-    title_slug = slugify(title, remove_subtitle=False)
+    title_slug = slugify_title(title, remove_subtitle=False)
     return f"{domain}/{title_slug}-{highlight_id}"
 
 
@@ -87,8 +87,8 @@ def generate_slug_for_work(
 
     # Use title if available, otherwise fall back to URL for non-book types
     if item.title:
-        return slugify(item.title, remove_subtitle=remove_subtitle)
+        return slugify_title(item.title, remove_subtitle=remove_subtitle)
     elif url:
-        return slugify(url, remove_subtitle=False)
+        return slugify_title(url, remove_subtitle=False)
     else:
         raise ValueError("Cannot generate slug: item has no title or URL")

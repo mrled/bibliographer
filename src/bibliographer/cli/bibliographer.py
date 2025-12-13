@@ -59,7 +59,7 @@ from bibliographer.sources.raindrop import (
     process_raindrop_highlights,
     raindrop_retrieve_highlights,
 )
-from bibliographer.util.slugify import generate_slug_for_work, slugify
+from bibliographer.util.slugify import generate_slug_for_work, slugify_title
 
 
 def find_repo_root() -> Optional[pathlib.Path]:
@@ -796,7 +796,7 @@ def main(arguments: list[str]) -> int:
 
         elif args.subcommand == "slug":
             if args.slug_subcommand == "show":
-                print(slugify(args.title))
+                print(slugify_title(args.title))
             elif args.slug_subcommand == "rename":
                 rename_slug(catalog, slug_roots, args.old_slug, args.new_slug)
             elif args.slug_subcommand == "regenerate":
