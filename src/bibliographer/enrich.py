@@ -27,6 +27,34 @@ def get_slug_root_for_work(work_type: WorkType, slug_roots: Dict[str, pathlib.Pa
     return slug_roots.get(work_type, slug_roots["default"])
 
 
+def ensure_domain_index(content_root: pathlib.Path, work_dir: pathlib.Path) -> None:
+    """Create _index.md for domain directories (e.g., gwern.net/) if needed.
+
+    For slugs with a path separator (like gwern.net/some-article), this ensures
+    the parent domain directory exists and has an _index.md file.
+
+    Args:
+        content_root: The root directory for this content type (e.g., articles/).
+        work_dir: The full path to the work directory (e.g., articles/gwern.net/some-article/).
+    """
+    parent_dir = work_dir.parent
+    if parent_dir != content_root:
+        parent_dir.mkdir(parents=True, exist_ok=True)
+        index_path = parent_dir / "_index.md"
+        if not index_path.exists():
+            domain_name = parent_dir.name
+            local_now = datetime.datetime.now().astimezone()
+            tz_offset = local_now.strftime("%z")
+            tz_formatted = tz_offset[:3] + ":" + tz_offset[3:]
+            now = local_now.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + tz_formatted
+            index_content = f"""---
+title: "{domain_name} annotations"
+date: {now}
+---
+"""
+            index_path.write_text(index_content)
+
+
 def enrich_combined_library(
     catalog: CardCatalog,
     google_books_key: str,
@@ -157,6 +185,7 @@ def write_index_md_files(
             mlogger.debug(f"[index.md] already exists for {work.slug}, skipping...")
             continue
         mlogger.debug(f"[index.md] writing for {work.slug}...")
+        ensure_domain_index(content_root, work_dir)
         work_dir.mkdir(exist_ok=True, parents=True)
         if not index_md_path.exists():
             date_str = work.purchase_date or work.consumed_date or ""
@@ -257,22 +286,5 @@ def rename_slug(
     if new_slug_path.exists() and old_slug_path.exists():
         shutil.rmtree(old_slug_path)
     elif not new_slug_path.exists() and old_slug_path.exists():
-        # Create parent directories if needed (for slugs with / like gwern.net/foo)
-        parent_dir = new_slug_path.parent
-        if parent_dir != content_root:
-            parent_dir.mkdir(parents=True, exist_ok=True)
-            # Create _index.md for domain directories if it doesn't exist
-            index_path = parent_dir / "_index.md"
-            if not index_path.exists():
-                domain_name = parent_dir.name
-                local_now = datetime.datetime.now().astimezone()
-                tz_offset = local_now.strftime("%z")
-                tz_formatted = tz_offset[:3] + ":" + tz_offset[3:]
-                now = local_now.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + tz_formatted
-                index_content = f"""---
-title: "{domain_name} annotations"
-date: {now}
----
-"""
-                index_path.write_text(index_content)
+        ensure_domain_index(content_root, new_slug_path)
         old_slug_path.rename(new_slug_path)
