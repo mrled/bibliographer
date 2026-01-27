@@ -51,6 +51,42 @@ class TestSlugifyEdgeCases:
         assert slugify_title("The") == "the"
 
 
+class TestSlugifyMaxLength:
+    """Tests for maximum length truncation."""
+
+    def test_short_title_unchanged(self):
+        """Short titles should not be truncated."""
+        assert slugify_title("Short Title") == "short-title"
+
+    def test_long_title_truncated(self):
+        """Titles exceeding MAX_TITLE_SLUG_LENGTH should be truncated."""
+        # Create a title that will be much longer than 100 chars when slugified
+        long_title = "This is a very long article title that goes on and on and on and should definitely be truncated to prevent filesystem issues with excessively long filenames that nobody really needs anyway"
+        result = slugify_title(long_title)
+        assert len(result) <= 100
+        assert result.startswith("this-is-a-very-long")
+
+    def test_truncation_removes_trailing_hyphens(self):
+        """Truncation should not leave trailing hyphens."""
+        from bibliographer.util.slugify import MAX_TITLE_SLUG_LENGTH
+
+        # Create a string that's MAX_TITLE_SLUG_LENGTH + 1 chars, with a hyphen at position [MAX_TITLE_SLUG_LENGTH - 1]
+        # Structure: 'a' * (MAX_TITLE_SLUG_LENGTH - 1) + '-' + 'b'
+        long_title = "a" * (MAX_TITLE_SLUG_LENGTH - 1) + "-b"
+        result = slugify_title(long_title)
+        assert len(result) == MAX_TITLE_SLUG_LENGTH - 1  # Should be truncated and hyphen stripped
+        assert not result.endswith("-")
+        assert result == "a" * (MAX_TITLE_SLUG_LENGTH - 1)
+
+    def test_exactly_max_length_unchanged(self):
+        """Titles at exactly max length should not be modified."""
+        # Create exactly 100 character slug (e.g., "a" * 100)
+        exact_title = "a" * 100
+        result = slugify_title(exact_title)
+        assert len(result) == 100
+        assert result == "a" * 100
+
+
 class TestGenerateRaindropSlug:
     """Tests for raindrop slug generation."""
 

@@ -7,6 +7,10 @@ from urllib.parse import urlparse
 if TYPE_CHECKING:
     from bibliographer.cardcatalog import CombinedCatalogWork
 
+# Maximum length for the title slug portion of a filename
+# This prevents excessively long filenames while keeping them descriptive
+MAX_TITLE_SLUG_LENGTH = 100
+
 
 def slugify_title(title: str, remove_subtitle: bool = True) -> str:
     """
@@ -16,6 +20,7 @@ def slugify_title(title: str, remove_subtitle: bool = True) -> str:
     - Remove punctuation
     - Replace spaces with hyphens
     - Remove leading 'the' if present
+    - Truncate to MAX_TITLE_SLUG_LENGTH characters
     """
     out = title.lower()
     if remove_subtitle:
@@ -25,7 +30,13 @@ def slugify_title(title: str, remove_subtitle: bool = True) -> str:
     out = re.sub(r"^a\s+", "", out)  # remove leading 'a '
     out = re.sub(r"\s+", "-", out)  # convert spaces to hyphens
     out = re.sub(r"-+", "-", out)  # collapse multiple hyphens
-    return out.strip("-")
+    out = out.strip("-")
+
+    # Truncate to max length and remove any trailing hyphens from truncation
+    if len(out) > MAX_TITLE_SLUG_LENGTH:
+        out = out[:MAX_TITLE_SLUG_LENGTH].rstrip("-")
+
+    return out
 
 
 def generate_raindrop_slug(url: str, title: str, highlight_id: str) -> str:
