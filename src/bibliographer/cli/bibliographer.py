@@ -2,6 +2,7 @@
 import argparse
 import dataclasses
 import logging
+import os
 import pathlib
 import subprocess
 import sys
@@ -499,20 +500,26 @@ def parseargs(arguments: List[str]):
     parsed.config_version = detect_config_version(parsed.config, config_data)
     print(f"Detected config file version: {parsed.config_version}")
 
-    # Handle scalars directly
+    # Handle scalars directly; precedence: CLI > env var > config file > default
+    env_values = {}
     for param in ConfigurationParameterSet.scalars():
         clival = getattr(parsed, param.key)
+        envval = os.environ.get(f"BIBLIOGRAPHER_{param.key.upper()}")
+        if envval:
+            env_values[param.key] = envval
         if clival:
             setattr(parsed, param.key, clival)
+        elif envval:
+            setattr(parsed, param.key, param.vtype(envval))
         elif param.key in config_data:
             setattr(parsed, param.key, param.vtype(config_data[param.key]))
         else:
             setattr(parsed, param.key, param.default)
 
-    # For key/cmd pairs, if either was set on CLI, the CLI wins entirely:
-    # clear any config-derived value on the other member of the pair.
+    # For key/cmd pairs, if either was set on CLI or env var, that source wins entirely:
+    # clear any lower-precedence value on the other member of the pair.
     # Without this, e.g. CLI --audible-auth-password-cmd + config audible_auth_password
-    # would result in the config direct value silently winning in SecretValueGetter.
+    # would result in the lower-precedence direct value silently winning in SecretValueGetter.
     secret_pairs = [
         ("google_books_key", "google_books_key_cmd"),
         ("audible_auth_password", "audible_auth_password_cmd"),
@@ -522,9 +529,15 @@ def parseargs(arguments: List[str]):
     for key, cmd in secret_pairs:
         key_from_cli = key in cli_values
         cmd_from_cli = cmd in cli_values
+        key_from_env = key in env_values
+        cmd_from_env = cmd in env_values
         if key_from_cli and not cmd_from_cli:
             setattr(parsed, cmd, "")
         elif cmd_from_cli and not key_from_cli:
+            setattr(parsed, key, "")
+        elif key_from_env and not cmd_from_env:
+            setattr(parsed, cmd, "")
+        elif cmd_from_env and not key_from_env:
             setattr(parsed, key, "")
 
     # Handle paths specially,

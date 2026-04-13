@@ -374,6 +374,14 @@ bibliographer_data_root = "bibliographer/data"
 ```
 <!--[[[end]]]-->
 
+### Environment variables
+
+All config file options can also be set via environment variables.
+The variable name is `BIBLIOGRAPHER_` followed by the option name in uppercase,
+e.g. `BIBLIOGRAPHER_RAINDROP_TOKEN` or `BIBLIOGRAPHER_BIBLIOGRAPHER_DATA_ROOT`.
+
+Precedence is: command-line argument > environment variable > config file > default.
+
 ### API cache files
 
 Results from external APIs are stored in `{bibliographer_data}/apicache/*.json` files.
