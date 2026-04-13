@@ -483,6 +483,9 @@ def parseargs(arguments: List[str]):
 
     parsed = parsers.parser.parse_args(arguments)
 
+    # Snapshot raw CLI values before config is applied, to know what the user explicitly passed
+    cli_values = {k: v for k, v in vars(parsed).items() if v}
+
     if not parsed.config:
         parsed.config = find_config_file()
 
@@ -505,6 +508,24 @@ def parseargs(arguments: List[str]):
             setattr(parsed, param.key, param.vtype(config_data[param.key]))
         else:
             setattr(parsed, param.key, param.default)
+
+    # For key/cmd pairs, if either was set on CLI, the CLI wins entirely:
+    # clear any config-derived value on the other member of the pair.
+    # Without this, e.g. CLI --audible-auth-password-cmd + config audible_auth_password
+    # would result in the config direct value silently winning in SecretValueGetter.
+    secret_pairs = [
+        ("google_books_key", "google_books_key_cmd"),
+        ("audible_auth_password", "audible_auth_password_cmd"),
+        ("librofm_password", "librofm_password_cmd"),
+        ("raindrop_token", "raindrop_token_cmd"),
+    ]
+    for key, cmd in secret_pairs:
+        key_from_cli = key in cli_values
+        cmd_from_cli = cmd in cli_values
+        if key_from_cli and not cmd_from_cli:
+            setattr(parsed, cmd, "")
+        elif cmd_from_cli and not key_from_cli:
+            setattr(parsed, key, "")
 
     # Handle paths specially,
     # so that relative paths in the config file are resolved relative to the config file's directory
